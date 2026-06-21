@@ -1,0 +1,314 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+  body {
+    @apply font-sans bg-zinc-50 text-zinc-900 antialiased;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    accent-color: #632CA6;
+  }
+
+  /* Consistent focus ring */
+  :focus-visible {
+    @apply outline-2 outline-offset-2 outline-purple-500/50;
+    outline-style: solid;
+  }
+}
+
+@layer components {
+  /* Skeleton shimmer */
+  .skeleton {
+    @apply relative overflow-hidden bg-zinc-200/50 rounded-lg;
+  }
+  .skeleton::after {
+    content: '';
+    @apply absolute inset-0 -translate-x-full;
+    background-image: linear-gradient(
+      90deg,
+      transparent 0%,
+      rgba(255, 255, 255, 0.55) 50%,
+      transparent 100%
+    );
+    animation: shimmer 2s infinite;
+  }
+
+  /* Glass panel */
+  .glass-panel {
+    @apply bg-white/80 backdrop-blur-xl border border-white/20;
+    box-shadow:
+      inset 0 1px 0 rgba(255,255,255,0.4),
+      0 20px 40px -15px rgba(0,0,0,0.06);
+  }
+
+  /* Card surface — consistent look across all pages */
+  .card-surface {
+    @apply bg-white border border-zinc-200 rounded-lg;
+  }
+
+  /* KPI stat card */
+  .stat-card {
+    @apply bg-white border border-zinc-200 rounded-lg px-4 py-3;
+  }
+
+  /* Split-screen auth layout */
+  .auth-split {
+    @apply min-h-[100dvh] grid grid-cols-1 lg:grid-cols-[1fr_1.2fr];
+  }
+}
+
+/* ── Keyframes ── */
+@keyframes shimmer {
+  100% { transform: translateX(100%); }
+}
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes pulseSoft {
+  0%, 100% { opacity: 1; }
+  50%      { opacity: 0.4; }
+}
+@keyframes flameTooltipIn {
+  from { opacity: 0; transform: translateY(4px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ── Utilities ── */
+@layer utilities {
+  .btn-tactile:active {
+    transform: translateY(1px) scale(0.98);
+  }
+}
+
+/* ── Stagger cascade ── */
+.stagger-children > * {
+  opacity: 0;
+  animation: slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+.stagger-children > *:nth-child(1) { animation-delay: 0ms; }
+.stagger-children > *:nth-child(2) { animation-delay: 60ms; }
+.stagger-children > *:nth-child(3) { animation-delay: 120ms; }
+.stagger-children > *:nth-child(4) { animation-delay: 180ms; }
+.stagger-children > *:nth-child(5) { animation-delay: 240ms; }
+.stagger-children > *:nth-child(6) { animation-delay: 300ms; }
+.stagger-children > *:nth-child(7) { animation-delay: 360ms; }
+.stagger-children > *:nth-child(8) { animation-delay: 420ms; }
+
+/* ── Live indicator ── */
+.dot-live {
+  animation: pulseSoft 2s ease-in-out infinite;
+}
+
+/* ── Host map hex hover glow ── */
+.hex-glow {
+  filter: drop-shadow(0 0 6px rgba(99, 44, 166, 0.3));
+  transition: filter 0.15s ease;
+}
+.hex-glow:hover {
+  filter: drop-shadow(0 0 12px rgba(99, 44, 166, 0.5));
+}
+
+/* ── Datadog-inspired host row ── */
+.host-row {
+  transition: background-color 0.12s ease, box-shadow 0.12s ease;
+}
+.host-row:hover {
+  background-color: rgba(99, 44, 166, 0.03);
+  box-shadow: inset 0 0 0 1px rgba(99, 44, 166, 0.08);
+}
+
+/* ── Segmented control (pill-style toggle) ── */
+.segmented-control {
+  @apply flex items-center bg-zinc-100 rounded-lg p-0.5;
+}
+.segmented-control button {
+  @apply px-3 py-1.5 text-xs font-medium rounded-md transition-all duration-150;
+}
+.segmented-control button.active {
+  @apply bg-white text-zinc-800 shadow-sm;
+}
+.segmented-control button:not(.active) {
+  @apply text-zinc-500 hover:text-zinc-700;
+}
+
+/* ── Metric chip ── */
+.metric-chip {
+  @apply inline-flex items-center gap-1 px-2 py-0.5 text-[10px] font-medium rounded-full;
+}
+.metric-chip-green {
+  @apply bg-emerald-50 text-emerald-600;
+}
+.metric-chip-amber {
+  @apply bg-amber-50 text-amber-600;
+}
+.metric-chip-red {
+  @apply bg-red-50 text-red-600;
+}
+.metric-chip-zinc {
+  @apply bg-zinc-100 text-zinc-500;
+}
+
+/* ── Stat tile hover lift ── */
+.stat-tile-hover {
+  @apply transition-all duration-200 ease-spring;
+}
+.stat-tile-hover:hover {
+  @apply -translate-y-0.5 shadow-elevated;
+}
+
+/* ── Card surface hover ── */
+.card-hover {
+  @apply transition-shadow duration-200;
+}
+.card-hover:hover {
+  @apply shadow-md;
+}
+
+/* ── Gradient page header strip ── */
+.page-header-strip {
+  background: linear-gradient(180deg, rgba(99,44,166,0.03) 0%, transparent 100%);
+}
+
+/* ── Animate chevron ── */
+.chevron-animate {
+  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.chevron-animate.open {
+  transform: rotate(180deg);
+}
+
+/* ── Panel slide-in ── */
+@keyframes slideLeft {
+  from { transform: translateX(100%); }
+  to { transform: translateX(0); }
+}
+.animate-slide-left {
+  animation: slideLeft 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* ── Spring easing utility ── */
+.ease-spring {
+  transition-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* ── Ant Design table overrides ── */
+.api-keys-table .ant-table { font-size: 13px; }
+.api-keys-table .ant-table-thead > tr > th {
+  @apply bg-zinc-50 text-xs font-medium text-zinc-500 uppercase tracking-wider border-b border-zinc-200;
+  padding: 12px 16px;
+}
+.api-keys-table .ant-table-tbody > tr > td {
+  padding: 12px 16px;
+  border-color: #f4f4f5;
+}
+.api-keys-table .ant-table-tbody > tr:hover > td {
+  @apply bg-zinc-50/80;
+}
+.api-keys-table .ant-table-tbody > tr {
+  transition: background 0.15s ease;
+}
+
+.apm-table .ant-table { font-size: 13px; }
+.apm-table .ant-table-thead > tr > th {
+  @apply bg-zinc-50 text-xs font-medium text-zinc-500 uppercase tracking-wider border-b border-zinc-200;
+  padding: 10px 16px;
+}
+.apm-table .ant-table-tbody > tr > td {
+  padding: 10px 16px;
+  border-color: #f4f4f5;
+}
+.apm-table .ant-table-tbody > tr:hover > td {
+  @apply bg-zinc-50/80;
+}
+.apm-table .ant-table-tbody > tr {
+  transition: background 0.15s ease;
+}
+
+/* ── Dark mode overrides ── */
+.dark .card-surface,
+.dark .card-hover,
+.dark .stat-card {
+  @apply bg-zinc-900 border-zinc-800;
+}
+
+.dark .host-row:hover {
+  background-color: rgba(99, 44, 166, 0.08);
+}
+
+.dark .host-row-selected {
+  background-color: #1E1035;
+}
+
+.dark .skeleton {
+  @apply bg-zinc-800/50;
+}
+
+.dark .skeleton::after {
+  background-image: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.05) 50%,
+    transparent 100%
+  );
+}
+
+.dark .btn-tactile:active {
+  transform: translateY(1px) scale(0.98);
+}
+
+/* Ant Design dark overrides */
+.dark .ant-select .ant-select-selector {
+  @apply bg-zinc-900 border-zinc-700 text-zinc-200;
+}
+
+.dark .ant-select-dropdown {
+  @apply bg-zinc-900 border-zinc-700;
+}
+
+.dark .ant-select-item {
+  @apply text-zinc-300;
+}
+
+.dark .ant-select-item:hover,
+.dark .ant-select-item-option-active {
+  @apply bg-zinc-800;
+}
+
+.dark .ant-btn {
+  @apply border-zinc-700 text-zinc-300 bg-zinc-900;
+}
+
+.dark .ant-btn:hover {
+  @apply border-zinc-600 text-zinc-100;
+}
+
+.dark .ant-message .ant-message-notice-content {
+  @apply bg-zinc-800 text-zinc-200 border border-zinc-700;
+}
+
+.dark .ant-modal-content {
+  @apply bg-zinc-900 border border-zinc-700;
+}
+
+.dark .ant-modal-header {
+  @apply bg-zinc-900 border-zinc-700;
+}
+
+.dark .ant-modal-title {
+  @apply text-zinc-200;
+}
+
+.dark .ant-input {
+  @apply bg-zinc-900 border-zinc-700 text-zinc-200;
+}
+
+.dark .ant-input:focus {
+  @apply border-brand-600;
+}

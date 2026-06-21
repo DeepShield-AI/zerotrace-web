@@ -1,0 +1,61 @@
+# Dependencies
+node_modules/
+frontend/node_modules/
+
+# Rust build artifacts
+backend/target/
+**/*.rs.bk
+
+# Logs
+*.log
+backend/log/
+logs/
+
+# Binary installers (large files)
+backend/agent-installer/binaries/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# Build outputs
+dist/
+build/
+frontend/dist/
+
+# Generated / temp files
+pptx_images/
+screenshots/
+skills-lock.json
+*.pptx
+*.md
+
+# Claude internal
+.claude/
+
+# Agent binaries / installers
+agent/
+agents/
+
+# Cache
+.cache/
+.eslintcache
+
+
+log/
+
+# SQLite databases
+*.db
+*.db-shm
+*.db-wal
