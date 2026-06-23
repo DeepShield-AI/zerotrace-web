@@ -53,7 +53,10 @@ async fn main() -> anyhow::Result<()> {
         .route("/api/v1/auth/logout", post(auth::logout))
         .route("/api/v1/auth/me", get(auth::me))
         .route("/agent/install.sh", get(installer::serve_install_script))
-        .nest_service("/agent/binaries", ServeDir::new(concat!(env!("CARGO_MANIFEST_DIR"), "/agent-installer/binaries")));
+        .nest_service("/agent/binaries", ServeDir::new(
+            std::env::var("BINARIES_DIR")
+                .unwrap_or_else(|_| concat!(env!("CARGO_MANIFEST_DIR"), "/agent-installer/binaries").to_string())
+        ));
 
     // Protected routes
     let protected_routes = Router::new()

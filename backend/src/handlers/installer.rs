@@ -5,36 +5,51 @@ use axum::{
 use std::path::PathBuf;
 use tokio::fs;
 
-/// Absolute paths resolved at compile time relative to the backend crate root.
-const SCRIPTS_DIR: &str = concat!(env!("CARGO_MANIFEST_DIR"), "/agent-installer/scripts");
 const INSTALL_SCRIPT: &str = "install.sh";
+
+/// Resolve scripts directory at runtime via env var, falling back to
+/// the compile-time CARGO_MANIFEST_DIR for local development.
+fn scripts_dir() -> PathBuf {
+    std::env::var("SCRIPTS_DIR")
+        .map(PathBuf::from)
+        .unwrap_or_else(|_| {
+            PathBuf::from(concat!(
+                env!("CARGO_MANIFEST_DIR"),
+                "/agent-installer/scripts"
+            ))
+        })
+}
 
 /// GET /agent/install.sh
 ///
-/// Reads the install script from disk, prepends a dynamically-resolved
-/// `SERVER_URL` so the script knows where to download binaries from,
-/// and returns it as `text/x-shellscript`.
+/// Reads the install script from disk, prepends dynamically-resolved
+/// `SERVER_URL` and `ZEROTRACE_CONTROLLER_IP` so the script points to
+/// the correct endpoints, and returns it as `text/x-shellscript`.
 pub async fn serve_install_script(
     headers: HeaderMap,
 ) -> Result<Response, InstallerError> {
-    let script_path = PathBuf::from(SCRIPTS_DIR).join(INSTALL_SCRIPT);
+    let script_path = scripts_dir().join(INSTALL_SCRIPT);
 
     let content = fs::read_to_string(&script_path).await.map_err(|e| {
         tracing::error!("Failed to read install script {:?}: {}", script_path, e);
         InstallerError::NotFound
     })?;
 
-    // Build the server URL and controller IP from the Host header
-    // so the script automatically points to the right addresses.
+    // SERVER_URL → where to download the agent binary (always this web server).
     let host = headers
         .get(header::HOST)
         .and_then(|v| v.to_str().ok())
         .unwrap_or("localhost");
-    // Host header includes port (e.g. "worker1:5173"), strip it for IP-only uses.
-    let host_ip = host.split(':').next().unwrap_or(host);
-    let scheme = "http";
-    let server_url = format!("{}://{}", scheme, host);
-    let controller_ip = host_ip;
+    let server_url = format!("http://{}", host);
+
+    // ZEROTRACE_CONTROLLER_IP → where the agent connects (the server machine).
+    // Use CONTROLLER_IP env var if set, otherwise fall back to the Host header IP.
+    let controller_ip = std::env::var("CONTROLLER_IP")
+        .ok()
+        .filter(|v| !v.is_empty())
+        .unwrap_or_else(|| {
+            host.split(':').next().unwrap_or("localhost").to_string()
+        });
 
     // Prepend env overrides so install.sh picks up the dynamic values.
     let script = format!(

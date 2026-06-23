@@ -30,7 +30,7 @@ function buildInstallCmd(p: Platform, host: string): string {
       return [
         '# The script auto-detects OS/arch and configures the controller address.',
         '# ZEROTRACE_CONTROLLER_IP and SERVER_URL are derived from the download host.',
-        'curl -fsSL http://' + host + ':3001/agent/install.sh | bash',
+        'curl -fsSL http://' + window.location.host + '/agent/install.sh | bash',
       ].join('\n');
     case 'docker':
       return [
@@ -281,7 +281,7 @@ export default function AgentSetup() {
   const [newKeyName, setNewKeyName] = useState('');
   const [newKeyValue, setNewKeyValue] = useState('');
 
-  const host = '202.112.237.37';
+  const host = window.location.hostname;
   const hasKey = !!selectedKeyValue;
 
   useEffect(() => { loadKeys(); }, []);
