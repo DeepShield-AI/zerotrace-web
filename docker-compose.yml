@@ -26,4 +26,6 @@ services:
 
 networks:
   zerotrace:
+    name: zerotrace
+    driver: bridge
     external: true
