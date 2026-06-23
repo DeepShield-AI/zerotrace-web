@@ -17,6 +17,7 @@ services:
       SESSION_COOKIE_NAME: zt_session
       BIND_ADDR: 0.0.0.0:3001
       STATIC_DIR: /app/static
+      CONTROLLER_IP: ${CONTROLLER_IP:-}
       RUST_LOG: info
       TZ: Asia/Shanghai
     ports:

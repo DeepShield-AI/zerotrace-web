@@ -28,6 +28,8 @@ COPY build/migrations/ /app/migrations/
 COPY build/agent-installer/ /app/agent-installer/
 
 ENV STATIC_DIR=/app/static
+ENV SCRIPTS_DIR=/app/agent-installer/scripts
+ENV BINARIES_DIR=/app/agent-installer/binaries
 
 EXPOSE 3001
 
