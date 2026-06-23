@@ -20,11 +20,7 @@ pub struct AuthContext {
 
 /// Implement FromRequestParts so handlers can extract AuthContext directly.
 /// The middleware must have already inserted it into request extensions.
-#[axum::async_trait]
-impl<S> axum::extract::FromRequestParts<S> for AuthContext
-where
-    S: Send + Sync,
-{
+impl<S: Send + Sync + 'static> axum::extract::FromRequestParts<S> for AuthContext {
     type Rejection = AppError;
 
     async fn from_request_parts(

@@ -3,7 +3,7 @@ use aes_gcm::{
     Aes256Gcm, Nonce,
 };
 use base64::{engine::general_purpose::STANDARD as BASE64, Engine};
-use rand::Rng;
+use rand::RngExt;
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
 use sqlx::MySqlPool;
@@ -21,7 +21,7 @@ fn encryption_key() -> [u8; 32] {
 fn encrypt_key(raw: &str) -> Result<String, String> {
     let cipher = Aes256Gcm::new_from_slice(&encryption_key()).map_err(|e| format!("cipher: {}", e))?;
     let mut nonce_bytes = [0u8; 12];
-    rand::thread_rng().fill(&mut nonce_bytes);
+    rand::rng().fill(&mut nonce_bytes);
     let nonce = Nonce::from_slice(&nonce_bytes);
     let ciphertext = cipher.encrypt(nonce, raw.as_bytes()).map_err(|e| format!("encrypt: {}", e))?;
     let mut combined = nonce_bytes.to_vec();
@@ -73,7 +73,7 @@ impl From<ApiKey> for ApiKeyRow {
 
 impl ApiKey {
     pub fn generate_key() -> String {
-        format!("zt_{}", hex::encode(rand::random::<[u8; 32]>()))
+        format!("zt_{}", hex::encode(rand::rng().random::<[u8; 32]>()))
     }
 
     pub fn hash_key(key: &str) -> String {

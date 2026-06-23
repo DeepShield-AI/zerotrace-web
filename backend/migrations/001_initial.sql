@@ -1,40 +1,48 @@
--- Zerotrace Web Auth — MySQL (same database as zerotrace-server: deepflow)
-
+-- Zerotrace Web Auth — MySQL (production)
 CREATE TABLE IF NOT EXISTS organizations (
-    id          BIGINT AUTO_INCREMENT PRIMARY KEY,
-    name        VARCHAR(255) NOT NULL,
-    slug        VARCHAR(255) NOT NULL UNIQUE,
-    created_at  DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    updated_at  DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+    id          INT PRIMARY KEY AUTO_INCREMENT,
+    name        VARCHAR(256) NOT NULL,
+    slug        VARCHAR(256) NOT NULL UNIQUE,
+    created_at  TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at  TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
 
 CREATE TABLE IF NOT EXISTS web_users (
-    id              BIGINT AUTO_INCREMENT PRIMARY KEY,
-    org_id          BIGINT NOT NULL,
-    email           VARCHAR(255) NOT NULL,
-    password_hash   VARCHAR(255) NOT NULL,
-    name            VARCHAR(255) NOT NULL DEFAULT '',
-    role            VARCHAR(50) NOT NULL DEFAULT 'admin',
-    status          VARCHAR(50) NOT NULL DEFAULT 'active',
-    created_at      DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    updated_at      DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    UNIQUE KEY uk_org_email (org_id, email)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+    id              INT PRIMARY KEY AUTO_INCREMENT,
+    org_id          INT NOT NULL,
+    email           VARCHAR(256) NOT NULL,
+    password_hash   VARCHAR(256) NOT NULL,
+    name            VARCHAR(256) NOT NULL DEFAULT '',
+    role            VARCHAR(64) NOT NULL DEFAULT 'admin',
+    status          VARCHAR(64) NOT NULL DEFAULT 'active',
+    created_at      TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at      TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    UNIQUE KEY uq_org_email (org_id, email)
+);
 
--- Extend DeepFlow's api_keys table with web UI columns.
--- DeepFlow reads: id, user_id, key_hash, label, created_at, revoked_at
-ALTER TABLE api_keys ADD COLUMN org_id BIGINT NOT NULL DEFAULT 1;
-ALTER TABLE api_keys ADD COLUMN name VARCHAR(255) NOT NULL DEFAULT '';
-ALTER TABLE api_keys ADD COLUMN key_encrypted TEXT NOT NULL;
-ALTER TABLE api_keys ADD COLUMN key_prefix VARCHAR(20) NOT NULL DEFAULT '';
-ALTER TABLE api_keys ADD COLUMN scopes TEXT NOT NULL;
-ALTER TABLE api_keys ADD COLUMN last_used_at DATETIME NULL;
+-- api_keys already exists in deepflow from server DDL — skip creation
+CREATE TABLE IF NOT EXISTS api_keys (
+    id              INT PRIMARY KEY AUTO_INCREMENT,
+    org_id          INT NOT NULL DEFAULT 1,
+    user_id         INT NOT NULL DEFAULT 0,
+    name            VARCHAR(256) NOT NULL DEFAULT '',
+    key_hash        CHAR(64) NOT NULL,
+    key_encrypted   TEXT NOT NULL,
+    key_prefix      VARCHAR(32) NOT NULL DEFAULT '',
+    scopes          TEXT NOT NULL,
+    label           VARCHAR(256) DEFAULT '',
+    last_used_at    TIMESTAMP NULL,
+    created_at      TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    revoked_at      TIMESTAMP NULL
+);
 
 CREATE TABLE IF NOT EXISTS sessions (
-    id              VARCHAR(36) PRIMARY KEY,
-    user_id         BIGINT NOT NULL,
-    org_id          BIGINT NOT NULL,
+    id              VARCHAR(256) PRIMARY KEY,
+    user_id         INT NOT NULL,
+    org_id          INT NOT NULL,
     data            TEXT NOT NULL,
-    expires_at      DATETIME NOT NULL,
-    created_at      DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+    expires_at      TIMESTAMP NOT NULL,
+    created_at      TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+INSERT IGNORE INTO organizations (id, name, slug) VALUES (1, 'Default', 'default'), (2, 'ZeroTrace', 'zerotrace');

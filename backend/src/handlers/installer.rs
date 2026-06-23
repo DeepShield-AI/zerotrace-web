@@ -24,22 +24,25 @@ pub async fn serve_install_script(
         InstallerError::NotFound
     })?;
 
-    // Build the server URL from the Host header so the script
-    // automatically downloads binaries from the same server.
+    // Build the server URL and controller IP from the Host header
+    // so the script automatically points to the right addresses.
     let host = headers
         .get(header::HOST)
         .and_then(|v| v.to_str().ok())
         .unwrap_or("localhost");
+    // Host header includes port (e.g. "worker1:5173"), strip it for IP-only uses.
+    let host_ip = host.split(':').next().unwrap_or(host);
     let scheme = "http";
     let server_url = format!("{}://{}", scheme, host);
+    let controller_ip = host_ip;
 
-    // Prepend SERVER_URL override so the script uses us as binary repo.
+    // Prepend env overrides so install.sh picks up the dynamic values.
     let script = format!(
-        "SERVER_URL=${{SERVER_URL:-\"{}\"}}\n{}",
-        server_url, content
+        "SERVER_URL=${{SERVER_URL:-\"{}\"}}\nZEROTRACE_CONTROLLER_IP=${{ZEROTRACE_CONTROLLER_IP:-\"{}\"}}\n{}",
+        server_url, controller_ip, content
     );
 
-    tracing::info!("Served install.sh (server_url={})", server_url);
+    tracing::info!("Served install.sh (server_url={}, controller_ip={})", server_url, controller_ip);
 
     Ok(Response::builder()
         .status(StatusCode::OK)

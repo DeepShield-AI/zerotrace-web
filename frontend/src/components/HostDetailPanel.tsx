@@ -208,8 +208,8 @@ export default function HostDetailPanel({
     const ts = flowRate.map(p => { try { return p.ts ? p.ts.slice(11, 16) : ''; } catch { return ''; } });
     return {
       flowRateData: flowRate.map(p => p.cnt || 0),
-      bwData: (l4Bandwidth || []).map(p => (p.tx || 0) + (p.rx || 0)),
-      l7Data: (l7Rate || []).map(p => p.cnt || 0),
+      bwData: (l4Bandwidth || []).map(p => Number(p.tx || 0) + Number(p.rx || 0)),
+      l7Data: (l7Rate || []).map(p => Number(p.cnt || 0)),
       timestamps: ts,
     };
   }, [flowRate, l4Bandwidth, l7Rate]);
@@ -229,7 +229,7 @@ export default function HostDetailPanel({
   const statusLabel = on ? 'Online' : 'Offline';
   const statusColor = on ? '#22c55e' : '#ef4444';
   const l4FlowCount = l4Stats?.cnt;
-  const l4TotalBandwidth = (l4Stats?.tx || 0) + (l4Stats?.rx || 0);
+  const l4TotalBandwidth = Number(l4Stats?.tx || 0) + Number(l4Stats?.rx || 0);
   const l7ReqCount = l7Stats?.cnt;
   const l7AvgLatency = topL7AvgLatency;
 

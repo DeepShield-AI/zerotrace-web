@@ -133,16 +133,16 @@ export default function StatsBar({ stats, loading }: StatsBarProps) {
     );
   }
 
-  // Sparkline data (last 30 points)
-  const flowSparkline = flowRate?.slice(-30).map(p => p.cnt || 0) || [];
-  const bwSparkline = l4Bandwidth?.slice(-30).map(p => (p.tx || 0) + (p.rx || 0)) || [];
-  const l7Sparkline = l7Rate?.slice(-30).map(p => p.cnt || 0) || [];
+  // Sparkline data (last 30 points) — ClickHouse returns strings, must coerce
+  const flowSparkline = flowRate?.slice(-30).map(p => Number(p.cnt || 0)) || [];
+  const bwSparkline = l4Bandwidth?.slice(-30).map(p => Number(p.tx || 0) + Number(p.rx || 0)) || [];
+  const l7Sparkline = l7Rate?.slice(-30).map(p => Number(p.cnt || 0)) || [];
 
   const lastBw = l4Bandwidth.length > 0
-    ? (l4Bandwidth[l4Bandwidth.length - 1].tx || 0) + (l4Bandwidth[l4Bandwidth.length - 1].rx || 0)
+    ? Number(l4Bandwidth[l4Bandwidth.length - 1].tx || 0) + Number(l4Bandwidth[l4Bandwidth.length - 1].rx || 0)
     : 0;
-  const lastL7 = l7Rate.length > 0 ? l7Rate[l7Rate.length - 1].cnt || 0 : 0;
-  const lastFlow = flowRate.length > 0 ? flowRate[flowRate.length - 1].cnt || 0 : 0;
+  const lastL7 = l7Rate.length > 0 ? Number(l7Rate[l7Rate.length - 1].cnt || 0) : 0;
+  const lastFlow = flowRate.length > 0 ? Number(flowRate[flowRate.length - 1].cnt || 0) : 0;
 
   return (
     <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-4">
@@ -150,7 +150,7 @@ export default function StatsBar({ stats, loading }: StatsBarProps) {
         label={t('statsBar.l4Bandwidth')}
         value={fmtB(lastBw)}
         unit="/s"
-        sub={t('statsBar.l4BandwidthSub', { total: fmtB(l4.tx + l4.rx) })}
+        sub={t('statsBar.l4BandwidthSub', { total: fmtB(Number(l4.tx || 0) + Number(l4.rx || 0)) })}
         sparklineData={bwSparkline}
         color="#2DB88D"
       />

@@ -12,9 +12,8 @@ pub struct Config {
 impl Config {
     pub fn from_env() -> Self {
         Self {
-            // Same MySQL database that zerotrace-server uses for api_keys auth.
-            // zerotrace-server reads api_keys from the 'deepflow' MySQL database.
-            // Format: mysql://user:password@host:port/database
+            // MySQL database — requires external server.
+            // Override with DATABASE_URL env var for production.
             database_url: env::var("DATABASE_URL").unwrap_or_else(|_| {
                 "mysql://root:deepflow@127.0.0.1:30130/deepflow".to_string()
             }),
