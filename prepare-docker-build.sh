@@ -30,12 +30,12 @@ echo "    Binary: $(ls -lh "$BINARY" | awk '{print $5}')"
 
 # --- glibc runtime libraries ---
 echo "==> Collecting glibc runtime libraries..."
-for lib in libgcc_s.so.1 libm.so.6 libc.so.6; do
+for lib in libgcc_s.so.1 libm.so.6 libc.so.6 libpthread.so.0 libdl.so.2 librt.so.1 libresolv.so.2 libunwind.so.8 libunwind-x86_64.so.8 liblzma.so.5 libzstd.so.1; do
     cp -L "/usr/lib/x86_64-linux-gnu/$lib" "$BUILD_DIR/libs/" 2>/dev/null || {
         cp -L "/lib/x86_64-linux-gnu/$lib" "$BUILD_DIR/libs/" 2>/dev/null
-    }
+    } || true
 done
-cp -L "/lib64/ld-linux-x86-64.so.2" "$BUILD_DIR/ld-linux-x86-64.so.2"
+cp -L "/lib64/ld-linux-x86-64.so.2" "$BUILD_DIR/ld-linux-x86-64.so.2" 2>/dev/null || true
 echo "    Libs size: $(du -sh "$BUILD_DIR/libs" | awk '{print $1}')"
 
 # --- Frontend dist ---
