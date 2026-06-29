@@ -4,13 +4,14 @@ mod detector;
 mod rca;
 pub mod types;
 
-use axum::{extract::State, response::IntoResponse, Json};
-use std::collections::HashMap;
-use std::sync::{Arc, OnceLock};
+use crate::{clickhouse, errors::AppError, middleware::auth::AuthContext};
+use axum::{Json, extract::State, response::IntoResponse};
+use std::{
+    collections::HashMap,
+    sync::{Arc, OnceLock},
+};
 use tokio::sync::Mutex;
 use tracing;
-
-use crate::errors::AppError;
 use types::{
     AnalyzeRequest, AnalyzeResponse, ServiceMetricsTs, Story, StoryListResponse, StorySummary,
 };
@@ -49,9 +50,11 @@ fn default_window() -> (i64, i64) {
 /// POST /api/v1/guardian/analyze
 pub async fn guardian_analyze(
     State(_pool): State<crate::db::DbPool>,
+    auth: AuthContext,
     Json(req): Json<AnalyzeRequest>,
 ) -> Result<impl IntoResponse, AppError> {
     let client = ch_client()?;
+    let db = clickhouse::effective_flow_log_db(auth.org_id);
     let (start, end) = match (req.start, req.end) {
         (Some(s), Some(e)) => (s, e),
         _ => default_window(),
@@ -67,25 +70,28 @@ pub async fn guardian_analyze(
     };
 
     tracing::info!(
-        start, end, window_secs, interval_secs,
+        start,
+        end,
+        window_secs,
+        interval_secs,
+        org_id = auth.org_id,
         "Guardian analysis started"
     );
 
     // ── Step 1: Fetch current window metrics ──
     let current_metrics: Vec<ServiceMetricsTs> =
-        baseline::fetch_service_metrics(&client, start, end, interval_secs).await;
+        baseline::fetch_service_metrics(&client, start, end, interval_secs, &db).await;
 
     // ── Step 2: Fetch historical baseline (previous period of same length) ──
     let baseline_start = start - window_secs;
     let baseline_end = start;
     let baseline_metrics =
-        baseline::fetch_service_metrics(&client, baseline_start, baseline_end, interval_secs).await;
+        baseline::fetch_service_metrics(&client, baseline_start, baseline_end, interval_secs, &db)
+            .await;
 
     // Build a lookup map for baseline by service
-    let baseline_map: HashMap<String, ServiceMetricsTs> = baseline_metrics
-        .into_iter()
-        .map(|m| (m.service_name.clone(), m))
-        .collect();
+    let baseline_map: HashMap<String, ServiceMetricsTs> =
+        baseline_metrics.into_iter().map(|m| (m.service_name.clone(), m)).collect();
 
     // ── Step 3: Compute baselines and detect anomalies ──
     let mut all_anomalies = Vec::new();
@@ -111,7 +117,7 @@ pub async fn guardian_analyze(
     );
 
     // ── Step 4: Fetch topology for correlation ──
-    let edges = correlator::fetch_topology(&client, start, end).await;
+    let edges = correlator::fetch_topology(&client, start, end, &db).await;
 
     // ── Step 5: Correlate anomalies ──
     let correlation = correlator::correlate_anomalies(&all_anomalies, &edges, 300); // 5-min window
@@ -131,6 +137,7 @@ pub async fn guardian_analyze(
             analyzed_count,
             i + 1,
             end,
+            auth.org_id,
         );
         stories.push(story);
     }
@@ -154,13 +161,16 @@ pub async fn guardian_analyze(
     }))
 }
 
-/// GET /api/v1/guardian/stories
+/// GET /api/v1/guardian/stories — org-scoped: only returns stories for the
+/// authenticated user's organization.
 pub async fn guardian_stories(
     State(_pool): State<crate::db::DbPool>,
+    auth: AuthContext,
 ) -> Result<impl IntoResponse, AppError> {
     let store = get_story_store().lock().await;
     let summaries: Vec<StorySummary> = store
         .iter()
+        .filter(|s| s.org_id == auth.org_id)
         .map(|s| StorySummary {
             id: s.id.clone(),
             title: s.title.clone(),
@@ -174,15 +184,17 @@ pub async fn guardian_stories(
     Ok(Json(StoryListResponse { stories: summaries }))
 }
 
-/// GET /api/v1/guardian/stories/:id
+/// GET /api/v1/guardian/stories/:id — org-scoped: only finds stories belonging
+/// to the authenticated user's organization.
 pub async fn guardian_story_detail(
     State(_pool): State<crate::db::DbPool>,
+    auth: AuthContext,
     axum::extract::Path(story_id): axum::extract::Path<String>,
 ) -> Result<impl IntoResponse, AppError> {
     let store = get_story_store().lock().await;
     let story = store
         .iter()
-        .find(|s| s.id == story_id)
+        .find(|s| s.id == story_id && s.org_id == auth.org_id)
         .cloned()
         .ok_or_else(|| AppError::NotFound("Story not found".into()))?;
 

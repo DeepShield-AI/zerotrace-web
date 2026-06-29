@@ -1,5 +1,7 @@
-use super::correlator::{AnomalyCluster, ServiceEdge};
-use super::types::{Anomaly, AnomalyCategory, AnomalyMetric, RootCause, Severity, Story, StoryEvidence};
+use super::{
+    correlator::{AnomalyCluster, ServiceEdge},
+    types::{Anomaly, AnomalyCategory, AnomalyMetric, RootCause, Severity, Story, StoryEvidence},
+};
 use std::collections::{HashMap, HashSet};
 
 // ---------------------------------------------------------------------------
@@ -35,7 +37,10 @@ pub fn classify_root_cause(
     let mut downstream_of: HashMap<&str, Vec<&str>> = HashMap::new();
     for edge in edges {
         upstream_of.entry(edge.target.as_str()).or_default().push(edge.source.as_str());
-        downstream_of.entry(edge.source.as_str()).or_default().push(edge.target.as_str());
+        downstream_of
+            .entry(edge.source.as_str())
+            .or_default()
+            .push(edge.target.as_str());
     }
 
     // Check: do any upstream services of the affected services also have anomalies?
@@ -44,9 +49,7 @@ pub fn classify_root_cause(
         .iter()
         .filter(|svc| {
             upstream_of.get(svc.as_str()).map_or(false, |upstreams| {
-                upstreams.iter().any(|u| {
-                    all_anomalies.iter().any(|a| a.service_name == *u)
-                })
+                upstreams.iter().any(|u| all_anomalies.iter().any(|a| a.service_name == *u))
             })
         })
         .map(|s| s.as_str())
@@ -56,7 +59,10 @@ pub fn classify_root_cause(
     let request_spike_count = cluster
         .anomalies
         .iter()
-        .filter(|a| matches!(a.metric, AnomalyMetric::RequestRate) && matches!(a.category, AnomalyCategory::Spike))
+        .filter(|a| {
+            matches!(a.metric, AnomalyMetric::RequestRate) &&
+                matches!(a.category, AnomalyCategory::Spike)
+        })
         .count();
 
     // Check: latency vs error anomalies
@@ -136,7 +142,8 @@ pub fn classify_root_cause(
     // Rule 4: Internal degradation (single service, no upstream correlation)
     if cluster.services.len() <= 2 && affected_with_upstream_anomalies.is_empty() {
         let evidence_parts: Vec<String> = vec![];
-        let mut evidence = String::from("Isolated anomaly with no correlated upstream service issues. ");
+        let mut evidence =
+            String::from("Isolated anomaly with no correlated upstream service issues. ");
 
         if !latency_anomalies.is_empty() && error_anomalies.is_empty() {
             evidence.push_str("Only latency is affected (no error increase), suggesting resource saturation or slow dependency.");
@@ -170,6 +177,7 @@ pub fn generate_story(
     total_services: usize,
     story_index: usize,
     detected_at: i64,
+    org_id: i64,
 ) -> Story {
     let max_severity = cluster
         .anomalies
@@ -187,28 +195,37 @@ pub fn generate_story(
         .clone();
 
     let title = match &root_cause {
-        RootCause::DependencyFailure { upstream_service, .. } => {
-            format!("Upstream failure in '{}' affecting downstream services", upstream_service)
-        }
+        RootCause::DependencyFailure {
+            upstream_service, ..
+        } => {
+            format!(
+                "Upstream failure in '{}' affecting downstream services",
+                upstream_service
+            )
+        },
         RootCause::TrafficSpike { factor, .. } => {
             format!("Traffic spike detected ({:.1}x normal)", factor)
-        }
+        },
         RootCause::InternalDegradation { .. } => {
             format!("Performance degradation in '{}'", cluster.primary_service)
-        }
+        },
         RootCause::WidespreadOutage { affected_count, .. } => {
             format!("Widespread issue affecting {} services", affected_count)
-        }
+        },
         RootCause::Unknown { .. } => {
-            format!("Unusual activity detected across {} service(s)", cluster.services.len())
-        }
+            format!(
+                "Unusual activity detected across {} service(s)",
+                cluster.services.len()
+            )
+        },
     };
 
     let description = generate_description(cluster, root_cause);
     let suggested_actions = generate_actions(cluster, root_cause);
 
     Story {
-        id: format!("story-{:02}-{}", story_index, detected_at),
+        id: format!("story-{:02}-{}-{}", story_index, detected_at, org_id),
+        org_id,
         title,
         description,
         severity: max_severity,
@@ -266,19 +283,19 @@ fn generate_description(cluster: &AnomalyCluster, root_cause: &RootCause) -> Str
                 "The issue likely originates from **{}**. {}",
                 upstream_service, evidence
             ));
-        }
+        },
         RootCause::TrafficSpike { evidence, .. } => {
             desc.push_str(evidence);
-        }
+        },
         RootCause::InternalDegradation { evidence } => {
             desc.push_str(evidence);
-        }
+        },
         RootCause::WidespreadOutage { evidence, .. } => {
             desc.push_str(evidence);
-        }
+        },
         RootCause::Unknown { evidence } => {
             desc.push_str(evidence);
-        }
+        },
     }
 
     desc
@@ -296,28 +313,41 @@ fn generate_actions(cluster: &AnomalyCluster, root_cause: &RootCause) -> Vec<Str
                 upstream_service,
                 url_encode(upstream_service)
             ));
-            actions.push("Check traces from affected services for errors correlated with upstream calls".into());
-        }
+            actions.push(
+                "Check traces from affected services for errors correlated with upstream calls"
+                    .into(),
+            );
+        },
         RootCause::TrafficSpike { .. } => {
-            actions.push("Check if a recent deployment or config change caused the traffic increase".into());
-            actions.push("Verify autoscaling policies are adequate for the new traffic level".into());
-        }
+            actions.push(
+                "Check if a recent deployment or config change caused the traffic increase".into(),
+            );
+            actions
+                .push("Verify autoscaling policies are adequate for the new traffic level".into());
+        },
         RootCause::InternalDegradation { .. } => {
             let svc = &cluster.primary_service;
             actions.push(format!(
                 "View **{}** traces — look for slow spans and error stack traces",
                 svc
             ));
-            actions.push("Check for recent deployments, configuration changes, or resource constraints".into());
-        }
+            actions.push(
+                "Check for recent deployments, configuration changes, or resource constraints"
+                    .into(),
+            );
+        },
         RootCause::WidespreadOutage { .. } => {
-            actions.push("Check infrastructure health — CPU, memory, disk on affected hosts".into());
+            actions
+                .push("Check infrastructure health — CPU, memory, disk on affected hosts".into());
             actions.push("Verify network connectivity and external dependencies".into());
-        }
+        },
         RootCause::Unknown { .. } => {
-            actions.push("Review [APM Traces](/apm) for the affected services around the anomaly time".into());
+            actions.push(
+                "Review [APM Traces](/apm) for the affected services around the anomaly time"
+                    .into(),
+            );
             actions.push("Check if any deployments or config changes occurred recently".into());
-        }
+        },
     }
 
     // Add common actions

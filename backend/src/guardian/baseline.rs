@@ -1,51 +1,9 @@
+use super::types::{MetricsBucket, ServiceBaseline, ServiceMetricsTs};
+use crate::clickhouse;
 use reqwest::Client;
 use serde_json::Value;
 use std::collections::HashMap;
 use tracing;
-
-use super::types::{MetricsBucket, ServiceBaseline, ServiceMetricsTs};
-
-// ---------------------------------------------------------------------------
-// ClickHouse query helper (same pattern as apm.rs)
-// ---------------------------------------------------------------------------
-
-async fn ch_query(client: &Client, sql: &str) -> Vec<Value> {
-    let url = format!("http://127.0.0.1:8123/?query={}", urlencoding(sql));
-    match client.get(&url).send().await {
-        Ok(r) => {
-            let text = r.text().await.unwrap_or_default();
-            text.lines()
-                .filter(|l| !l.is_empty())
-                .filter_map(|l| serde_json::from_str(l).ok())
-                .collect()
-        }
-        Err(e) => {
-            tracing::error!(error = %e, "ClickHouse query failed");
-            vec![]
-        }
-    }
-}
-
-fn urlencoding(s: &str) -> String {
-    // Simple URL encoding for ClickHouse SQL
-    s.replace(' ', "%20")
-        .replace('\n', "%0A")
-        .replace('=', "%3D")
-        .replace('>', "%3E")
-        .replace('<', "%3C")
-        .replace(',', "%2C")
-        .replace('(', "%28")
-        .replace(')', "%29")
-        .replace('\'', "%27")
-}
-
-fn val_f64(v: &Value) -> Option<f64> {
-    match v {
-        Value::Number(n) => n.as_f64(),
-        Value::String(s) => s.parse().ok(),
-        _ => None,
-    }
-}
 
 // ---------------------------------------------------------------------------
 // Fetch time-series metrics per service
@@ -56,6 +14,7 @@ pub async fn fetch_service_metrics(
     start: i64,
     end: i64,
     interval_secs: i64,
+    db: &str,
 ) -> Vec<ServiceMetricsTs> {
     let sql = format!(
         r#"SELECT
@@ -66,7 +25,7 @@ pub async fn fetch_service_metrics(
     quantile(0.95)(response_duration) / 1000 AS p95_latency_ms,
     countIf(response_code >= 500 OR response_code = 0) AS error_count,
     (countIf(response_code >= 500 OR response_code = 0) * 100.0) / count() AS error_rate_pct
-FROM flow_log.l7_flow_log
+FROM {db}.l7_flow_log
 WHERE time >= fromUnixTimestamp({start})
   AND time <= fromUnixTimestamp({end})
   AND (app_service != '' OR request_domain != '')
@@ -76,9 +35,27 @@ FORMAT JSONEachRow"#,
         interval = interval_secs,
         start = start,
         end = end,
+        db = db,
     );
 
-    let rows = ch_query(client, &sql).await;
+    let url = format!(
+        "{}/?query={}",
+        clickhouse::clickhouse_url(),
+        clickhouse::urlencoding(&sql)
+    );
+    let rows: Vec<Value> = match client.get(&url).send().await {
+        Ok(r) => {
+            let text = r.text().await.unwrap_or_default();
+            text.lines()
+                .filter(|l| !l.is_empty())
+                .filter_map(|l| serde_json::from_str(l).ok())
+                .collect()
+        },
+        Err(e) => {
+            tracing::error!(error = %e, "ClickHouse query failed");
+            vec![]
+        },
+    };
 
     // Group by service_name
     let mut service_map: HashMap<String, Vec<MetricsBucket>> = HashMap::new();
@@ -92,10 +69,10 @@ FORMAT JSONEachRow"#,
         let bucket = MetricsBucket {
             ts: ts_str.chars().skip(11).take(5).collect(),
             timestamp: ts,
-            request_count: val_f64(&row["request_count"]).unwrap_or(0.0),
-            avg_latency_ms: val_f64(&row["avg_latency_ms"]).unwrap_or(0.0),
-            p95_latency_ms: val_f64(&row["p95_latency_ms"]).unwrap_or(0.0),
-            error_rate_pct: val_f64(&row["error_rate_pct"]).unwrap_or(0.0),
+            request_count: clickhouse::val_f64(&row["request_count"]).unwrap_or(0.0),
+            avg_latency_ms: clickhouse::val_f64(&row["avg_latency_ms"]).unwrap_or(0.0),
+            p95_latency_ms: clickhouse::val_f64(&row["p95_latency_ms"]).unwrap_or(0.0),
+            error_rate_pct: clickhouse::val_f64(&row["error_rate_pct"]).unwrap_or(0.0),
         };
 
         service_map.entry(svc).or_default().push(bucket);
@@ -134,17 +111,23 @@ pub fn compute_baseline(metrics: &ServiceMetricsTs, window: &str) -> ServiceBase
 
     // Request rate
     let request_mean: f64 = buckets.iter().map(|b| b.request_count).sum::<f64>() / n;
-    let request_var: f64 = buckets.iter().map(|b| (b.request_count - request_mean).powi(2)).sum::<f64>() / n;
+    let request_var: f64 =
+        buckets.iter().map(|b| (b.request_count - request_mean).powi(2)).sum::<f64>() / n;
     let request_stddev = request_var.sqrt();
 
     // Latency
     let latency_mean: f64 = buckets.iter().map(|b| b.avg_latency_ms).sum::<f64>() / n;
-    let latency_var: f64 = buckets.iter().map(|b| (b.avg_latency_ms - latency_mean).powi(2)).sum::<f64>() / n;
+    let latency_var: f64 =
+        buckets.iter().map(|b| (b.avg_latency_ms - latency_mean).powi(2)).sum::<f64>() / n;
     let latency_stddev = latency_var.sqrt();
 
     // Error rate
     let error_rate_mean: f64 = buckets.iter().map(|b| b.error_rate_pct).sum::<f64>() / n;
-    let error_rate_var: f64 = buckets.iter().map(|b| (b.error_rate_pct - error_rate_mean).powi(2)).sum::<f64>() / n;
+    let error_rate_var: f64 = buckets
+        .iter()
+        .map(|b| (b.error_rate_pct - error_rate_mean).powi(2))
+        .sum::<f64>() /
+        n;
     let error_rate_stddev = error_rate_var.sqrt();
 
     ServiceBaseline {
@@ -179,21 +162,25 @@ pub fn compute_seasonal_baseline(
     let latency_var: f64 = historical_metrics
         .iter()
         .map(|b| (b.avg_latency_ms - latency_mean).powi(2))
-        .sum::<f64>() / hn;
+        .sum::<f64>() /
+        hn;
     let latency_stddev = latency_var.sqrt();
 
-    let error_rate_mean: f64 = historical_metrics.iter().map(|b| b.error_rate_pct).sum::<f64>() / hn;
+    let error_rate_mean: f64 =
+        historical_metrics.iter().map(|b| b.error_rate_pct).sum::<f64>() / hn;
     let error_rate_var: f64 = historical_metrics
         .iter()
         .map(|b| (b.error_rate_pct - error_rate_mean).powi(2))
-        .sum::<f64>() / hn;
+        .sum::<f64>() /
+        hn;
     let error_rate_stddev = error_rate_var.sqrt();
 
     let request_mean: f64 = historical_metrics.iter().map(|b| b.request_count).sum::<f64>() / hn;
     let request_var: f64 = historical_metrics
         .iter()
         .map(|b| (b.request_count - request_mean).powi(2))
-        .sum::<f64>() / hn;
+        .sum::<f64>() /
+        hn;
     let request_stddev = request_var.sqrt();
 
     Some(ServiceBaseline {

@@ -25,8 +25,8 @@ pub struct ServiceMetricsTs {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct MetricsBucket {
-    pub ts: String,          // time label "HH:MM"
-    pub timestamp: i64,      // unix seconds
+    pub ts: String,     // time label "HH:MM"
+    pub timestamp: i64, // unix seconds
     pub request_count: f64,
     pub avg_latency_ms: f64,
     pub p95_latency_ms: f64,
@@ -40,7 +40,7 @@ pub struct MetricsBucket {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ServiceBaseline {
     pub service_name: String,
-    pub window: String,          // "1h", "24h", "7d"
+    pub window: String, // "1h", "24h", "7d"
     pub bucket_count: usize,
     // Request rate
     pub request_mean: f64,
@@ -119,22 +119,18 @@ pub enum RootCause {
     },
     /// Traffic spike from clients
     TrafficSpike {
-        factor: f64,         // how many times normal
+        factor: f64, // how many times normal
         evidence: String,
     },
     /// Internal service degradation (code change, resource exhaustion)
-    InternalDegradation {
-        evidence: String,
-    },
+    InternalDegradation { evidence: String },
     /// Multiple services affected simultaneously
     WidespreadOutage {
         affected_count: usize,
         evidence: String,
     },
     /// Could not determine root cause
-    Unknown {
-        evidence: String,
-    },
+    Unknown { evidence: String },
 }
 
 // ---------------------------------------------------------------------------
@@ -144,6 +140,7 @@ pub enum RootCause {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Story {
     pub id: String,
+    pub org_id: i64,
     pub title: String,
     pub description: String,
     pub severity: Severity,

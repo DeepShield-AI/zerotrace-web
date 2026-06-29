@@ -1,13 +1,12 @@
-use axum::{extract::State, response::IntoResponse, Json};
-use serde::Deserialize;
-use serde_json::json;
-
 use crate::{
     db::DbPool,
     errors::AppError,
     middleware::auth::AuthContext,
     models::api_key::{ApiKey, ApiKeyRow},
 };
+use axum::{Json, extract::State, response::IntoResponse};
+use serde::Deserialize;
+use serde_json::json;
 
 #[derive(Debug, Deserialize)]
 pub struct CreateApiKeyInput {

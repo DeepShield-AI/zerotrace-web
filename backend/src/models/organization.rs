@@ -13,9 +13,14 @@ pub struct Organization {
 impl Organization {
     pub async fn create(pool: &MySqlPool, name: &str, slug: &str) -> Result<Self, sqlx::Error> {
         sqlx::query("INSERT INTO organizations (name, slug) VALUES (?, ?)")
-            .bind(name).bind(slug).execute(pool).await?;
+            .bind(name)
+            .bind(slug)
+            .execute(pool)
+            .await?;
 
         sqlx::query_as::<_, Self>("SELECT * FROM organizations WHERE slug = ?")
-            .bind(slug).fetch_one(pool).await
+            .bind(slug)
+            .fetch_one(pool)
+            .await
     }
 }

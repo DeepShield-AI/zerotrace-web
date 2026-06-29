@@ -36,7 +36,8 @@ pub fn detect_anomalies(
     let n = current_buckets.len() as f64;
     let current_latency: f64 = current_buckets.iter().map(|b| b.avg_latency_ms).sum::<f64>() / n;
     let current_error_rate: f64 = current_buckets.iter().map(|b| b.error_rate_pct).sum::<f64>() / n;
-    let current_request_rate: f64 = current_buckets.iter().map(|b| b.request_count).sum::<f64>() / n;
+    let current_request_rate: f64 =
+        current_buckets.iter().map(|b| b.request_count).sum::<f64>() / n;
 
     let _ = next_id(&mut id_counter);
 
@@ -73,7 +74,10 @@ pub fn detect_anomalies(
 
     // --- Error rate anomalies ---
     // Always check error rate if current has meaningful errors, even when baseline is clean
-    if baseline.error_rate_stddev > 0.0 || baseline.error_rate_mean > 0.0 || current_error_rate > MIN_ERROR_RATE_DEVIATION {
+    if baseline.error_rate_stddev > 0.0 ||
+        baseline.error_rate_mean > 0.0 ||
+        current_error_rate > MIN_ERROR_RATE_DEVIATION
+    {
         let stddev = if baseline.error_rate_stddev > 0.0 {
             baseline.error_rate_stddev
         } else {
@@ -117,7 +121,8 @@ pub fn detect_anomalies(
 
     // --- Request rate anomalies (spike or drop) ---
     if baseline.request_stddev > 0.0 {
-        let z_score = (current_request_rate - baseline.request_mean).abs() / baseline.request_stddev;
+        let z_score =
+            (current_request_rate - baseline.request_mean).abs() / baseline.request_stddev;
 
         if z_score > Z_SCORE_THRESHOLD {
             let category = if current_request_rate > baseline.request_mean {

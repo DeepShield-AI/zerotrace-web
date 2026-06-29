@@ -1,8 +1,11 @@
-use axum::{extract::{Query, State}, response::IntoResponse, Json};
+use crate::{clickhouse, db::DbPool, errors::AppError, middleware::auth::AuthContext};
+use axum::{
+    Json,
+    extract::{Query, State},
+    response::IntoResponse,
+};
 use serde::{Deserialize, Serialize};
-use serde_json::{json, Value};
-
-use crate::{db::DbPool, errors::AppError, middleware::auth::AuthContext};
+use serde_json::json;
 
 /* ---------- Types ---------- */
 
@@ -37,38 +40,6 @@ pub struct MetricSeries {
     pub display_name: String,
     pub unit: String,
     pub points: Vec<MetricPoint>,
-}
-
-/* ---------- Helpers ---------- */
-
-fn urlencoding(s: &str) -> String {
-    s.replace(' ', "+")
-        .replace('\'', "%27")
-        .replace('(', "%28")
-        .replace(')', "%29")
-}
-
-async fn ch_query(client: &reqwest::Client, sql: &str) -> Value {
-    let url = format!("http://127.0.0.1:8123/?query={}", urlencoding(&sql));
-    match client.get(&url).send().await {
-        Ok(r) => {
-            let text = r.text().await.unwrap_or_default();
-            let rows: Vec<Value> = text
-                .lines()
-                .filter(|l| !l.is_empty())
-                .filter_map(|l| serde_json::from_str(l).ok())
-                .collect();
-            Value::Array(rows)
-        }
-        Err(e) => json!([{"error": e.to_string()}]),
-    }
-}
-
-fn time_filter(start: Option<i64>, end: Option<i64>, default_interval: &str) -> String {
-    match (start, end) {
-        (Some(s), Some(e)) => format!("time >= toDateTime({}) AND time <= toDateTime({})", s, e),
-        _ => format!("time > now() - INTERVAL {}", default_interval),
-    }
 }
 
 /* ---------- Metric definitions ---------- */
@@ -144,42 +115,49 @@ fn metric_definitions() -> Vec<MetricDef> {
 
 /* ---------- Build ClickHouse SQL for each metric ---------- */
 
-fn metric_sql(name: &str, start: Option<i64>, end: Option<i64>, interval_secs: i64) -> Option<String> {
-    let tf = time_filter(start, end, "1 HOUR");
+fn metric_sql(
+    name: &str,
+    start: Option<i64>,
+    end: Option<i64>,
+    interval_secs: i64,
+    db: &str,
+    team_clause: &str,
+) -> Option<String> {
+    let tf = clickhouse::time_filter(start, end, "1 HOUR");
     let interval_s = format!("{} SECOND", interval_secs.max(10));
 
     match name {
         "l4.flow_count" => Some(format!(
-            "SELECT toStartOfInterval(time, INTERVAL {}) AS ts, COUNT(*) AS value FROM flow_log.l4_flow_log WHERE {} GROUP BY ts ORDER BY ts FORMAT JSONEachRow",
-            interval_s, tf
+            "SELECT toStartOfInterval(time, INTERVAL {}) AS ts, COUNT(*) AS value FROM {}.l4_flow_log WHERE {} {} GROUP BY ts ORDER BY ts FORMAT JSONEachRow",
+            interval_s, db, tf, team_clause
         )),
         "l4.tx_bytes" => Some(format!(
-            "SELECT toStartOfInterval(time, INTERVAL {}) AS ts, SUM(byte_tx) AS value FROM flow_log.l4_flow_log WHERE {} GROUP BY ts ORDER BY ts FORMAT JSONEachRow",
-            interval_s, tf
+            "SELECT toStartOfInterval(time, INTERVAL {}) AS ts, SUM(byte_tx) AS value FROM {}.l4_flow_log WHERE {} {} GROUP BY ts ORDER BY ts FORMAT JSONEachRow",
+            interval_s, db, tf, team_clause
         )),
         "l4.rx_bytes" => Some(format!(
-            "SELECT toStartOfInterval(time, INTERVAL {}) AS ts, SUM(byte_rx) AS value FROM flow_log.l4_flow_log WHERE {} GROUP BY ts ORDER BY ts FORMAT JSONEachRow",
-            interval_s, tf
+            "SELECT toStartOfInterval(time, INTERVAL {}) AS ts, SUM(byte_rx) AS value FROM {}.l4_flow_log WHERE {} {} GROUP BY ts ORDER BY ts FORMAT JSONEachRow",
+            interval_s, db, tf, team_clause
         )),
         "l7.request_count" => Some(format!(
-            "SELECT toStartOfInterval(time, INTERVAL {}) AS ts, COUNT(*) AS value FROM flow_log.l7_flow_log WHERE {} GROUP BY ts ORDER BY ts FORMAT JSONEachRow",
-            interval_s, tf
+            "SELECT toStartOfInterval(time, INTERVAL {}) AS ts, COUNT(*) AS value FROM {}.l7_flow_log WHERE {} {} GROUP BY ts ORDER BY ts FORMAT JSONEachRow",
+            interval_s, db, tf, team_clause
         )),
         "l7.avg_latency" => Some(format!(
-            "SELECT toStartOfInterval(time, INTERVAL {}) AS ts, AVG(response_duration) AS value FROM flow_log.l7_flow_log WHERE {} GROUP BY ts ORDER BY ts FORMAT JSONEachRow",
-            interval_s, tf
+            "SELECT toStartOfInterval(time, INTERVAL {}) AS ts, AVG(response_duration) AS value FROM {}.l7_flow_log WHERE {} {} GROUP BY ts ORDER BY ts FORMAT JSONEachRow",
+            interval_s, db, tf, team_clause
         )),
         "l7.p95_latency" => Some(format!(
-            "SELECT toStartOfInterval(time, INTERVAL {}) AS ts, quantile(0.95)(response_duration) AS value FROM flow_log.l7_flow_log WHERE {} GROUP BY ts ORDER BY ts FORMAT JSONEachRow",
-            interval_s, tf
+            "SELECT toStartOfInterval(time, INTERVAL {}) AS ts, quantile(0.95)(response_duration) AS value FROM {}.l7_flow_log WHERE {} {} GROUP BY ts ORDER BY ts FORMAT JSONEachRow",
+            interval_s, db, tf, team_clause
         )),
         "l7.error_count" => Some(format!(
-            "SELECT toStartOfInterval(time, INTERVAL {}) AS ts, COUNT(*) AS value FROM flow_log.l7_flow_log WHERE {} AND response_code >= 400 GROUP BY ts ORDER BY ts FORMAT JSONEachRow",
-            interval_s, tf
+            "SELECT toStartOfInterval(time, INTERVAL {}) AS ts, COUNT(*) AS value FROM {}.l7_flow_log WHERE {} AND response_code >= 400 {} GROUP BY ts ORDER BY ts FORMAT JSONEachRow",
+            interval_s, db, tf, team_clause
         )),
         "l7.error_rate" => Some(format!(
-            "SELECT toStartOfInterval(time, INTERVAL {}) AS ts, (COUNTIf(response_code >= 400) * 100.0 / GREATEST(COUNT(*), 1)) AS value FROM flow_log.l7_flow_log WHERE {} GROUP BY ts ORDER BY ts FORMAT JSONEachRow",
-            interval_s, tf
+            "SELECT toStartOfInterval(time, INTERVAL {}) AS ts, (COUNTIf(response_code >= 400) * 100.0 / GREATEST(COUNT(*), 1)) AS value FROM {}.l7_flow_log WHERE {} {} GROUP BY ts ORDER BY ts FORMAT JSONEachRow",
+            interval_s, db, tf, team_clause
         )),
         _ => None,
     }
@@ -198,11 +176,13 @@ pub async fn metrics_list(
 /// GET /api/v1/metrics/query?name=X&start=&end=&interval=60 — returns timeseries
 pub async fn metrics_query(
     State(_pool): State<DbPool>,
-    _auth: AuthContext,
+    auth: AuthContext,
     Query(params): Query<MetricsQueryParams>,
 ) -> Result<axum::response::Response, AppError> {
     let name = params.name.unwrap_or_default();
     let interval = params.interval.unwrap_or(60);
+    let db = clickhouse::effective_flow_log_db(auth.org_id);
+    let team_clause = clickhouse::team_filter(&auth.team_ids);
 
     let display_name = metric_definitions()
         .iter()
@@ -215,9 +195,10 @@ pub async fn metrics_query(
         .map(|d| d.unit.clone())
         .unwrap_or_default();
 
-    let sql = match metric_sql(&name, params.start, params.end, interval) {
+    let sql = match metric_sql(&name, params.start, params.end, interval, &db, &team_clause) {
         Some(s) => s,
-        None => return Ok(Json(json!({ "error": "Unknown metric", "metric": name })).into_response()),
+        None =>
+            return Ok(Json(json!({ "error": "Unknown metric", "metric": name })).into_response()),
     };
 
     let client = reqwest::Client::builder()
@@ -225,7 +206,7 @@ pub async fn metrics_query(
         .build()
         .map_err(|e| AppError::internal(e.to_string()))?;
 
-    let rows = ch_query(&client, &sql).await;
+    let rows = clickhouse::ch_query(&client, &sql).await;
     let points: Vec<MetricPoint> = rows
         .as_array()
         .unwrap_or(&vec![])
@@ -243,5 +224,6 @@ pub async fn metrics_query(
         "display_name": display_name,
         "unit": unit,
         "points": points,
-    })).into_response())
+    }))
+    .into_response())
 }

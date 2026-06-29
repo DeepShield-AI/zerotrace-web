@@ -1,9 +1,9 @@
+use super::types::Anomaly;
+use crate::clickhouse;
 use reqwest::Client;
 use serde_json::Value;
 use std::collections::{HashMap, HashSet};
 use tracing;
-
-use super::types::Anomaly;
 
 // ---------------------------------------------------------------------------
 // Topology-based correlation
@@ -17,14 +17,14 @@ pub struct ServiceEdge {
 }
 
 /// Fetch service topology from ClickHouse (lightweight version of apm_topology)
-pub async fn fetch_topology(client: &Client, start: i64, end: i64) -> Vec<ServiceEdge> {
+pub async fn fetch_topology(client: &Client, start: i64, end: i64, db: &str) -> Vec<ServiceEdge> {
     let sql = format!(
         r#"SELECT
     if(a.app_service != '', a.app_service, a.request_domain) AS source,
     if(b.app_service != '', b.app_service, b.request_domain) AS target,
     count() AS call_count
-FROM flow_log.l7_flow_log AS a
-INNER JOIN flow_log.l7_flow_log AS b
+FROM {db}.l7_flow_log AS a
+INNER JOIN {db}.l7_flow_log AS b
   ON a.syscall_trace_id_request = b.syscall_trace_id_response
   AND a.time >= fromUnixTimestamp({start})
   AND a.time <= fromUnixTimestamp({end})
@@ -35,11 +35,16 @@ WHERE (a.app_service != '' OR a.request_domain != '')
 GROUP BY source, target
 HAVING call_count >= 5
 FORMAT JSONEachRow"#,
+        db = db,
         start = start,
         end = end,
     );
 
-    let url = format!("http://127.0.0.1:8123/?query={}", urlencoding(&sql));
+    let url = format!(
+        "{}/?query={}",
+        clickhouse::clickhouse_url(),
+        clickhouse::urlencoding(&sql)
+    );
     let rows: Vec<Value> = match client.get(&url).send().await {
         Ok(r) => {
             let text = r.text().await.unwrap_or_default();
@@ -47,21 +52,18 @@ FORMAT JSONEachRow"#,
                 .filter(|l| !l.is_empty())
                 .filter_map(|l| serde_json::from_str(l).ok())
                 .collect()
-        }
+        },
         Err(e) => {
             tracing::error!(error = %e, "Topology query failed");
             vec![]
-        }
+        },
     };
 
     rows.iter()
         .map(|row| {
             let source = row["source"].as_str().unwrap_or("").to_string();
             let target = row["target"].as_str().unwrap_or("").to_string();
-            let call_count = row["call_count"]
-                .as_str()
-                .and_then(|s| s.parse().ok())
-                .unwrap_or(0.0);
+            let call_count = row["call_count"].as_str().and_then(|s| s.parse().ok()).unwrap_or(0.0);
             ServiceEdge {
                 source,
                 target,
@@ -69,18 +71,6 @@ FORMAT JSONEachRow"#,
             }
         })
         .collect()
-}
-
-fn urlencoding(s: &str) -> String {
-    s.replace(' ', "%20")
-        .replace('\n', "%0A")
-        .replace('=', "%3D")
-        .replace('>', "%3E")
-        .replace('<', "%3C")
-        .replace(',', "%2C")
-        .replace('(', "%28")
-        .replace(')', "%29")
-        .replace('\'', "%27")
 }
 
 // ---------------------------------------------------------------------------
@@ -114,19 +104,13 @@ pub fn correlate_anomalies(
     // Build dependency graph: service → upstream services
     let mut upstream_map: HashMap<String, Vec<String>> = HashMap::new();
     for edge in edges {
-        upstream_map
-            .entry(edge.target.clone())
-            .or_default()
-            .push(edge.source.clone());
+        upstream_map.entry(edge.target.clone()).or_default().push(edge.source.clone());
     }
 
     // Build reverse: service → downstream services
     let mut downstream_map: HashMap<String, Vec<String>> = HashMap::new();
     for edge in edges {
-        downstream_map
-            .entry(edge.source.clone())
-            .or_default()
-            .push(edge.target.clone());
+        downstream_map.entry(edge.source.clone()).or_default().push(edge.target.clone());
     }
 
     // First pass: group by temporal proximity
@@ -157,10 +141,8 @@ pub fn correlate_anomalies(
     let mut clusters: Vec<AnomalyCluster> = Vec::new();
 
     for group_indices in &temporal_groups {
-        let group_anomalies: Vec<Anomaly> = group_indices
-            .iter()
-            .map(|&i| anomalies[i].clone())
-            .collect();
+        let group_anomalies: Vec<Anomaly> =
+            group_indices.iter().map(|&i| anomalies[i].clone()).collect();
         let services: Vec<String> = group_anomalies
             .iter()
             .map(|a| a.service_name.clone())

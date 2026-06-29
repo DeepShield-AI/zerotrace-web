@@ -1,24 +1,30 @@
-use axum::{extract::State, response::IntoResponse, Json};
+use crate::{db::DbPool, errors::AppError, middleware::auth::AuthContext};
+use axum::{Json, extract::State, response::IntoResponse};
 use serde_json::json;
 
-use crate::{db::DbPool, errors::AppError, middleware::auth::AuthContext};
-
 /// GET /api/v1/agents/status — proxy to DeepFlow controller vtap API.
-/// Returns agent list with connection state from the database.
+/// Sends X-Org-Id so the server scopes agents to the user's organization.
+/// Requires agent registration via HTTP (POST /api/v1/agent/register) with
+/// API key for correct org assignment; gRPC-registered agents default to org 1.
 pub async fn agent_status(
     State(_pool): State<DbPool>,
-    _auth: AuthContext,
+    auth: AuthContext,
 ) -> Result<axum::response::Response, AppError> {
-    let deepflow_url =
-        std::env::var("DEEPFLOW_SERVER_URL").unwrap_or_else(|_| "http://127.0.0.1:30417".to_string());
+    let zerotrace_api_url = std::env::var("ZEROTRACE_SERVER_URL")
+        .unwrap_or_else(|_| "http://127.0.0.1:30417".to_string());
 
     let client = reqwest::Client::builder()
         .timeout(std::time::Duration::from_secs(5))
         .build()
         .map_err(|e| AppError::internal(e.to_string()))?;
 
-    let url = format!("{}/v1/vtaps/", deepflow_url);
-    let resp = client.get(&url).header("Content-Type", "application/json").send().await;
+    let url = format!("{}/v1/vtaps/", zerotrace_api_url);
+    let resp = client
+        .get(&url)
+        .header("Content-Type", "application/json")
+        .header("X-Org-Id", auth.org_id.to_string())
+        .send()
+        .await;
 
     match resp {
         Ok(r) if r.status().is_success() => {
@@ -27,15 +33,17 @@ pub async fn agent_status(
                 return Ok(Json(val).into_response());
             }
             Ok(Json(json!({ "agents": [], "error": "unparseable response" })).into_response())
-        }
+        },
         Ok(r) => Ok(Json(json!({
             "agents": [],
             "error": format!("upstream returned {}", r.status().as_u16())
-        })).into_response()),
+        }))
+        .into_response()),
         Err(e) => Ok(Json(json!({
             "agents": [],
             "info": "zerotrace-server unreachable",
             "detail": e.to_string()
-        })).into_response()),
+        }))
+        .into_response()),
     }
 }

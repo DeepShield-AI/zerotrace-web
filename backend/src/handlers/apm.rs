@@ -1,84 +1,16 @@
+// ---------------------------------------------------------------------------
+// ClickHouse query helpers — now in crate::clickhouse; re-exported here for
+// convenience of the query building macros in this file.
+// ---------------------------------------------------------------------------
+use crate::clickhouse::{ch_client, ch_query, effective_flow_log_db as flow_log_db, val_i64};
+use crate::{clickhouse, db::DbPool, errors::AppError, middleware::auth::AuthContext};
 use axum::{
+    Json,
     extract::{Path, Query, State},
     response::IntoResponse,
-    Json,
 };
 use serde::Deserialize;
-use serde_json::{json, Value};
-
-use crate::{db::DbPool, errors::AppError, middleware::auth::AuthContext};
-
-// ---------------------------------------------------------------------------
-// ClickHouse query helper
-// ---------------------------------------------------------------------------
-
-fn urlencoding(s: &str) -> String {
-    s.replace(' ', "+")
-        .replace('\'', "%27")
-        .replace('(', "%28")
-        .replace(')', "%29")
-        .replace('>', "%3E")
-        .replace('<', "%3C")
-        .replace('!', "%21")
-        .replace('"', "%22")
-        .replace('=', "%3D")
-        .replace('#', "%23")
-        .replace('&', "%26")
-}
-
-async fn ch_query(client: &reqwest::Client, sql: &str) -> Value {
-    let url = format!("http://127.0.0.1:8123/?query={}", urlencoding(sql));
-    tracing::info!(url = %url, "ClickHouse query");
-    match client.get(&url).send().await {
-        Ok(r) => {
-            let status = r.status();
-            let text = r.text().await.unwrap_or_default();
-            tracing::info!(status = %status, text_len = text.len(), text_first = %text.chars().take(200).collect::<String>(), "ClickHouse response");
-            let rows: Vec<Value> = text
-                .lines()
-                .filter(|l| !l.is_empty())
-                .filter_map(|l| serde_json::from_str(l).ok())
-                .collect();
-            if rows.is_empty() && !text.is_empty() {
-                tracing::warn!(text = %text, "ClickHouse returned non-JSONLines response");
-            }
-            Value::Array(rows)
-        }
-        Err(e) => {
-            tracing::error!(error = %e, "ClickHouse request failed");
-            json!([{"error": e.to_string()}])
-        }
-    }
-}
-
-fn ch_client() -> Result<reqwest::Client, AppError> {
-    reqwest::Client::builder()
-        .timeout(std::time::Duration::from_secs(30))
-        .build()
-        .map_err(|e| AppError::internal(e.to_string()))
-}
-
-/// ClickHouse JSONEachRow returns all values as JSON strings (including numbers).
-/// This helper parses a Value as i64 regardless of whether it's a JSON number or string.
-fn val_i64(v: &Value) -> Option<i64> {
-    match v {
-        Value::Number(n) => n.as_i64(),
-        Value::String(s) => s.parse().ok(),
-        _ => None,
-    }
-}
-
-fn val_f64(v: &Value) -> Option<f64> {
-    match v {
-        Value::Number(n) => n.as_f64(),
-        Value::String(s) => s.parse().ok(),
-        _ => None,
-    }
-}
-
-fn val_str(v: &Value) -> Option<&str> {
-    v.as_str()
-}
+use serde_json::{Value, json};
 
 fn default_window() -> (i64, i64) {
     let now = chrono::Utc::now();
@@ -111,7 +43,7 @@ const SPAN_ID_EXPR: &str = "if(span_id != '', span_id, toString(flow_id))";
 pub struct ParsedQuery {
     pub service: Option<String>,
     pub operation: Option<String>,
-    pub status: Option<String>,         // "ok" | "error"
+    pub status: Option<String>, // "ok" | "error"
     pub min_duration_us: Option<i64>,
     pub max_duration_us: Option<i64>,
     pub trace_id: Option<String>,
@@ -137,12 +69,12 @@ fn parse_query(raw: &str) -> ParsedQuery {
                     if v == "ok" || v == "error" {
                         pq.status = Some(v);
                     }
-                }
+                },
                 "duration" => {
                     let (min_d, max_d) = parse_duration_filter(op, &value);
                     pq.min_duration_us = min_d;
                     pq.max_duration_us = max_d;
-                }
+                },
                 "trace_id" | "traceid" => pq.trace_id = Some(value.to_string()),
                 "span_kind" => pq.span_kind = Some(value.to_string()),
                 "tag" => {
@@ -152,11 +84,11 @@ fn parse_query(raw: &str) -> ParsedQuery {
                     } else {
                         pq.tags.push((value.to_string(), String::new()));
                     }
-                }
+                },
                 _ => {
                     // Unknown key → treat as free text
                     free_parts.push(token.to_string());
-                }
+                },
             }
         } else {
             free_parts.push(token.to_string());
@@ -182,19 +114,18 @@ fn tokenize_query(raw: &str) -> Vec<String> {
             '"' | '\'' if !in_quote => {
                 in_quote = true;
                 quote_char = ch;
-            }
+            },
             c if in_quote && c == quote_char => {
                 in_quote = false;
-            }
-            ' ' | '\t' if !in_quote => {
+            },
+            ' ' | '\t' if !in_quote =>
                 if !current.is_empty() {
                     tokens.push(current.clone());
                     current.clear();
-                }
-            }
+                },
             _ => {
                 current.push(ch);
-            }
+            },
         }
     }
     if !current.is_empty() {
@@ -263,7 +194,7 @@ fn parse_duration_filter(op: &str, value: &str) -> (Option<i64>, Option<i64>) {
             // equals: treat as range ±10%
             us.map(|v| (Some((v as f64 * 0.9) as i64), Some((v as f64 * 1.1) as i64)))
                 .unwrap_or((None, None))
-        }
+        },
     }
 }
 
@@ -287,22 +218,16 @@ fn build_where(
 
     // Parsed query conditions
     if let Some(ref svc) = pq.service {
-        conditions.push(format!(
-            "{SERVICE_EXPR} = '{}'",
-            svc.replace('\'', "''")
-        ));
+        conditions.push(format!("{SERVICE_EXPR} = '{}'", svc.replace('\'', "''")));
     }
     if let Some(ref op) = pq.operation {
-        conditions.push(format!(
-            "request_resource = '{}'",
-            op.replace('\'', "''")
-        ));
+        conditions.push(format!("request_resource = '{}'", op.replace('\'', "''")));
     }
     if let Some(ref status) = pq.status {
         match status.as_str() {
             "ok" => conditions.push("response_code < 500 AND response_code != 0".into()),
             "error" => conditions.push("(response_code >= 500 OR response_code = 0)".into()),
-            _ => {}
+            _ => {},
         }
     }
     if let Some(min_d) = pq.min_duration_us {
@@ -326,7 +251,10 @@ fn build_where(
         }
     }
     if let Some(ref sk) = pq.span_kind {
-        conditions.push(format!("toString(span_kind) = '{}'", sk.replace('\'', "''")));
+        conditions.push(format!(
+            "toString(span_kind) = '{}'",
+            sk.replace('\'', "''")
+        ));
     }
     if let Some(ref ft) = pq.free_text {
         let escaped = ft.replace('\'', "''");
@@ -353,22 +281,16 @@ fn build_where(
 
     // Extra filters from query params (override parsed)
     if let Some(svc) = svc_filter {
-        conditions.push(format!(
-            "{SERVICE_EXPR} = '{}'",
-            svc.replace('\'', "''")
-        ));
+        conditions.push(format!("{SERVICE_EXPR} = '{}'", svc.replace('\'', "''")));
     }
     if let Some(op) = op_filter {
-        conditions.push(format!(
-            "request_resource = '{}'",
-            op.replace('\'', "''")
-        ));
+        conditions.push(format!("request_resource = '{}'", op.replace('\'', "''")));
     }
     if let Some(st) = status_filter {
         match st {
             "ok" => conditions.push("response_code < 500 AND response_code != 0".into()),
             "error" => conditions.push("(response_code >= 500 OR response_code = 0)".into()),
-            _ => {}
+            _ => {},
         }
     }
     if let Some(e) = extra {
@@ -438,10 +360,12 @@ pub struct TagsQuery {
 
 pub async fn apm_tags(
     State(_pool): State<DbPool>,
-    _auth: AuthContext,
+    auth: AuthContext,
     Query(q): Query<TagsQuery>,
 ) -> Result<axum::response::Response, AppError> {
     let client = ch_client()?;
+    let db = flow_log_db(auth.org_id);
+    let team_clause = clickhouse::team_filter(&auth.team_ids);
 
     let start = q.start.unwrap_or(default_window().0);
     let end = q.end.unwrap_or(default_window().1);
@@ -456,11 +380,11 @@ pub async fn apm_tags(
         "SELECT \
             arrayJoin(attribute_names) AS tag_key, \
             COUNT(*) AS cnt \
-         FROM flow_log.l7_flow_log \
+         FROM {db}.l7_flow_log \
          WHERE {time_filter} AND length(attribute_names) > 0 \
-         GROUP BY tag_key \
+         {team_clause} GROUP BY tag_key \
          ORDER BY cnt DESC \
-         LIMIT 100 FORMAT JSONEachRow"
+         {team_clause} LIMIT 100 FORMAT JSONEachRow"
     );
 
     let rows = ch_query(&client, &sql).await;
@@ -468,12 +392,12 @@ pub async fn apm_tags(
     // Also get available services for autocomplete
     let services_sql = format!(
         "SELECT {SERVICE_EXPR} AS name, COUNT(*) AS cnt \
-         FROM flow_log.l7_flow_log \
+         FROM {db}.l7_flow_log \
          WHERE {time_filter} \
-         GROUP BY name \
+         {team_clause} GROUP BY name \
          HAVING name != '' \
          ORDER BY cnt DESC \
-         LIMIT 50 FORMAT JSONEachRow"
+         {team_clause} LIMIT 100 FORMAT JSONEachRow"
     );
 
     let services = ch_query(&client, &services_sql).await;
@@ -481,7 +405,8 @@ pub async fn apm_tags(
     Ok(Json(json!({
         "tags": rows,
         "services": services,
-    })).into_response())
+    }))
+    .into_response())
 }
 
 // ---------------------------------------------------------------------------
@@ -490,10 +415,12 @@ pub async fn apm_tags(
 
 pub async fn apm_services(
     State(_pool): State<DbPool>,
-    _auth: AuthContext,
+    auth: AuthContext,
     Query(q): Query<ServicesQuery>,
 ) -> Result<axum::response::Response, AppError> {
     let client = ch_client()?;
+    let db = flow_log_db(auth.org_id);
+    let team_clause = clickhouse::team_filter(&auth.team_ids);
 
     let start = q.start.unwrap_or(default_window().0);
     let end = q.end.unwrap_or(default_window().1);
@@ -513,12 +440,12 @@ pub async fn apm_services(
             count(DISTINCT {TRACE_ID_EXPR}) AS trace_count, \
             min(time) AS first_seen, \
             max(time) AS last_seen \
-         FROM flow_log.l7_flow_log \
+         FROM {db}.l7_flow_log \
          WHERE {where_clause} \
-         GROUP BY service_name \
+         {team_clause} GROUP BY service_name \
          HAVING service_name != '' \
          ORDER BY request_count DESC \
-         LIMIT 50 FORMAT JSONEachRow"
+         {team_clause} LIMIT 100 FORMAT JSONEachRow"
     );
 
     let rows = ch_query(&client, &sql).await;
@@ -531,10 +458,12 @@ pub async fn apm_services(
 
 pub async fn apm_operations(
     State(_pool): State<DbPool>,
-    _auth: AuthContext,
+    auth: AuthContext,
     Query(q): Query<OperationsQuery>,
 ) -> Result<axum::response::Response, AppError> {
     let client = ch_client()?;
+    let db = flow_log_db(auth.org_id);
+    let team_clause = clickhouse::team_filter(&auth.team_ids);
 
     let start = q.start.unwrap_or(default_window().0);
     let end = q.end.unwrap_or(default_window().1);
@@ -548,11 +477,11 @@ pub async fn apm_operations(
             AVG(response_duration) / 1000 AS avg_latency_ms, \
             quantile(0.95)(response_duration) / 1000 AS p95_ms, \
             countIf(response_code >= 500 OR response_code = 0) AS error_count \
-         FROM flow_log.l7_flow_log \
-         WHERE {where_clause} AND request_resource != '' \
-         GROUP BY operation_name \
+         FROM {db}.l7_flow_log \
+         WHERE {where_clause} {team_clause} AND request_resource != '' \
+         {team_clause} GROUP BY operation_name \
          ORDER BY request_count DESC \
-         LIMIT 100 FORMAT JSONEachRow"
+         {team_clause} LIMIT 100 FORMAT JSONEachRow"
     );
 
     let rows = ch_query(&client, &sql).await;
@@ -565,10 +494,12 @@ pub async fn apm_operations(
 
 pub async fn apm_stats(
     State(_pool): State<DbPool>,
-    _auth: AuthContext,
+    auth: AuthContext,
     Query(q): Query<StatsQuery>,
 ) -> Result<axum::response::Response, AppError> {
     let client = ch_client()?;
+    let db = flow_log_db(auth.org_id);
+    let team_clause = clickhouse::team_filter(&auth.team_ids);
 
     let start = q.start.unwrap_or(default_window().0);
     let end = q.end.unwrap_or(default_window().1);
@@ -588,8 +519,8 @@ pub async fn apm_stats(
             if(total_requests > 0, round(error_count / total_requests * 100, 2), 0) AS error_rate_pct, \
             count(DISTINCT {TRACE_ID_EXPR}) AS trace_count, \
             count(DISTINCT {SERVICE_EXPR}) AS service_count \
-         FROM flow_log.l7_flow_log \
-         WHERE {where_clause} FORMAT JSONEachRow"
+         FROM {db}.l7_flow_log \
+         WHERE {where_clause} {team_clause} FORMAT JSONEachRow"
     );
 
     // Time-series: request rate per minute
@@ -599,9 +530,9 @@ pub async fn apm_stats(
             COUNT(*) AS cnt, \
             AVG(response_duration) / 1000 AS avg_latency_ms, \
             countIf(response_code >= 500 OR response_code = 0) AS error_cnt \
-         FROM flow_log.l7_flow_log \
+         FROM {db}.l7_flow_log \
          WHERE {where_clause} \
-         GROUP BY ts \
+         {team_clause} GROUP BY ts \
          ORDER BY ts FORMAT JSONEachRow"
     );
 
@@ -619,9 +550,9 @@ pub async fn apm_stats(
                 '5s+' \
             ) AS bucket, \
             COUNT(*) AS cnt \
-         FROM flow_log.l7_flow_log \
+         FROM {db}.l7_flow_log \
          WHERE {where_clause} \
-         GROUP BY bucket \
+         {team_clause} GROUP BY bucket \
          ORDER BY \
             multiIf( \
                 bucket = '0–10ms', 1, \
@@ -653,10 +584,12 @@ pub async fn apm_stats(
 
 pub async fn apm_traces(
     State(_pool): State<DbPool>,
-    _auth: AuthContext,
+    auth: AuthContext,
     Query(q): Query<TracesQuery>,
 ) -> Result<axum::response::Response, AppError> {
     let client = ch_client()?;
+    let db = flow_log_db(auth.org_id);
+    let team_clause = clickhouse::team_filter(&auth.team_ids);
 
     let start = q.start.unwrap_or(default_window().0);
     let end = q.end.unwrap_or(default_window().1);
@@ -698,7 +631,7 @@ pub async fn apm_traces(
     // Use subquery to pre-compute synthetic trace_id, then count.
     let count_sql = format!(
         "SELECT COUNT() AS total FROM \
-         (SELECT _trace_id FROM (SELECT {TRACE_ID_EXPR} AS _trace_id FROM flow_log.l7_flow_log WHERE {where_clause}) WHERE _trace_id != '' GROUP BY _trace_id) \
+         (SELECT _trace_id FROM (SELECT {TRACE_ID_EXPR} AS _trace_id FROM {db}.l7_flow_log WHERE {where_clause}) WHERE _trace_id != '' {team_clause} GROUP BY _trace_id) \
          FORMAT JSONEachRow"
     );
 
@@ -721,11 +654,11 @@ pub async fn apm_traces(
              SELECT *, \
                  {TRACE_ID_EXPR} AS _trace_id, \
                  {SERVICE_EXPR} AS _svc \
-             FROM flow_log.l7_flow_log \
+             FROM {db}.l7_flow_log \
              WHERE {where_clause} \
          ) \
          WHERE _trace_id != '' \
-         GROUP BY _trace_id \
+         {team_clause} GROUP BY _trace_id \
          ORDER BY {sort_col} {sort_dir} \
          LIMIT {limit} OFFSET {offset} FORMAT JSONEachRow"
     );
@@ -755,10 +688,12 @@ pub async fn apm_traces(
 
 pub async fn apm_trace_detail(
     State(_pool): State<DbPool>,
-    _auth: AuthContext,
+    auth: AuthContext,
     Path(trace_id): Path<String>,
 ) -> Result<axum::response::Response, AppError> {
     let client = ch_client()?;
+    let db = flow_log_db(auth.org_id);
+    let team_clause = clickhouse::team_filter(&auth.team_ids);
 
     let safe_tid = trace_id.replace('\'', "''");
 
@@ -807,10 +742,10 @@ pub async fn apm_trace_detail(
             biz_protocol, \
             syscall_trace_id_request, \
             syscall_trace_id_response \
-         FROM flow_log.l7_flow_log \
+         FROM {db}.l7_flow_log \
          WHERE {trace_filter} \
          ORDER BY start_time_us ASC \
-         LIMIT 10000 FORMAT JSONEachRow"
+         {team_clause} LIMIT 100 FORMAT JSONEachRow"
     );
 
     let spans = ch_query(&client, &spans_sql).await;
@@ -828,17 +763,19 @@ pub async fn apm_trace_detail(
 
         for span in &span_list {
             let pid = span.get("parent_span_id").and_then(|v| v.as_str()).unwrap_or("");
-            if !pid.is_empty() && pid != "0" { any_real_parent = true; break; }
+            if !pid.is_empty() && pid != "0" {
+                any_real_parent = true;
+                break;
+            }
         }
 
         if !any_real_parent {
             // First, deduplicate by span_id: keep the entry with the longest duration
-            let mut best_by_sid: std::collections::HashMap<String, (usize, i64)> = std::collections::HashMap::new();
+            let mut best_by_sid: std::collections::HashMap<String, (usize, i64)> =
+                std::collections::HashMap::new();
             for (idx, span) in span_list.iter().enumerate() {
                 let sid = span.get("span_id").and_then(|v| v.as_str()).unwrap_or("");
-                let dur = span.get("duration_us")
-                    .and_then(|v| val_i64(v))
-                    .unwrap_or(0);
+                let dur = span.get("duration_us").and_then(|v| val_i64(v)).unwrap_or(0);
                 if let Some(&(_, existing_dur)) = best_by_sid.get(sid) {
                     if dur > existing_dur {
                         best_by_sid.insert(sid.to_string(), (idx, dur));
@@ -851,19 +788,28 @@ pub async fn apm_trace_detail(
             // Get unique span_ids and sort by service + start_time to find the root
             let mut unique_spans: Vec<(String, String, String)> = Vec::new(); // (span_id, service, start_time)
             for (sid, &(_idx, _dur)) in &best_by_sid {
-                let span = &span_list.iter().find(|s| s.get("span_id").and_then(|v| v.as_str()) == Some(sid));
-                let svc = span.and_then(|s| s.get("service_name").and_then(|v| v.as_str())).unwrap_or("");
-                let st = span.and_then(|s| s.get("start_time_us").and_then(|v| v.as_str())).unwrap_or("");
+                let span = &span_list
+                    .iter()
+                    .find(|s| s.get("span_id").and_then(|v| v.as_str()) == Some(sid));
+                let svc =
+                    span.and_then(|s| s.get("service_name").and_then(|v| v.as_str())).unwrap_or("");
+                let st = span
+                    .and_then(|s| s.get("start_time_us").and_then(|v| v.as_str()))
+                    .unwrap_or("");
                 unique_spans.push((sid.clone(), svc.to_string(), st.to_string()));
             }
 
             let mut linked: usize;
             // Strategy 1: Syscall correlation
             {
-                let mut resp_map: std::collections::HashMap<String, Vec<String>> = std::collections::HashMap::new();
+                let mut resp_map: std::collections::HashMap<String, Vec<String>> =
+                    std::collections::HashMap::new();
                 for span in &span_list {
-                    let resp = span.get("syscall_trace_id_response")
-                        .and_then(|v| v.as_u64().or_else(|| v.as_str().and_then(|s| s.parse().ok())))
+                    let resp = span
+                        .get("syscall_trace_id_response")
+                        .and_then(|v| {
+                            v.as_u64().or_else(|| v.as_str().and_then(|s| s.parse().ok()))
+                        })
                         .unwrap_or(0);
                     if resp != 0 {
                         if let Some(sid) = span.get("span_id").and_then(|v| v.as_str()) {
@@ -874,15 +820,23 @@ pub async fn apm_trace_detail(
 
                 linked = 0usize;
                 for span in &mut span_list {
-                    let req = span.get("syscall_trace_id_request")
-                        .and_then(|v| v.as_u64().or_else(|| v.as_str().and_then(|s| s.parse().ok())))
+                    let req = span
+                        .get("syscall_trace_id_request")
+                        .and_then(|v| {
+                            v.as_u64().or_else(|| v.as_str().and_then(|s| s.parse().ok()))
+                        })
                         .unwrap_or(0);
-                    if req == 0 { continue; }
+                    if req == 0 {
+                        continue;
+                    }
                     if let Some(parents) = resp_map.get(&req.to_string()) {
                         let own_sid = span.get("span_id").and_then(|v| v.as_str()).unwrap_or("");
                         if let Some(parent_sid) = parents.iter().find(|p| *p != own_sid) {
                             if let Some(obj) = span.as_object_mut() {
-                                obj.insert("parent_span_id".to_string(), serde_json::Value::String(parent_sid.clone()));
+                                obj.insert(
+                                    "parent_span_id".to_string(),
+                                    serde_json::Value::String(parent_sid.clone()),
+                                );
                                 linked += 1;
                             }
                         }
@@ -903,15 +857,18 @@ pub async fn apm_trace_detail(
                 let mut span_times: Vec<(String, i64, i64)> = Vec::new(); // (sid, start_us, end_us)
                 for span in &span_list {
                     let sid = span.get("span_id").and_then(|v| v.as_str()).unwrap_or("");
-                    if span_times.iter().any(|(s, _, _)| s == sid) { continue; }
-                    let start = span.get("start_time_us")
+                    if span_times.iter().any(|(s, _, _)| s == sid) {
+                        continue;
+                    }
+                    let start = span
+                        .get("start_time_us")
                         .and_then(|v| v.as_str())
                         .and_then(|s| parse_time_us(s))
                         .or_else(|| {
                             // Fallback: parse "start_time" (DateTime string without micros)
-                            span.get("start_time").and_then(|v| v.as_str()).and_then(|s| {
-                                parse_time_us(&format!("{}.0", s))
-                            })
+                            span.get("start_time")
+                                .and_then(|v| v.as_str())
+                                .and_then(|s| parse_time_us(&format!("{}.0", s)))
                         })
                         .unwrap_or(0);
                     let dur = span.get("duration_us").and_then(|v| val_i64(v)).unwrap_or(0);
@@ -925,14 +882,21 @@ pub async fn apm_trace_detail(
                 // For each span, find its tightest-enclosing parent
                 for span in &mut span_list {
                     let own_sid = span.get("span_id").and_then(|v| v.as_str()).unwrap_or("");
-                    let existing_pid = span.get("parent_span_id").and_then(|v| v.as_str()).unwrap_or("");
-                    if !existing_pid.is_empty() { continue; }
+                    let existing_pid =
+                        span.get("parent_span_id").and_then(|v| v.as_str()).unwrap_or("");
+                    if !existing_pid.is_empty() {
+                        continue;
+                    }
 
-                    if let Some(&(_, ref own_start, ref own_end)) = span_times.iter().find(|(s, _, _)| s == own_sid) {
+                    if let Some(&(_, ref own_start, ref own_end)) =
+                        span_times.iter().find(|(s, _, _)| s == own_sid)
+                    {
                         // Find candidates: earlier spans that fully contain this one
                         let mut best: Option<(&str, i64)> = None; // (parent_sid, tightness)
                         for (pid, p_start, p_end) in &span_times {
-                            if pid == own_sid { continue; }
+                            if pid == own_sid {
+                                continue;
+                            }
                             if *p_start <= *own_start && *p_end >= *own_end {
                                 // Encloses — pick tightest (smallest parent interval)
                                 let tightness = *p_end - *p_start;
@@ -943,7 +907,10 @@ pub async fn apm_trace_detail(
                         }
                         if let Some((parent_sid, _)) = best {
                             if let Some(obj) = span.as_object_mut() {
-                                obj.insert("parent_span_id".to_string(), serde_json::Value::String(parent_sid.to_string()));
+                                obj.insert(
+                                    "parent_span_id".to_string(),
+                                    serde_json::Value::String(parent_sid.to_string()),
+                                );
                                 linked = 1;
                             }
                         }
@@ -953,26 +920,39 @@ pub async fn apm_trace_detail(
 
             // Strategy 3: Server/client heuristic for syscall traces
             if linked == 0 && unique_spans.len() < 2 {
-                let server_spans: Vec<String> = span_list.iter()
+                let server_spans: Vec<String> = span_list
+                    .iter()
                     .filter_map(|s| {
-                        let resp = s.get("syscall_trace_id_response")
-                            .and_then(|v| v.as_u64().or_else(|| v.as_str().and_then(|s2| s2.parse().ok())))
+                        let resp = s
+                            .get("syscall_trace_id_response")
+                            .and_then(|v| {
+                                v.as_u64().or_else(|| v.as_str().and_then(|s2| s2.parse().ok()))
+                            })
                             .unwrap_or(0);
-                        if resp != 0 { s.get("span_id").and_then(|v| v.as_str().map(|x| x.to_string())) }
-                        else { None }
+                        if resp != 0 {
+                            s.get("span_id").and_then(|v| v.as_str().map(|x| x.to_string()))
+                        } else {
+                            None
+                        }
                     })
                     .collect();
 
                 if !server_spans.is_empty() {
                     let default_parent = &server_spans[0];
                     for span in &mut span_list {
-                        let resp = span.get("syscall_trace_id_response")
-                            .and_then(|v| v.as_u64().or_else(|| v.as_str().and_then(|s2| s2.parse().ok())))
+                        let resp = span
+                            .get("syscall_trace_id_response")
+                            .and_then(|v| {
+                                v.as_u64().or_else(|| v.as_str().and_then(|s2| s2.parse().ok()))
+                            })
                             .unwrap_or(0);
                         let own_sid = span.get("span_id").and_then(|v| v.as_str()).unwrap_or("");
                         if resp == 0 && !server_spans.contains(&own_sid.to_string()) {
                             if let Some(obj) = span.as_object_mut() {
-                                obj.insert("parent_span_id".to_string(), serde_json::Value::String(default_parent.clone()));
+                                obj.insert(
+                                    "parent_span_id".to_string(),
+                                    serde_json::Value::String(default_parent.clone()),
+                                );
                             }
                         }
                     }
@@ -1073,12 +1053,7 @@ fn parse_time_us(s: &str) -> Option<i64> {
         let secs_part = &s[..dot_pos];
         let micros_part = &s[dot_pos + 1..];
         let dt = chrono::NaiveDateTime::parse_from_str(secs_part, "%Y-%m-%d %H:%M:%S").ok()?;
-        let micros: i64 = micros_part
-            .chars()
-            .take(6)
-            .collect::<String>()
-            .parse()
-            .unwrap_or(0);
+        let micros: i64 = micros_part.chars().take(6).collect::<String>().parse().unwrap_or(0);
         Some(dt.and_utc().timestamp_micros() + micros)
     } else {
         let dt = chrono::NaiveDateTime::parse_from_str(s, "%Y-%m-%d %H:%M:%S").ok()?;
@@ -1092,10 +1067,12 @@ fn parse_time_us(s: &str) -> Option<i64> {
 
 pub async fn apm_span_detail(
     State(_pool): State<DbPool>,
-    _auth: AuthContext,
+    auth: AuthContext,
     Path(span_id): Path<String>,
 ) -> Result<axum::response::Response, AppError> {
     let client = ch_client()?;
+    let db = flow_log_db(auth.org_id);
+    let team_clause = clickhouse::team_filter(&auth.team_ids);
 
     let safe_sid = span_id.replace('\'', "''");
 
@@ -1124,17 +1101,13 @@ pub async fn apm_span_detail(
             x_request_id_1, \
             attribute_names, \
             attribute_values \
-         FROM flow_log.l7_flow_log \
+         FROM {db}.l7_flow_log \
          WHERE (span_id = '{safe_sid}' OR toString(flow_id) = '{safe_sid}') \
-         LIMIT 1 FORMAT JSONEachRow"
+         {team_clause} LIMIT 100 FORMAT JSONEachRow"
     );
 
     let rows = ch_query(&client, &sql).await;
-    let span = rows
-        .as_array()
-        .and_then(|a| a.first())
-        .cloned()
-        .unwrap_or(Value::Null);
+    let span = rows.as_array().and_then(|a| a.first()).cloned().unwrap_or(Value::Null);
 
     Ok(Json(json!({ "span": span })).into_response())
 }
@@ -1145,11 +1118,13 @@ pub async fn apm_span_detail(
 
 pub async fn apm_service_detail(
     State(_pool): State<DbPool>,
-    _auth: AuthContext,
+    auth: AuthContext,
     Path(service_name): Path<String>,
     Query(q): Query<StatsQuery>,
 ) -> Result<axum::response::Response, AppError> {
     let client = ch_client()?;
+    let db = flow_log_db(auth.org_id);
+    let team_clause = clickhouse::team_filter(&auth.team_ids);
 
     let start = q.start.unwrap_or(default_window().0);
     let end = q.end.unwrap_or(default_window().1);
@@ -1166,8 +1141,8 @@ pub async fn apm_service_detail(
             quantile(0.99)(response_duration) / 1000 AS p99_ms, \
             countIf(response_code >= 500 OR response_code = 0) AS error_count, \
             if(total_requests > 0, round(error_count / total_requests * 100, 2), 0) AS error_rate_pct \
-         FROM flow_log.l7_flow_log \
-         WHERE {where_clause} FORMAT JSONEachRow"
+         FROM {db}.l7_flow_log \
+         WHERE {where_clause} {team_clause} FORMAT JSONEachRow"
     );
 
     // Top operations
@@ -1178,11 +1153,11 @@ pub async fn apm_service_detail(
             AVG(response_duration) / 1000 AS avg_latency_ms, \
             quantile(0.95)(response_duration) / 1000 AS p95_ms, \
             countIf(response_code >= 500 OR response_code = 0) AS error_count \
-         FROM flow_log.l7_flow_log \
+         FROM {db}.l7_flow_log \
          WHERE {where_clause} \
-         GROUP BY operation_name \
+         {team_clause} GROUP BY operation_name \
          ORDER BY cnt DESC \
-         LIMIT 20 FORMAT JSONEachRow"
+         {team_clause} LIMIT 100 FORMAT JSONEachRow"
     );
 
     // Rate per minute
@@ -1192,9 +1167,9 @@ pub async fn apm_service_detail(
             COUNT(*) AS cnt, \
             AVG(response_duration) / 1000 AS avg_latency_ms, \
             countIf(response_code >= 500 OR response_code = 0) AS error_cnt \
-         FROM flow_log.l7_flow_log \
+         FROM {db}.l7_flow_log \
          WHERE {where_clause} \
-         GROUP BY ts \
+         {team_clause} GROUP BY ts \
          ORDER BY ts FORMAT JSONEachRow"
     );
 
@@ -1207,7 +1182,8 @@ pub async fn apm_service_detail(
         "overview": overview,
         "operations": operations,
         "rate": rate,
-    })).into_response())
+    }))
+    .into_response())
 }
 
 // ---------------------------------------------------------------------------
@@ -1224,10 +1200,12 @@ pub struct TopologyQuery {
 
 pub async fn apm_topology(
     State(_pool): State<DbPool>,
-    _auth: AuthContext,
+    auth: AuthContext,
     Query(q): Query<TopologyQuery>,
 ) -> Result<axum::response::Response, AppError> {
     let client = ch_client()?;
+    let db = flow_log_db(auth.org_id);
+    let team_clause = clickhouse::team_filter(&auth.team_ids);
 
     let start = q.start.unwrap_or(default_window().0);
     let end = q.end.unwrap_or(default_window().1);
@@ -1253,8 +1231,8 @@ pub async fn apm_topology(
                  AVG(b.response_duration) AS avg_latency, \
                  quantile(0.95)(b.response_duration) AS p95_latency, \
                  countIf(b.response_code >= 500 OR b.response_code = 0) AS error_count \
-             FROM flow_log.l7_flow_log AS a \
-             INNER JOIN flow_log.l7_flow_log AS b \
+             FROM {db}.l7_flow_log AS a \
+             INNER JOIN {db}.l7_flow_log AS b \
                  ON a.syscall_trace_id_request = b.syscall_trace_id_response \
                  AND a.syscall_trace_id_request != 0 \
                  AND b.syscall_trace_id_response != 0 \
@@ -1262,7 +1240,7 @@ pub async fn apm_topology(
                AND b.time >= toDateTime({start}) AND b.time <= toDateTime({end}) \
                AND {Q_SERVICE_EXPR_A} != '' AND {Q_SERVICE_EXPR_B} != '' \
                AND {Q_SERVICE_EXPR_A} != {Q_SERVICE_EXPR_B} \
-             GROUP BY source, target \
+             {team_clause} GROUP BY source, target \
              UNION ALL \
              SELECT \
                  {Q_SERVICE_EXPR_P} AS source, \
@@ -1271,8 +1249,8 @@ pub async fn apm_topology(
                  AVG(c.response_duration) AS avg_latency, \
                  quantile(0.95)(c.response_duration) AS p95_latency, \
                  countIf(c.response_code >= 500 OR c.response_code = 0) AS error_count \
-             FROM flow_log.l7_flow_log AS c \
-             INNER JOIN flow_log.l7_flow_log AS p \
+             FROM {db}.l7_flow_log AS c \
+             INNER JOIN {db}.l7_flow_log AS p \
                  ON c.parent_span_id = p.span_id \
                  AND c.trace_id = p.trace_id \
              WHERE p.time >= toDateTime({start}) AND p.time <= toDateTime({end}) \
@@ -1280,12 +1258,12 @@ pub async fn apm_topology(
                AND c.parent_span_id != '' AND c.parent_span_id != '0' \
                AND {Q_SERVICE_EXPR_P} != '' AND {Q_SERVICE_EXPR_C} != '' \
                AND {Q_SERVICE_EXPR_P} != {Q_SERVICE_EXPR_C} \
-             GROUP BY source, target \
+             {team_clause} GROUP BY source, target \
          ) \
-         GROUP BY source, target \
+         {team_clause} GROUP BY source, target \
          HAVING call_count >= 1 \
          ORDER BY call_count DESC \
-         LIMIT 200 FORMAT JSONEachRow"
+         {team_clause} LIMIT 100 FORMAT JSONEachRow"
     );
 
     // Node stats: per-service summaries
@@ -1298,11 +1276,11 @@ pub async fn apm_topology(
             quantile(0.99)(response_duration) / 1000 AS p99_latency_ms, \
             countIf(response_code >= 500 OR response_code = 0) AS error_count, \
             if(request_count > 0, round(error_count / request_count * 100, 2), 0) AS error_rate_pct \
-         FROM flow_log.l7_flow_log \
-         WHERE {where_clause} AND {SERVICE_EXPR} != '' \
-         GROUP BY service_name \
+         FROM {db}.l7_flow_log \
+         WHERE {where_clause} {team_clause} AND {SERVICE_EXPR} != '' \
+         {team_clause} GROUP BY service_name \
          ORDER BY request_count DESC \
-         LIMIT 100 FORMAT JSONEachRow"
+         {team_clause} LIMIT 100 FORMAT JSONEachRow"
     );
 
     let edges = ch_query(&client, &edges_sql).await;
@@ -1311,7 +1289,8 @@ pub async fn apm_topology(
     Ok(Json(json!({
         "nodes": nodes,
         "edges": edges,
-    })).into_response())
+    }))
+    .into_response())
 }
 
 // ---------------------------------------------------------------------------
@@ -1327,11 +1306,13 @@ pub struct DependenciesQuery {
 
 pub async fn apm_service_dependencies(
     State(_pool): State<DbPool>,
-    _auth: AuthContext,
+    auth: AuthContext,
     Path(service_name): Path<String>,
     Query(q): Query<DependenciesQuery>,
 ) -> Result<axum::response::Response, AppError> {
     let client = ch_client()?;
+    let db = flow_log_db(auth.org_id);
+    let team_clause = clickhouse::team_filter(&auth.team_ids);
 
     let start = q.start.unwrap_or(default_window().0);
     let end = q.end.unwrap_or(default_window().1);
@@ -1353,8 +1334,8 @@ pub async fn apm_service_dependencies(
                  AVG(b.response_duration) / 1000 AS avg_latency_ms, \
                  quantile(0.95)(b.response_duration) / 1000 AS p95_latency_ms, \
                  countIf(b.response_code >= 500 OR b.response_code = 0) AS error_count \
-             FROM flow_log.l7_flow_log AS a \
-             INNER JOIN flow_log.l7_flow_log AS b \
+             FROM {db}.l7_flow_log AS a \
+             INNER JOIN {db}.l7_flow_log AS b \
                  ON a.syscall_trace_id_request = b.syscall_trace_id_response \
                  AND a.syscall_trace_id_request != 0 \
                  AND b.syscall_trace_id_response != 0 \
@@ -1362,7 +1343,7 @@ pub async fn apm_service_dependencies(
                AND b.time >= toDateTime({start}) AND b.time <= toDateTime({end}) \
                AND {Q_SERVICE_EXPR_A} = '{safe_svc}' \
                AND {Q_SERVICE_EXPR_B} != '' AND {Q_SERVICE_EXPR_B} != '{safe_svc}' \
-             GROUP BY target \
+             {team_clause} GROUP BY target \
              UNION ALL \
              SELECT \
                  {Q_SERVICE_EXPR_C} AS target, \
@@ -1370,8 +1351,8 @@ pub async fn apm_service_dependencies(
                  AVG(c.response_duration) / 1000 AS avg_latency_ms, \
                  quantile(0.95)(c.response_duration) / 1000 AS p95_latency_ms, \
                  countIf(c.response_code >= 500 OR c.response_code = 0) AS error_count \
-             FROM flow_log.l7_flow_log AS c \
-             INNER JOIN flow_log.l7_flow_log AS p \
+             FROM {db}.l7_flow_log AS c \
+             INNER JOIN {db}.l7_flow_log AS p \
                  ON c.parent_span_id = p.span_id \
                  AND c.trace_id = p.trace_id \
              WHERE p.time >= toDateTime({start}) AND p.time <= toDateTime({end}) \
@@ -1379,11 +1360,11 @@ pub async fn apm_service_dependencies(
                AND c.parent_span_id != '' AND c.parent_span_id != '0' \
                AND {Q_SERVICE_EXPR_P} = '{safe_svc}' \
                AND {Q_SERVICE_EXPR_C} != '' AND {Q_SERVICE_EXPR_C} != '{safe_svc}' \
-             GROUP BY target \
+             {team_clause} GROUP BY target \
          ) \
-         GROUP BY downstream_service \
+         {team_clause} GROUP BY downstream_service \
          ORDER BY call_count DESC \
-         LIMIT 30 FORMAT JSONEachRow"
+         {team_clause} LIMIT 100 FORMAT JSONEachRow"
     );
 
     // Upstream: services that call THIS service
@@ -1402,8 +1383,8 @@ pub async fn apm_service_dependencies(
                  AVG(b.response_duration) / 1000 AS avg_latency_ms, \
                  quantile(0.95)(b.response_duration) / 1000 AS p95_latency_ms, \
                  countIf(b.response_code >= 500 OR b.response_code = 0) AS error_count \
-             FROM flow_log.l7_flow_log AS a \
-             INNER JOIN flow_log.l7_flow_log AS b \
+             FROM {db}.l7_flow_log AS a \
+             INNER JOIN {db}.l7_flow_log AS b \
                  ON a.syscall_trace_id_request = b.syscall_trace_id_response \
                  AND a.syscall_trace_id_request != 0 \
                  AND b.syscall_trace_id_response != 0 \
@@ -1411,7 +1392,7 @@ pub async fn apm_service_dependencies(
                AND b.time >= toDateTime({start}) AND b.time <= toDateTime({end}) \
                AND {Q_SERVICE_EXPR_B} = '{safe_svc}' \
                AND {Q_SERVICE_EXPR_A} != '' AND {Q_SERVICE_EXPR_A} != '{safe_svc}' \
-             GROUP BY source \
+             {team_clause} GROUP BY source \
              UNION ALL \
              SELECT \
                  {Q_SERVICE_EXPR_P} AS source, \
@@ -1419,8 +1400,8 @@ pub async fn apm_service_dependencies(
                  AVG(c.response_duration) / 1000 AS avg_latency_ms, \
                  quantile(0.95)(c.response_duration) / 1000 AS p95_latency_ms, \
                  countIf(c.response_code >= 500 OR c.response_code = 0) AS error_count \
-             FROM flow_log.l7_flow_log AS c \
-             INNER JOIN flow_log.l7_flow_log AS p \
+             FROM {db}.l7_flow_log AS c \
+             INNER JOIN {db}.l7_flow_log AS p \
                  ON c.parent_span_id = p.span_id \
                  AND c.trace_id = p.trace_id \
              WHERE p.time >= toDateTime({start}) AND p.time <= toDateTime({end}) \
@@ -1428,11 +1409,11 @@ pub async fn apm_service_dependencies(
                AND c.parent_span_id != '' AND c.parent_span_id != '0' \
                AND {Q_SERVICE_EXPR_C} = '{safe_svc}' \
                AND {Q_SERVICE_EXPR_P} != '' AND {Q_SERVICE_EXPR_P} != '{safe_svc}' \
-             GROUP BY source \
+             {team_clause} GROUP BY source \
          ) \
-         GROUP BY upstream_service \
+         {team_clause} GROUP BY upstream_service \
          ORDER BY call_count DESC \
-         LIMIT 30 FORMAT JSONEachRow"
+         {team_clause} LIMIT 100 FORMAT JSONEachRow"
     );
 
     let downstream = ch_query(&client, &downstream_sql).await;
@@ -1442,5 +1423,6 @@ pub async fn apm_service_dependencies(
         "service_name": service_name,
         "downstream": downstream,
         "upstream": upstream,
-    })).into_response())
+    }))
+    .into_response())
 }
