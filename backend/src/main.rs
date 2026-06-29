@@ -1,23 +1,31 @@
+mod billing;
+mod clickhouse;
 mod config;
 mod db;
 mod errors;
+mod guardian;
 mod handlers;
 mod middleware;
 mod models;
-mod guardian;
+mod zerotrace;
 
-use axum::{
-    middleware as axum_middleware,
-    routing::{delete, get, post},
-    Router,
+use crate::{
+    config::Config,
+    guardian::{guardian_analyze, guardian_stories, guardian_story_detail},
+    handlers::{
+        agents, api_keys, apm, auth, billing as billing_handlers, data, installer, metrics, organization, users,
+    },
+    middleware::auth::{require_auth, require_subscription},
 };
-use tower_http::services::{ServeDir, ServeFile};
-use tower_http::cors::CorsLayer;
-use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt, EnvFilter};
-
-use crate::config::Config;
-use crate::handlers::{agents, api_keys, apm, auth, data, installer, metrics};
-use crate::guardian::{guardian_analyze, guardian_stories, guardian_story_detail};
+use axum::{
+    Router, middleware as axum_middleware,
+    routing::{delete, get, post, put},
+};
+use tower_http::{
+    cors::CorsLayer,
+    services::{ServeDir, ServeFile},
+};
+use tracing_subscriber::{EnvFilter, layer::SubscriberExt, util::SubscriberInitExt};
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
@@ -32,11 +40,22 @@ async fn main() -> anyhow::Result<()> {
     let pool = db::init_pool(&config.database_url).await?;
     db::run_migrations(&pool).await?;
 
+    // Spawn usage collector background task
+    {
+        let collector_pool = pool.clone();
+        let server_url = config.zerotrace_server_url.clone();
+        tokio::spawn(async move {
+            billing::collector::run_collector(collector_pool, server_url).await;
+        });
+    }
+
     let cors = CorsLayer::new()
         .allow_origin(tower_http::cors::AllowOrigin::mirror_request())
         .allow_methods([
-            axum::http::Method::GET, axum::http::Method::POST,
-            axum::http::Method::PUT, axum::http::Method::DELETE,
+            axum::http::Method::GET,
+            axum::http::Method::POST,
+            axum::http::Method::PUT,
+            axum::http::Method::DELETE,
             axum::http::Method::OPTIONS,
         ])
         .allow_headers([
@@ -53,16 +72,28 @@ async fn main() -> anyhow::Result<()> {
         .route("/api/v1/auth/logout", post(auth::logout))
         .route("/api/v1/auth/me", get(auth::me))
         .route("/agent/install.sh", get(installer::serve_install_script))
-        .nest_service("/agent/binaries", ServeDir::new(
-            std::env::var("BINARIES_DIR")
-                .unwrap_or_else(|_| concat!(env!("CARGO_MANIFEST_DIR"), "/agent-installer/binaries").to_string())
-        ));
+        .route("/api/v1/server-info", get(installer::server_info))
+        .nest_service(
+            "/agent/binaries",
+            ServeDir::new(std::env::var("BINARIES_DIR").unwrap_or_else(|_| {
+                concat!(env!("CARGO_MANIFEST_DIR"), "/agent-installer/binaries").to_string()
+            })),
+        );
 
     // Protected routes
     let protected_routes = Router::new()
-        .route("/api/v1/api-keys", get(api_keys::list_api_keys).post(api_keys::create_api_key))
+            .route("/api/v1/users", get(users::list_users))
+            .route("/api/v1/users/{id}", put(users::update_user))
+            .route("/api/v1/organization", get(organization::get_org).put(organization::update_org))
+        .route(
+            "/api/v1/api-keys",
+            get(api_keys::list_api_keys).post(api_keys::create_api_key),
+        )
         .route("/api/v1/api-keys/{id}", delete(api_keys::revoke_api_key))
-        .route("/api/v1/api-keys/{id}/reveal", post(api_keys::reveal_api_key))
+        .route(
+            "/api/v1/api-keys/{id}/reveal",
+            post(api_keys::reveal_api_key),
+        )
         .route("/api/v1/agents/status", get(agents::agent_status))
         .route("/api/v1/data/overview", get(data::data_overview))
         .route("/api/v1/metrics/list", get(metrics::metrics_list))
@@ -70,8 +101,14 @@ async fn main() -> anyhow::Result<()> {
         .route("/api/v1/apm/tags", get(apm::apm_tags))
         .route("/api/v1/apm/topology", get(apm::apm_topology))
         .route("/api/v1/apm/services", get(apm::apm_services))
-        .route("/api/v1/apm/services/{service_name}", get(apm::apm_service_detail))
-        .route("/api/v1/apm/services/{service_name}/dependencies", get(apm::apm_service_dependencies))
+        .route(
+            "/api/v1/apm/services/{service_name}",
+            get(apm::apm_service_detail),
+        )
+        .route(
+            "/api/v1/apm/services/{service_name}/dependencies",
+            get(apm::apm_service_dependencies),
+        )
         .route("/api/v1/apm/operations", get(apm::apm_operations))
         .route("/api/v1/apm/stats", get(apm::apm_stats))
         .route("/api/v1/apm/traces", get(apm::apm_traces))
@@ -80,16 +117,75 @@ async fn main() -> anyhow::Result<()> {
         .route("/api/v1/guardian/analyze", post(guardian_analyze))
         .route("/api/v1/guardian/stories", get(guardian_stories))
         .route("/api/v1/guardian/stories/{id}", get(guardian_story_detail))
-        .route_layer(axum_middleware::from_fn_with_state(pool.clone(), middleware::auth::require_auth));
+        .route(
+            "/api/v1/billing/plans",
+            get(billing_handlers::list_plans).post(billing_handlers::create_plan),
+        )
+        .route(
+            "/api/v1/billing/plans/{id}",
+            put(billing_handlers::update_plan).delete(billing_handlers::delete_plan),
+        )
+        .route(
+            "/api/v1/billing/summary",
+            get(billing_handlers::billing_summary),
+        )
+        .route(
+            "/api/v1/billing/subscriptions",
+            get(billing_handlers::list_subscriptions).post(billing_handlers::create_subscription),
+        )
+        .route(
+            "/api/v1/billing/subscriptions/{id}",
+            delete(billing_handlers::cancel_subscription)
+                .patch(billing_handlers::update_subscription_quantity),
+        )
+        .route(
+            "/api/v1/billing/usage",
+            get(billing_handlers::current_usage),
+        )
+        .route(
+            "/api/v1/billing/usage/hourly",
+            get(billing_handlers::hourly_usage),
+        )
+        .route(
+            "/api/v1/billing/estimated-cost",
+            get(billing_handlers::estimated_cost_v2),
+        )
+        .route(
+            "/api/v1/billing/invoices",
+            get(billing_handlers::list_invoices),
+        )
+        .route(
+            "/api/v1/billing/invoices/{id}",
+            get(billing_handlers::invoice_detail),
+        )
+        .route(
+            "/api/v1/billing/invoices/generate",
+            post(billing_handlers::generate_invoice),
+        )
+        .route(
+            "/api/v1/billing/alerts",
+            get(billing_handlers::list_usage_alerts).post(billing_handlers::create_usage_alert),
+        )
+        .route(
+            "/api/v1/billing/alerts/{id}",
+            delete(billing_handlers::delete_usage_alert),
+        )
+        .route_layer(axum_middleware::from_fn_with_state(
+            pool.clone(),
+            require_subscription,
+        ))
+        .route_layer(axum_middleware::from_fn_with_state(
+            pool.clone(),
+            require_auth,
+        ));
 
     // Frontend SPA: serve dist/ with index.html fallback for client-side routing
     let static_dir = std::env::var("STATIC_DIR")
         .unwrap_or_else(|_| format!("{}/../frontend/dist", env!("CARGO_MANIFEST_DIR")));
     let index_html = format!("{}/index.html", static_dir);
 
-    let spa = Router::new().fallback_service(
-        ServeDir::new(&static_dir).fallback(ServeFile::new(index_html))
-    );
+    let spa = Router::new()
+        .fallback_service(ServeDir::new(&static_dir).fallback(ServeFile::new(index_html)));
 
     let app = Router::new()
         .merge(public_routes)

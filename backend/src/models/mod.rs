@@ -1,4 +1,9 @@
 pub mod api_key;
+pub mod invoice;
 pub mod organization;
+pub mod plan;
 pub mod session;
+pub mod subscription;
+pub mod usage;
+pub mod usage_alert;
 pub mod user;
