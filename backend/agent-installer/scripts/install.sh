@@ -4,6 +4,7 @@ set -e
 # Default settings — derived from CONTROLLER_IP so it works on remote machines
 CONTROLLER_IP=${ZEROTRACE_CONTROLLER_IP:-"202.112.237.37"}
 CONTROLLER_PORT=${ZEROTRACE_CONTROLLER_PORT:-"30035"}
+INGESTER_PORT=${ZEROTRACE_INGESTER_PORT:-"30033"}
 SERVER_URL=${SERVER_URL:-"http://${CONTROLLER_IP}:3001"}
 INSTALL_DIR="/opt/zerotrace-agent"
 BIN_DIR="${INSTALL_DIR}/bin"
@@ -61,9 +62,12 @@ controller-ips:
 ## controller listen port
 controller-port: ${CONTROLLER_PORT}
 
-## ingester addresses
+## ingester addresses (data plane — L4/L7 flow telemetry)
 ingester_ip:
   - ${CONTROLLER_IP}
+
+ingester-port:
+  - ${INGESTER_PORT}
 
 ## proxy controller
 proxy_controller_ip:
@@ -90,9 +94,10 @@ if [ -n "${ZT_TAGS}" ]; then
     done
 fi
 
-# Download the binary
+# Download the binary (no sudo — root's network may differ)
 echo "Downloading agent from ${DOWNLOAD_URL}..."
-sudo curl -f -sL -o "${BIN_DIR}/zerotrace-agent" "${DOWNLOAD_URL}" || {
+TMP_BIN="/tmp/zerotrace-agent-$$"
+curl -f -sL -o "${TMP_BIN}" "${DOWNLOAD_URL}" || {
     echo ""
     echo "Error: Failed to download the agent binary."
     echo "  URL:  ${DOWNLOAD_URL}"
@@ -101,7 +106,8 @@ sudo curl -f -sL -o "${BIN_DIR}/zerotrace-agent" "${DOWNLOAD_URL}" || {
     exit 1
 }
 
-# Make it executable
+# Move to install dir and make executable
+sudo mv "${TMP_BIN}" "${BIN_DIR}/zerotrace-agent"
 sudo chmod +x "${BIN_DIR}/zerotrace-agent"
 
 # Output success message

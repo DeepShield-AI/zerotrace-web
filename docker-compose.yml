@@ -1,32 +1,37 @@
-# Zerotrace Web — 独立启动（单容器：API + 前端 SPA + Agent Installer）
+# Zerotrace Web — API + Frontend SPA + Agent Installer
 #
-# 独立使用：
+# Usage:
 #   docker compose up -d
 #
-# 全栈部署：使用 ~/smore/docker-compose.yml
-
 services:
   web:
     image: 47.97.67.233:5000/deepshield/zerotrace-web:latest
     container_name: zerotrace-web
     restart: always
     environment:
-      DATABASE_URL: mysql://root:deepflow@zerotrace-mysql:30130/deepflow
-      DEEPFLOW_SERVER_URL: http://zerotrace-server:20417
+      DATABASE_URL: mysql://root:deepflow@deepflow-mysql:30130/deepflow
+      ZEROTRACE_SERVER_URL: http://deepflow-server:20417
+      ZEROTRACE_METERING_URL: http://deepflow-server:20417
       JWT_SECRET: ${JWT_SECRET:-change-me-in-production}
       SESSION_COOKIE_NAME: zt_session
       BIND_ADDR: 0.0.0.0:3001
       STATIC_DIR: /app/static
+      CLICKHOUSE_URL: http://deepflow-clickhouse:8123
       CONTROLLER_IP: ${CONTROLLER_IP:-}
       RUST_LOG: info
       TZ: Asia/Shanghai
     ports:
-      - "${WEB_PORT:-5173}:3001"
+      - "${WEB_PORT:-3001}:3001"
     networks:
       - zerotrace
+      - deepflow
 
 networks:
   zerotrace:
-    name: zerotrace
+    name: zerotrace_zerotrace
+    driver: bridge
+    external: true
+  deepflow:
+    name: deepflow-docker-compose_deepflow
     driver: bridge
     external: true
