@@ -2,6 +2,18 @@
 @tailwind components;
 @tailwind utilities;
 
+:root {
+  --sidebar-bg: #292e39;
+  --sidebar-width: 160px;
+  --sidebar-collapsed-width: 52px;
+  --sidebar-nav-inactive: #babdbb;
+  --sidebar-nav-active: rgba(255, 255, 255, 0.76);
+  --sidebar-nav-hover-bg: rgba(255, 255, 255, 0.05);
+  --sidebar-nav-active-bg: rgba(255, 255, 255, 0.08);
+  --flyout-bg: rgb(23, 25, 31);
+  --flyout-width: 448px;
+}
+
 @layer base {
   * {
     margin: 0;
@@ -9,7 +21,7 @@
     box-sizing: border-box;
   }
   body {
-    @apply font-sans bg-zinc-50 text-zinc-900 antialiased;
+    @apply font-sans bg-[#f9fafb] text-zinc-900 antialiased;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     accent-color: #632CA6;
@@ -47,14 +59,16 @@
       0 20px 40px -15px rgba(0,0,0,0.06);
   }
 
-  /* Card surface — consistent look across all pages */
+  /* Card surface — consistent Zerotrace-style cards */
   .card-surface {
-    @apply bg-white border border-zinc-200 rounded-lg;
+    @apply bg-white border border-gray-200;
+    border-radius: 4px;
   }
 
   /* KPI stat card */
   .stat-card {
-    @apply bg-white border border-zinc-200 rounded-lg px-4 py-3;
+    @apply bg-white border border-gray-200 px-4 py-3;
+    border-radius: 4px;
   }
 
   /* Split-screen auth layout */
@@ -115,7 +129,7 @@
   filter: drop-shadow(0 0 12px rgba(99, 44, 166, 0.5));
 }
 
-/* ── Datadog-inspired host row ── */
+/* ── Zerotrace host row ── */
 .host-row {
   transition: background-color 0.12s ease, box-shadow 0.12s ease;
 }
@@ -172,9 +186,9 @@
 }
 
 /* ── Gradient page header strip ── */
-.page-header-strip {
-  background: linear-gradient(180deg, rgba(99,44,166,0.03) 0%, transparent 100%);
-}
+.dd-container { max-width: 1400px; margin: 0 auto; }
+.dd-header { @apply text-xl font-bold text-gray-900; }
+.dd-subtitle { @apply text-sm text-gray-400 mt-1; }
 
 /* ── Animate chevron ── */
 .chevron-animate {

@@ -23,7 +23,7 @@ interface HostTableProps {
 
 function SortCaret({ active, dir }: { active: boolean; dir: 'asc' | 'desc' }) {
   return (
-    <span className={`ml-1 inline-flex flex-col leading-none ${active ? 'text-[#632CA6]' : 'text-zinc-300'}`}>
+    <span className={`ml-1 inline-flex flex-col leading-none ${active ? 'text-[#632CA6]' : 'text-gray-300'}`}>
       <svg width="8" height="4" viewBox="0 0 8 4" className={dir === 'asc' && active ? 'opacity-100' : 'opacity-30'}>
         <path d="M4 0L0 4h8z" fill="currentColor" />
       </svg>
@@ -47,7 +47,7 @@ function StatusDot({ agent }: { agent: AgentItem }) {
         {on && <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-30" />}
         <span className="relative inline-flex rounded-full h-2.5 w-2.5" style={{ backgroundColor: color }} />
       </span>
-      <span className="text-[12px] text-zinc-600">{label}</span>
+      <span className="text-[12px] text-gray-600">{label}</span>
     </div>
   );
 }
@@ -148,25 +148,25 @@ function FilterDropdown({
   if (!active) return null;
 
   return (
-    <div className="absolute top-full left-0 mt-1 bg-white border border-zinc-200 rounded-lg shadow-lg z-20 min-w-[180px] max-h-[260px] overflow-hidden">
-      <div className="p-2 border-b border-zinc-100">
+    <div className="absolute top-full left-0 mt-1 bg-white border border-gray-200 rounded-lg shadow-lg z-20 min-w-[180px] max-h-[260px] overflow-hidden">
+      <div className="p-2 border-b border-gray-100">
         <input
           type="text"
           value={search}
           onChange={e => setSearch(e.target.value)}
           placeholder={`Filter ${colKey}...`}
-          className="w-full h-7 px-2 text-[12px] border border-zinc-200 rounded bg-white focus:outline-none focus:border-[#632CA6]"
+          className="w-full h-7 px-2 text-[12px] border border-gray-200 rounded bg-white focus:outline-none focus:border-[#632CA6]"
           autoFocus
           onClick={e => e.stopPropagation()}
         />
       </div>
       <div className="overflow-y-auto max-h-[200px]">
         {filtered.length === 0 && (
-          <p className="text-[12px] text-zinc-400 py-4 text-center">No matches</p>
+          <p className="text-[12px] text-gray-400 py-4 text-center">No matches</p>
         )}
         {filtered.map(v => (
-          <label key={v} className="flex items-center gap-2 px-3 py-1.5 hover:bg-zinc-50 cursor-pointer text-[12px] text-zinc-700">
-            <input type="checkbox" className="w-3.5 h-3.5 rounded border-zinc-300 text-[#632CA6]" />
+          <label key={v} className="flex items-center gap-2 px-3 py-1.5 hover:bg-gray-50 cursor-pointer text-[12px] text-gray-700">
+            <input type="checkbox" className="w-3.5 h-3.5 rounded border-gray-300 text-[#632CA6]" />
             {v}
           </label>
         ))}
@@ -284,16 +284,16 @@ export default function HostTable({
       <tr
         key={a.ID}
         onClick={() => onOpenDetail(a)}
-        className={`border-b border-zinc-100 cursor-pointer transition-colors duration-100 group ${
-          isSelected ? 'bg-[#F3F0FA]' : 'hover:bg-zinc-50'
+        className={`border-b border-gray-100 cursor-pointer transition-colors duration-100 group ${
+          isSelected ? 'bg-brand-50' : 'hover:bg-gray-50'
         }`}
       >
         <td className="px-4 py-3" style={{ width: getWidth(COLUMNS[0]) }}>
           <div className="flex flex-col">
-            <span className="text-[13px] font-semibold text-zinc-900 leading-tight group-hover:text-[#632CA6] transition-colors">
+            <span className="text-[13px] font-semibold text-gray-900 leading-tight group-hover:text-[#632CA6] transition-colors">
               {a.NAME}
             </span>
-            <span className="text-[11px] font-mono text-zinc-400 leading-tight mt-0.5">{a.CTRL_IP}</span>
+            <span className="text-[11px] font-mono text-gray-400 leading-tight mt-0.5">{a.CTRL_IP}</span>
           </div>
         </td>
         <td className="px-4 py-3" style={{ width: getWidth(COLUMNS[1]) }}>
@@ -301,23 +301,23 @@ export default function HostTable({
         </td>
         <td className="px-4 py-3" style={{ width: getWidth(COLUMNS[2]) }}>
           <div className="flex items-center gap-2">
-            <span className="text-[12px] font-mono text-zinc-700 w-10 text-right">{Math.floor(Math.random() * 30 + 10)}%</span>
+            <span className="text-[12px] font-mono text-gray-700 w-10 text-right">{Math.floor(Math.random() * 30 + 10)}%</span>
             <MiniSparkline data={getSparkline()} color="#3b82f6" />
           </div>
         </td>
         <td className="px-4 py-3" style={{ width: getWidth(COLUMNS[3]) }}>
           <div className="flex items-center gap-2">
-            <span className="text-[12px] font-mono text-zinc-700 w-10 text-right">{Math.floor(Math.random() * 50 + 20)}%</span>
+            <span className="text-[12px] font-mono text-gray-700 w-10 text-right">{Math.floor(Math.random() * 50 + 20)}%</span>
             <MiniSparkline data={getSparkline()} color="#8b5cf6" />
           </div>
         </td>
         <td className="px-4 py-3" style={{ width: getWidth(COLUMNS[4]) }}>
-          <span className="text-[12px] font-mono text-zinc-700">{Math.floor(Math.random() * 500 + 100)} KB/s</span>
+          <span className="text-[12px] font-mono text-gray-700">{Math.floor(Math.random() * 500 + 100)} KB/s</span>
         </td>
         <td className="px-4 py-3" style={{ width: getWidth(COLUMNS[5]) }}>
-          <span className="text-[12px] font-mono text-zinc-700">{Math.floor(Math.random() * 300 + 50)} KB/s</span>
+          <span className="text-[12px] font-mono text-gray-700">{Math.floor(Math.random() * 300 + 50)} KB/s</span>
         </td>
-        <td className="px-4 py-3 text-right text-[11px] text-zinc-400 font-mono" style={{ width: getWidth(COLUMNS[6]) }}>
+        <td className="px-4 py-3 text-right text-[11px] text-gray-400 font-mono" style={{ width: getWidth(COLUMNS[6]) }}>
           {ago(a.SYNCED_CONTROLLER_AT)}
         </td>
       </tr>
@@ -325,18 +325,18 @@ export default function HostTable({
   };
 
   return (
-    <div className="bg-white border border-zinc-200 rounded-lg overflow-hidden">
+    <div className="bg-white border border-gray-200 rounded-md overflow-hidden">
       {/* Toolbar */}
-      <div className="px-4 py-3 border-b border-zinc-200 flex items-center justify-between bg-white">
+      <div className="px-4 py-2.5 border-b border-gray-200 flex items-center justify-between bg-white">
         <div className="flex items-center gap-2">
-          <h4 className="text-[14px] font-bold text-zinc-900">{t('infrastructure.hosts')}</h4>
-          <span className="text-[11px] font-mono text-zinc-500 bg-zinc-100 px-2 py-0.5 rounded-full">{sorted.length}</span>
+          <h4 className="text-[14px] font-bold text-gray-900">{t('infrastructure.hosts')}</h4>
+          <span className="text-[11px] font-mono text-gray-500 bg-gray-100 px-2 py-0.5 rounded-full">{sorted.length}</span>
         </div>
         <div className="flex items-center gap-4 text-[11px]">
-          <span className="flex items-center gap-1.5 text-zinc-500"><span className="w-2 h-2 rounded-full bg-emerald-400" />{onlineCount} Online</span>
-          <span className="flex items-center gap-1.5 text-zinc-500"><span className="w-2 h-2 rounded-full bg-amber-400" />{staleCount} Stale</span>
+          <span className="flex items-center gap-1.5 text-gray-500"><span className="w-2 h-2 rounded-full bg-emerald-400" />{onlineCount} Online</span>
+          <span className="flex items-center gap-1.5 text-gray-500"><span className="w-2 h-2 rounded-full bg-amber-400" />{staleCount} Stale</span>
           {offlineCount > 0 && (
-            <span className="flex items-center gap-1.5 text-zinc-500"><span className="w-2 h-2 rounded-full bg-red-400" />{offlineCount} Offline</span>
+            <span className="flex items-center gap-1.5 text-gray-500"><span className="w-2 h-2 rounded-full bg-red-400" />{offlineCount} Offline</span>
           )}
         </div>
       </div>
@@ -353,18 +353,18 @@ export default function HostTable({
               {COLUMNS.map(col => <col key={col.key} style={{ width: getWidth(col) }} />)}
             </colgroup>
             <thead>
-              <tr className="border-b border-zinc-200 bg-zinc-50/50">
+              <tr className="border-b border-gray-200">
                 {COLUMNS.map((col, idx) => (
                   <th
                     key={col.key}
-                    className={`relative text-[11px] font-semibold text-zinc-500 uppercase tracking-wider px-4 py-2.5 ${col.align === 'right' ? 'text-right' : 'text-left'}`}
+                    className={`relative text-[11px] font-semibold text-gray-500 uppercase tracking-wider px-4 py-2.5 ${col.align === 'right' ? 'text-right' : 'text-left'}`}
                     style={{ width: getWidth(col) }}
                   >
                     <div className="flex items-center gap-1" style={{ justifyContent: col.align === 'right' ? 'flex-end' : 'flex-start' }}>
                       {col.sortKey ? (
                         <button
                           onClick={() => onSortChange(col.sortKey!)}
-                          className="hover:text-zinc-800 transition-colors inline-flex items-center"
+                          className="hover:text-gray-800 transition-colors inline-flex items-center"
                         >
                           {col.label}{sortKey === col.sortKey && <SortCaret active dir={sortDir} />}
                         </button>
@@ -377,7 +377,7 @@ export default function HostTable({
                           e.stopPropagation();
                           setOpenFilter(openFilter === col.key ? null : col.key);
                         }}
-                        className={`p-0.5 rounded hover:bg-zinc-200 transition-colors ${openFilter === col.key ? 'text-[#632CA6]' : 'text-zinc-400'}`}
+                        className={`p-0.5 rounded hover:bg-gray-200 transition-colors ${openFilter === col.key ? 'text-[#632CA6]' : 'text-gray-400'}`}
                       >
                         <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
                           <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3" />
@@ -410,22 +410,22 @@ export default function HostTable({
                 <tr>
                   <td colSpan={7} className="px-4 py-16 text-center">
                     <div className="flex flex-col items-center gap-3">
-                      <svg className="w-12 h-12 text-zinc-200" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <svg className="w-12 h-12 text-gray-200" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M5.25 14.25h13.5m-16.5 0a2.25 2.25 0 01-2.25-2.25V6.75a2.25 2.25 0 012.25-2.25h16.5a2.25 2.25 0 012.25 2.25v5.25a2.25 2.25 0 01-2.25 2.25m-16.5 0v2.25m16.5-2.25v2.25m-16.5 0a2.25 2.25 0 00-2.25 2.25v2.25a2.25 2.25 0 002.25 2.25h16.5a2.25 2.25 0 002.25-2.25v-2.25a2.25 2.25 0 00-2.25-2.25m-16.5 0z" />
                       </svg>
-                      <p className="text-sm text-zinc-400">{t('hostTable.noHosts')}</p>
+                      <p className="text-sm text-gray-400">{t('hostTable.noHosts')}</p>
                     </div>
                   </td>
                 </tr>
               ) : grouped ? (
                 grouped.map(g => (
                   <>
-                    <tr key={`g-${g.label}`} className="bg-zinc-50/60 border-b border-zinc-100">
+                    <tr key={`g-${g.label}`} className="bg-gray-50/60 border-b border-gray-100">
                       <td colSpan={7} className="px-4 py-1.5">
                         <div className="flex items-center gap-2">
                           <span className="w-2 h-2 rounded-full" style={{ backgroundColor: g.color }} />
-                          <span className="text-[10px] font-semibold text-zinc-500 uppercase tracking-wider">{g.label}</span>
-                          <span className="text-[10px] font-mono text-zinc-400">{g.agents.length}</span>
+                          <span className="text-[10px] font-semibold text-gray-500 uppercase tracking-wider">{g.label}</span>
+                          <span className="text-[10px] font-mono text-gray-400">{g.agents.length}</span>
                         </div>
                       </td>
                     </tr>

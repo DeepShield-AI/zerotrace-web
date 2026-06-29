@@ -278,7 +278,7 @@ export default function TopologyMap({ nodes, edges, loading, onServiceClick, onR
         show: nodes.length <= 12,
         bottom: 0,
         textStyle: { fontSize: 11, color: '#71717a' },
-        data: categories.map(c => c.name),
+        data: (categories || []).map(c => c?.name).filter(Boolean) as string[],
       },
       series: [{
         type: 'graph',

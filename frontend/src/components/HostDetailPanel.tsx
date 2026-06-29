@@ -218,7 +218,7 @@ export default function HostDetailPanel({
   const mockProcesses = [
     { name: 'nginx', pid: 1234, cpu: 12.5, memory: '245 MB', user: 'root' },
     { name: 'python3 app.py', pid: 5678, cpu: 8.3, memory: '128 MB', user: 'app' },
-    { name: 'datadog-agent', pid: 9012, cpu: 3.1, memory: '89 MB', user: 'dd-agent' },
+    { name: 'zerotrace-agent', pid: 9012, cpu: 3.1, memory: '89 MB', user: 'dd-agent' },
     { name: 'redis-server', pid: 3456, cpu: 1.8, memory: '456 MB', user: 'redis' },
     { name: 'postgres', pid: 7890, cpu: 0.9, memory: '312 MB', user: 'postgres' },
   ];

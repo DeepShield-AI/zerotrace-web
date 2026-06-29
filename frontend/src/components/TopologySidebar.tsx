@@ -157,7 +157,7 @@ export default function TopologySidebar({
             {sortedNodes.length === 0 ? (
               <p className="text-[11px] text-zinc-400 px-2.5 py-2 italic">No nodes match search</p>
             ) : (
-              sortedNodes.map((node) => {
+              sortedNodes.map((node, i) => {
                 const errPct = num(node.error_rate_pct);
                 const metricValue =
                   activeSizing === 'latency'

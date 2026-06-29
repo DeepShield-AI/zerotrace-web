@@ -186,7 +186,7 @@ function TraceHeader({ trace, services }: { trace: TraceData; services: string[]
 }
 
 // ---------------------------------------------------------------------------
-// Waterfall — Datadog style
+// Waterfall span view
 // ---------------------------------------------------------------------------
 
 const ROW_H = 36;
@@ -390,10 +390,15 @@ function SpanListView({ spanNodes, selectedId, onSelect }: {
                   {isError && <span className="shrink-0 text-red-500"><WarningOutlined className="text-[11px]" /></span>}
                 </div>
 
-                {/* Duration + time */}
-                <div className="text-right shrink-0">
-                  <p className="text-xs font-mono text-zinc-800 font-semibold">{fmtDurationExact(node.duration_us)}</p>
-                  <p className="text-[10px] text-zinc-400">{(node.start_time || '').slice(11, 19) || '—'}</p>
+                {/* Duration bar + time — DD style */}
+                <div className="flex items-center gap-2 shrink-0">
+                  <div className="w-24 h-1.5 bg-zinc-100 rounded-full overflow-hidden">
+                    <div className="h-full rounded-full" style={{ width: `${Math.min((num(node.duration_us) / Math.max(...spanNodes.map(s => num(s.duration_us)), 1)) * 100, 100)}%`, backgroundColor: color }} />
+                  </div>
+                  <div className="text-right w-20">
+                    <p className="text-xs font-mono text-zinc-800 font-semibold">{fmtDurationExact(node.duration_us)}</p>
+                    <p className="text-[10px] text-zinc-400">{(node.start_time || '').slice(11, 19) || '—'}</p>
+                  </div>
                 </div>
               </button>
             );
@@ -405,7 +410,7 @@ function SpanListView({ spanNodes, selectedId, onSelect }: {
 }
 
 // ---------------------------------------------------------------------------
-// Span detail side panel — Datadog style
+// Span detail side panel
 // ---------------------------------------------------------------------------
 
 function SpanDetailSidebar({ span, onClose }: { span: SpanNode; onClose: () => void }) {

@@ -43,7 +43,7 @@ export default function FilterBar({
 
   return (
     <div className="flex items-center gap-3 mb-4">
-      {/* Search — Datadog-style with integrated count */}
+      {/* Search — Zerotrace-style with integrated count */}
       <div className="relative flex-1 max-w-[420px]">
         <SearchOutlined className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-300 text-[13px]" />
         <input
@@ -65,7 +65,7 @@ export default function FilterBar({
         )}
       </div>
 
-      {/* Group by toggle — subtle Datadog style */}
+      {/* Group by toggle — subtle Zerotrace style */}
       <div className="flex items-center rounded-md border border-zinc-200 overflow-hidden">
         <button
           onClick={() => onGroupByChange('none')}
@@ -85,7 +85,7 @@ export default function FilterBar({
         </button>
       </div>
 
-      {/* Metric summary — Datadog inline stats */}
+      {/* Metric summary — Zerotrace inline stats */}
       <div className="flex items-center gap-3 ml-auto text-[11px] text-zinc-400">
         <span className="flex items-center gap-1.5">
           <span className="font-mono font-semibold text-zinc-500">{totalCount}</span> hosts

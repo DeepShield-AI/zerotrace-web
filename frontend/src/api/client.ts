@@ -15,6 +15,12 @@ async function request<T = any>(path: string, opts: RequestInit = {}): Promise<T
   const data = await res.json();
 
   if (!res.ok) {
+    // 402 Payment Required → redirect to subscription page (skip billing/auth paths)
+    if (res.status === 402 && !path.startsWith('/billing') && !path.startsWith('/auth')) {
+      window.dispatchEvent(new CustomEvent('subscription-required', { detail: { path } }));
+      // Throw a user-friendly error so the caller can handle it gracefully
+      throw new Error('Subscription required. Please subscribe to a plan.');
+    }
     throw new Error(data.error || `Request failed: ${res.status}`);
   }
 
@@ -177,6 +183,78 @@ export const api = {
     const s = qs.toString();
     return request<{ metric: string; display_name: string; unit: string; points: Array<{ ts: string; value: number }> }>(`/metrics/query${s ? '?' + s : ''}`);
   },
+
+  // Billing
+  getBillingSummary: () =>
+    request<any>('/billing/summary'),
+
+  getBillingPlans: () =>
+    request<{ plans: any[] }>('/billing/plans'),
+
+  getBillingSubscriptions: () =>
+    request<{ subscriptions: any[] }>('/billing/subscriptions'),
+
+  createBillingSubscription: (body: { plan_id: number; commitment_type: string; committed_quantity: number }) =>
+    request('/billing/subscriptions', { method: 'POST', body: JSON.stringify(body) }),
+
+  cancelBillingSubscription: (id: number) =>
+    request(`/billing/subscriptions/${id}`, { method: 'DELETE' }),
+
+  getBillingUsage: () =>
+    request<{ org_id: number; period_start: string; period_end: string; products: any[] }>('/billing/usage'),
+
+  getBillingHourlyUsage: (productKey: string) =>
+    request<{ org_id: number; product_key: string; records: any[] }>(`/billing/usage/hourly?product_key=${encodeURIComponent(productKey)}`),
+
+  getBillingEstimatedCost: () =>
+    request<{ org_id: number; estimated_total: string; currency: string; breakdown: any[] }>('/billing/estimated-cost'),
+
+  getBillingInvoices: () =>
+    request<{ invoices: any[] }>('/billing/invoices'),
+
+  getBillingInvoiceDetail: (id: number) =>
+    request<{ invoice: any; line_items: any[] }>(`/billing/invoices/${id}`),
+
+  generateBillingInvoice: () =>
+    request('/billing/invoices/generate', { method: 'POST' }),
+
+  // Billing — plan management (admin)
+  createBillingPlan: (body: any) =>
+    request('/billing/plans', { method: 'POST', body: JSON.stringify(body) }),
+
+  updateBillingPlan: (id: number, body: any) =>
+    request(`/billing/plans/${id}`, { method: 'PUT', body: JSON.stringify(body) }),
+
+  deleteBillingPlan: (id: number) =>
+    request(`/billing/plans/${id}`, { method: 'DELETE' }),
+
+  // Billing — subscription management
+  updateBillingSubscription: (id: number, committed_quantity: number) =>
+    request(`/billing/subscriptions/${id}`, { method: 'PATCH', body: JSON.stringify({ committed_quantity }) }),
+
+  // Billing — usage alerts
+  getBillingAlerts: () =>
+    request<{ alerts: any[] }>('/billing/alerts'),
+
+  createBillingAlert: (body: { product_key: string; threshold_pct: number }) =>
+    request('/billing/alerts', { method: 'POST', body: JSON.stringify(body) }),
+
+  deleteBillingAlert: (id: number) =>
+    request(`/billing/alerts/${id}`, { method: 'DELETE' }),
+
+  // Organization
+  getOrganization: () =>
+    request<{ organization: { id: number; name: string; slug: string; created_at: string; updated_at: string }; stats: { users: number; active_subscriptions: number }; current_user_role: string }>('/organization'),
+
+  updateOrganization: (body: { name?: string }) =>
+    request('/organization', { method: 'PUT', body: JSON.stringify(body) }),
+
+  // Users
+  listUsers: () =>
+    request<{ users: Array<{ id: number; email: string; name: string; role: string; status: string; created_at: string }>; stats: any; current_user_role: string }>('/users'),
+
+  updateUser: (id: number, body: { role?: string; status?: string }) =>
+    request(`/users/${id}`, { method: 'PUT', body: JSON.stringify(body) }),
 
   // Guardian
   guardianAnalyze: (body?: { start?: number; end?: number }) =>

@@ -1,406 +1,234 @@
-import { useEffect, useState, useCallback, useRef } from 'react';
-import { Select, Button, Input, message, Tooltip, Spin } from 'antd';
-import { useTranslation } from 'react-i18next';
+import { useState } from 'react';
 import { api } from '../api/client';
 
-type Platform = 'linux' | 'docker' | 'kubernetes' | 'windows';
+type Platform = 'linux' | 'docker' | 'kubernetes';
 
-interface ApiKeyOption { id: number; name: string; key_prefix: string; status: string; }
-interface AgentInfo {
-  id: number; name: string; ctrl_ip: string; state: number;
-  enable: number; revision: string; synced_controller_at: string;
-}
-interface PlatformConfig { key: Platform; label: string; osLabel: string; archLabel: string; icon: string; }
-
-const platforms: PlatformConfig[] = [
-  { key: 'linux', label: 'Linux', osLabel: 'Linux (kernel 4.14+)', archLabel: 'AMD64 / ARM64',
-    icon: 'M20.8 13.4c-.2.1-.3.2-.3.3l-.8 3.6c-.1.5-.4.9-.8 1.2-.4.3-.8.5-1.2.5-.6 0-1-.3-1.3-.8-.3-.4-.4-1-.2-1.7l.5-2.3c.1-.2-.1-.3-.2-.4-.2-.1-.5-.1-.9-.1H9.8c-.3 0-.5 0-.6.1-.1.1 0 .3.1.5l.5 2.3c.2.7.1 1.3-.2 1.7s-1 .8-1.7.8c-.4 0-.8-.2-1.2-.5s-.7-.7-.8-1.2l-.8-3.6c0-.1-.1-.2-.3-.3-.2 0-.5.1-1 .4L2 14l1 3c.4 1.3 1.1 2.2 2 2.8.9.6 1.8.9 2.7.9.9 0 1.8-.2 2.5-.6.6-.3 1.1-.9 1.4-1.6.2-.5.5-.9.7-1 .1-.1.3-.1.5 0 .3.2.6.6 1 1.2.4.8.9 1.3 1.5 1.6.7.4 1.5.6 2.5.6 1 0 2-.3 3-1 .9-.7 1.5-1.6 1.9-2.8l1-3-.3-.3c-.3-.1-.6-.2-.8-.2zM12 2C9.5 2 7.6 3 6.3 4.9 5.7 5.8 5.3 6.9 5.1 8c-.1.3 0 .7.1 1 .2.3.5.5.8.6.3.1.9.2 1.7.4 1.4.5 2.2 1 2.4 1.3.2.3.3.7.2 1.1-.1.4-.4.8-.8 1-.4.2-1 .3-1.7.2-.5 0-.9-.1-1.1-.4-.2-.3-.3-.7-.2-1.1l.2-1c0-.2 0-.3-.1-.3-.1 0-.3 0-.5.1L4 11c-.2 0-.3.1-.3.3 0 .2 0 .4.1.7.1.7.4 1.6.9 2.5.5.8 1 1.5 1.5 2 .7.6 1.5 1 2.5 1s1.8-.4 2.5-1c.6-.6 1.1-1.4 1.6-2.3.3-.8.5-1.5.6-2.2.1-.3 0-.7-.1-1-.2-.3-.5-.5-.8-.6-.3-.1-.9-.2-1.8-.5-1.4-.5-2.2-1-2.3-1.3-.1-.3-.1-.7.2-1.1.3-.3.7-.7 1.3-.9.5-.2 1.1-.2 1.6-.1.3.1.5.3.7.6.1.3.1.7 0 1.1l-.2 1c-.1.2 0 .4.2.5.2.1.6.1 1.1-.1l1.5-.3c.2-.1.3-.2.3-.4 0-.2-.1-.4-.2-.7-.1-.7-.4-1.6-.9-2.5-.5-.8-1-1.5-1.5-2C16.1 3 15.3 2.4 14.3 2c-.7-.1-1.4-.1-2.3 0z' },
-  { key: 'docker', label: 'Docker', osLabel: 'Docker 20.10+ (host network)', archLabel: 'AMD64 / ARM64',
-    icon: 'M21.4 13.2l-3.5 2-3.5-2V9.1L17.9 7l3.5 2.1v4.1zM9.6 13.2l-3.5 2-3.5-2V9.1L6.1 7l3.5 2.1v4.1zM15.5 2.5l3.5 2v4.1l-3.5-2V2.5zM3.7 2.5l3.5 2v4.1l-3.5-2V2.5zM14.1 14.6l3.8-2.2v4.4l-3.8 2.2v-4.4zM3.9 14.5l3.8 2.3v4.4l-3.8-2.2v-4.5zM10.7 10.6l3.8 2.2-3.8 2.2-3.8-2.3 3.8-2.1z' },
-  { key: 'kubernetes', label: 'Kubernetes', osLabel: 'K8s 1.21+', archLabel: 'AMD64 / ARM64',
-    icon: 'M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10 10-4.5 10-10S17.5 2 12 2zm-1.5 15.5L7 14l1.4-1.4 2.1 2.1 5.1-5.1L17 11l-6.5 6.5z' },
-  { key: 'windows', label: 'Windows', osLabel: 'Not supported', archLabel: 'via Linux host',
-    icon: 'M3 6h8v8H3V6zm10 0h8v8h-8V6zm-10 10h8v8H3v-8zm10 0h8v8h-8v-8z' },
+const PLATFORMS: { key: Platform; label: string; desc: string }[] = [
+  { key: 'linux', label: 'Linux', desc: 'Linux (kernel 4.14+) · AMD64 / ARM64' },
+  { key: 'docker', label: 'Docker', desc: 'Docker 20.10+ (host network) · AMD64 / ARM64' },
+  { key: 'kubernetes', label: 'Kubernetes', desc: 'K8s 1.21+ · AMD64 / ARM64 via Helm' },
 ];
 
-/* ---------- Command builders — install does NOT include API key ---------- */
-function buildInstallCmd(p: Platform, host: string): string {
+function buildInstallCmd(p: Platform, host: string, port: string): string {
   switch (p) {
     case 'linux':
-      return [
-        '# The script auto-detects OS/arch and configures the controller address.',
-        '# ZEROTRACE_CONTROLLER_IP and SERVER_URL are derived from the download host.',
-        'curl -fsSL http://' + window.location.host + '/agent/install.sh | bash',
-      ].join('\n');
+      return `curl -fsSL http://${host}:${port}/agent/install.sh | bash`;
     case 'docker':
-      return [
-        '# Pull the agent image (no API key needed yet)',
-        'docker pull registry.cn-hongkong.aliyuncs.com/deepflow-ce/deepflow-agent:latest',
-        '',
-        '# Create minimal config on the host (controller address only)',
-        'sudo mkdir -p /etc/deepflow-agent',
-        'cat << EOF | sudo tee /etc/deepflow-agent/deepflow-agent.yaml',
-        'controller-ips:',
-        '  - ' + host,
-        'controller-port: 30035',
-        'EOF',
-      ].join('\n');
+      return `docker pull registry.cn-hongkong.aliyuncs.com/deepflow-ce/deepflow-agent:latest
+sudo mkdir -p /etc/deepflow-agent
+cat << EOF | sudo tee /etc/deepflow-agent/deepflow-agent.yaml
+controller-ips:
+  - ${host}
+controller-port: 30035
+EOF
+docker run -d --net=host --name deepflow-agent \\
+  -v /etc/deepflow-agent:/etc/deepflow-agent \\
+  registry.cn-hongkong.aliyuncs.com/deepflow-ce/deepflow-agent:latest`;
     case 'kubernetes':
-      return [
-        'helm repo add deepflow https://deepflowio.github.io/deepflow',
-        'helm repo update',
-      ].join('\n');
-    case 'windows':
-      return '# DeepFlow agent does not support Windows.\n# Deploy on a Linux host in the same network segment.';
+      return `helm repo add deepflow https://deepflowio.github.io/deepflow
+helm repo update
+helm install deepflow-agent deepflow/deepflow-agent \\
+  --set controller.ips[0]="${host}" \\
+  --set controller.port=30035 \\
+  --namespace deepflow --create-namespace`;
   }
 }
 
-function buildRunCmd(p: Platform, apiKey: string, host: string, tags: string): string {
-  const key = apiKey || 'YOUR_API_KEY';
-  const tagEnv = tags.trim() ? 'ZT_TAGS="' + tags.trim() + '" ' : '';
+export default function AgentSetup() {
+  const [activeTab, setActiveTab] = useState<'setup' | 'rules'>('setup');
+  const [platform, setPlatform] = useState<Platform>('linux');
+  const [deployment, setDeployment] = useState('container');
+  const [apiKey, setApiKey] = useState('');
+  const [tags, setTags] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [keyLoading, setKeyLoading] = useState(true);
+  const [agents, setAgents] = useState<any[]>([]);
 
-  switch (p) {
-    case 'linux':
-      return 'sudo ' + tagEnv + 'ZT_API_KEY=' + key + ' \\\n'
-        + '  /opt/zerotrace-agent/bin/zerotrace-agent \\\n'
-        + '  -c /opt/zerotrace-agent/etc/zerotrace-agent.yaml';
-    case 'docker': {
-      const lines = [
-        'docker run -d \\',
-        '  --name deepflow-agent \\',
-        '  --privileged \\',
-        '  --cap-add SYS_ADMIN --cap-add SYS_RESOURCE --cap-add SYS_PTRACE \\',
-        '  --cap-add NET_ADMIN --cap-add NET_RAW --cap-add IPC_LOCK \\',
-        '  --network=host --pid=host \\',
-        '  -v /etc/deepflow-agent/deepflow-agent.yaml:/etc/deepflow-agent/deepflow-agent.yaml:ro \\',
-        '  -v /sys/kernel/debug:/sys/kernel/debug:ro \\',
-        '  -v /var/run/docker.sock:/var/run/docker.sock:ro \\',
-      ];
-      if (tags.trim()) lines.push('  -e ZT_TAGS="' + tags.trim() + '" \\');
-      lines.push('  -e ZT_API_KEY=' + key + ' \\');
-      lines.push('  registry.cn-hongkong.aliyuncs.com/deepflow-ce/deepflow-agent:latest');
-      return lines.join('\n');
-    }
-    case 'kubernetes': {
-      const lines = [
-        '# Create a Secret for the API key',
-        'kubectl -n deepflow create secret generic agent-api-key \\',
-        '  --from-literal=key=' + key,
-        '',
-        '# Install with values (key injected from secret at runtime)',
-        'helm install deepflow-agent deepflow/deepflow-agent \\',
-        '  --namespace deepflow --create-namespace \\',
-        '  --set agent.controllerIP=' + host + ' \\',
-        '  --set agent.controllerPort=30035 \\',
-      ];
-      if (tags.trim()) lines.push('  --set agent.tags="' + tags.trim() + '" \\');
-      lines.push('  --set agent.apiKeySecret=agent-api-key');
-      return lines.join('\n');
-    }
-    case 'windows':
-      return '# Not supported';
-  }
-}
+  const host = window.location.hostname || '202.112.237.37';
+  const port = '5173';
+  const installCmd = buildInstallCmd(platform, host, port);
 
-/* ---------- Components ---------- */
-function copyToClipboard(text: string) {
-  if (navigator.clipboard && window.isSecureContext) {
-    return navigator.clipboard.writeText(text);
-  }
-  // Fallback for HTTP (non-localhost) contexts
-  const ta = document.createElement('textarea');
-  ta.value = text;
-  ta.style.position = 'fixed';
-  ta.style.opacity = '0';
-  document.body.appendChild(ta);
-  ta.select();
-  document.execCommand('copy');
-  document.body.removeChild(ta);
-  return Promise.resolve();
-}
-
-function CopyButton({ text }: { text: string }) {
-  const { t } = useTranslation();
-  const [copied, setCopied] = useState(false);
-  return (
-    <Tooltip title={copied ? t('common.copied') : t('common.copy')}>
-      <button onClick={() => { copyToClipboard(text); setCopied(true); setTimeout(() => setCopied(false), 2000); }}
-        className="absolute top-3 right-3 p-2 rounded-lg bg-zinc-800 hover:bg-zinc-700 text-zinc-400 hover:text-zinc-200 transition-all duration-200">
-        {copied
-          ? <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="20 6 9 17 4 12" /></svg>
-          : <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="9" y="9" width="13" height="13" rx="2" /><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1" /></svg>
-        }
-      </button>
-    </Tooltip>
-  );
-}
-
-function CodeBlock({ code, lang }: { code: string; lang?: string }) {
-  return (
-    <div className="relative group">
-      {lang && <span className="absolute top-3 left-4 text-[11px] font-mono text-zinc-500 uppercase tracking-wider">{lang}</span>}
-      <CopyButton text={code} />
-      <pre className="bg-zinc-950 text-zinc-200 rounded-2xl p-5 pt-10 text-sm font-mono leading-relaxed overflow-x-auto"><code>{code}</code></pre>
-    </div>
-  );
-}
-
-function StepNum({ n, done }: { n: number; done?: boolean }) {
-  return (
-    <div className={`w-8 h-8 rounded-xl flex items-center justify-center text-sm font-bold shrink-0 ${done ? 'bg-emerald-500 text-white' : 'bg-zinc-900 text-zinc-100'}`}>
-      {done ? <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><polyline points="20 6 9 17 4 12" /></svg> : n}
-    </div>
-  );
-}
-
-/* ---------- Agent status polling ---------- */
-function useAgentPolling(active: boolean) {
-  const [agents, setAgents] = useState<AgentInfo[]>([]);
-  const [polling, setPolling] = useState(false);
-  const [error, setError] = useState('');
-  const intervalRef = useRef<ReturnType<typeof setInterval>>();
-
-  const poll = useCallback(async () => {
-    setPolling(true);
-    try {
-      const data = await api.getAgentStatus();
-      const rawList = data?.DATA || data?.agents || [];
-      // DeepFlow returns UPPERCASE field names — normalize to camelCase
-      const list: AgentInfo[] = rawList.map((a: any) => ({
-        id: a.ID ?? a.id ?? 0,
-        name: a.NAME ?? a.name ?? 'Unknown',
-        ctrl_ip: a.CTRL_IP ?? a.ctrl_ip ?? '',
-        state: a.STATE ?? a.state ?? 0,
-        enable: a.ENABLE ?? a.enable ?? 0,
-        revision: a.REVISION ?? a.revision ?? '',
-        synced_controller_at: a.SYNCED_CONTROLLER_AT ?? a.synced_controller_at ?? '',
-      }));
-      setAgents(list);
-      setError('');
-    } catch (err: any) {
-      setError(err.message || 'Cannot reach zerotrace-server');
-    } finally { setPolling(false); }
-  }, []);
-
-  useEffect(() => {
-    if (active) { poll(); intervalRef.current = setInterval(poll, 8000); }
-    return () => { if (intervalRef.current) clearInterval(intervalRef.current); };
-  }, [active, poll]);
-
-  return { agents, polling, error };
-}
-
-// DB stores UTC timestamps without timezone. Append Z so JS parses as UTC, not local.
-function asUtc(ts: string): Date { return new Date(ts.includes('Z') || ts.includes('+') ? ts : ts + 'Z'); }
-function timeAgo(ts: string, t: (key: string, opts?: any) => string): string {
-  if (!ts) return '';
-  const d = Date.now() - asUtc(ts).getTime();
-  const m = Math.floor(d / 60000);
-  if (m < 1) return t('agentSetup.justNow');
-  if (m < 60) return t('agentSetup.minutesAgo', { m });
-  const h = Math.floor(m / 60);
-  if (h < 24) return t('agentSetup.hoursAgo', { h });
-  return t('agentSetup.daysAgo', { d: Math.floor(h / 24) });
-}
-function stale(ts: string): boolean { return !ts || Date.now() - asUtc(ts).getTime() > 5 * 60000; }
-
-function AgentStatusCard({ agents, polling, error }: { agents: AgentInfo[]; polling: boolean; error: string }) {
-  const { t } = useTranslation();
-  const active = agents.filter(a => a.state === 1 && !stale(a.synced_controller_at));
-  const expired = agents.filter(a => a.state === 1 && stale(a.synced_controller_at));
-  const n = agents.length;
-
-  if (error && n === 0) {
-    return (
-      <div className="bento-card">
-        <div className="flex items-start gap-4"><StepNum n={5} /><div className="flex-1">
-          <h3 className="text-lg font-semibold text-zinc-900 mb-1">{t('agentSetup.step5Title')}</h3>
-          <p className="text-sm text-zinc-500 mb-3">{t('agentSetup.cannotReach')}</p>
-          <div className="flex items-center gap-2 text-sm text-amber-600 bg-amber-50 rounded-xl p-3">
-            <span className="w-2 h-2 rounded-full bg-amber-400 animate-pulse-soft" />{error}</div>
-        </div></div></div>);
-  }
+  // Load API keys
+  useState(() => {
+    api.listApiKeys().then(d => {
+      const keys = (d as any)?.api_keys || [];
+      if (keys.length > 0) setApiKey(keys[0].key_prefix + '...');
+      setKeyLoading(false);
+    }).catch(() => setKeyLoading(false));
+  });
 
   return (
-    <div className="bento-card">
-      <div className="flex items-start gap-4"><StepNum n={5} done={active.length > 0} /><div className="flex-1">
-        <h3 className="text-lg font-semibold text-zinc-900 mb-1">{t('agentSetup.step5Title')}</h3>
-        <p className="text-sm text-zinc-500 mb-3">
-          {t('agentSetup.step5Desc')}{polling && <Spin size="small" className="ml-2" />}
-        </p>
-        {n === 0 ? (
-          <div className="text-center py-10">
-            <div className="w-12 h-12 rounded-2xl bg-zinc-100 flex items-center justify-center mx-auto mb-4">
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="text-zinc-400">
-                <rect x="2" y="3" width="20" height="14" rx="2" /><line x1="8" y1="21" x2="16" y2="21" /><line x1="12" y1="17" x2="12" y2="21" /></svg>
+    <div className="animate-fade-in" style={{ maxWidth: 1100 }}>
+      {/* Header */}
+      <div className="mb-6">
+        <h1 className="text-xl font-bold text-[#1C2B34] mb-0.5">Set up APM</h1>
+        <p className="text-sm text-[#506e81]">Start monitoring your services with application observability</p>
+      </div>
+
+      {/* Tabs: Set up APM | Instrumentation Rules */}
+      <div className="flex gap-0 mb-6 border-b border-[#d1d9e0]">
+        <button onClick={() => setActiveTab('setup')}
+          className={`px-4 py-2.5 text-[13px] font-medium border-b-[2px] -mb-[2px] transition-colors ${activeTab === 'setup' ? 'text-[#632CA6] border-[#632CA6]' : 'text-[#506e81] border-transparent hover:text-[#1C2B34]'}`}>
+          Set up APM
+        </button>
+        <button onClick={() => setActiveTab('rules')}
+          className={`px-4 py-2.5 text-[13px] font-medium border-b-[2px] -mb-[2px] transition-colors ${activeTab === 'rules' ? 'text-[#632CA6] border-[#632CA6]' : 'text-[#506e81] border-transparent hover:text-[#1C2B34]'}`}>
+          Instrumentation Rules
+          <span className="ml-1.5 text-[11px] text-[#8b9bb4] bg-[#f0f2f5] px-1.5 py-0.5 rounded-full">0 Rules</span>
+        </button>
+        <div className="ml-auto flex items-center gap-2 text-[11px] text-[#8b9bb4]">
+          <span>⚠ Instrumentation Errors</span>
+          <span className="bg-[#f0f2f5] px-1.5 py-0.5 rounded-full">0 Detected</span>
+        </div>
+      </div>
+
+      {activeTab === 'setup' ? (
+        <div className="space-y-6">
+          {/* Step 1: Where are your services deployed? */}
+          <div className="bg-white border border-[#d1d9e0] rounded-lg p-6">
+            <h3 className="text-sm font-semibold text-[#1C2B34] mb-4">
+              <span className="text-[#632CA6] font-bold mr-1.5">1</span>
+              Where are your services deployed?
+            </h3>
+            <div className="flex gap-3 mb-6">
+              {[
+                { key: 'container', label: 'Container Based', icon: '📦', desc: 'Docker, Kubernetes, ECS' },
+                { key: 'host', label: 'Host Based', icon: '🖥️', desc: 'Linux VMs, bare metal' },
+                { key: 'serverless', label: 'Serverless', icon: '☁️', desc: 'Lambda, Cloud Functions', disabled: true },
+              ].map(opt => (
+                <button key={opt.key} onClick={() => !opt.disabled && setDeployment(opt.key)}
+                  disabled={opt.disabled}
+                  className={`flex-1 p-4 rounded-lg border-2 text-left transition-all ${opt.disabled ? 'border-[#e9ecef] bg-[#f8f9fb] opacity-50 cursor-not-allowed' : deployment === opt.key ? 'border-[#632CA6] bg-[#f0f2f5]' : 'border-[#d1d9e0] bg-white hover:border-[#adb5bd]'}`}>
+                  <div className="text-2xl mb-1">{opt.icon}</div>
+                  <div className="text-sm font-semibold text-[#1C2B34]">{opt.label}</div>
+                  <div className="text-[11px] text-[#8b9bb4] mt-0.5">{opt.desc}</div>
+                </button>
+              ))}
             </div>
-            <p className="text-sm font-medium text-zinc-600">{t('agentSetup.noAgents')}</p>
-            <p className="text-xs text-zinc-400 mt-1">{t('agentSetup.noAgentsDesc')}</p>
+
+            {/* Platform tabs */}
+            <div className="border-t border-[#d1d9e0] pt-4">
+              <div className="text-xs font-semibold text-[#506e81] uppercase tracking-wider mb-3">Select Platform</div>
+              <div className="flex gap-2 mb-6">
+                {PLATFORMS.map(p => (
+                  <button key={p.key} onClick={() => setPlatform(p.key)}
+                    className={`px-4 py-2.5 rounded-md text-[13px] font-medium transition-all ${platform === p.key ? 'bg-[#632CA6] text-white shadow-sm' : 'bg-[#f0f2f5] text-[#506e81] hover:bg-[#e9ecef]'}`}>
+                    {p.label}
+                  </button>
+                ))}
+              </div>
+
+              {/* Selected platform description */}
+              <div className="bg-[#f8f9fb] border border-[#e9ecef] rounded-lg p-4 mb-4">
+                <div className="text-xs font-semibold text-[#1C2B34] mb-1">
+                  {PLATFORMS.find(p => p.key === platform)?.label} —
+                  <span className="text-[#506e81] font-normal ml-1">{PLATFORMS.find(p => p.key === platform)?.desc}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Step 2: Installation command */}
+          <div className="bg-white border border-[#d1d9e0] rounded-lg p-6">
+            <h3 className="text-sm font-semibold text-[#1C2B34] mb-4">
+              <span className="text-[#632CA6] font-bold mr-1.5">2</span>
+              Install the agent
+            </h3>
+            <p className="text-[13px] text-[#506e81] mb-4">Run this command on your {PLATFORMS.find(p => p.key === platform)?.label} host:</p>
+            <div className="bg-[#1a1d24] rounded-lg p-4 mb-4 relative">
+              <button onClick={() => { navigator.clipboard.writeText(installCmd); }}
+                className="absolute top-3 right-3 text-[11px] text-[#8b9bb4] hover:text-white bg-[#2d313a] hover:bg-[#3d414a] px-2 py-1 rounded transition-colors">
+                Copy
+              </button>
+              <pre className="text-[12px] text-[#c8cdd0] font-mono leading-relaxed overflow-x-auto whitespace-pre-wrap" style={{ fontFamily: 'SF Mono, Monaco, monospace' }}>
+{installCmd}
+              </pre>
+            </div>
+            <div className="flex items-center gap-2 text-[11px] text-[#8b9bb4]">
+              <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>
+              Make sure you have root/sudo access on the target machine.
+            </div>
+          </div>
+
+          {/* Step 3: API Key config */}
+          <div className="bg-white border border-[#d1d9e0] rounded-lg p-6">
+            <h3 className="text-sm font-semibold text-[#1C2B34] mb-4">
+              <span className="text-[#632CA6] font-bold mr-1.5">3</span>
+              Configuration (optional)
+            </h3>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="text-[11px] font-semibold text-[#506e81] uppercase tracking-wider block mb-1.5">API Key</label>
+                <input value={apiKey} onChange={e => setApiKey(e.target.value)} placeholder="Auto-detected from your account" disabled={keyLoading}
+                  className="w-full h-9 px-3 text-[13px] border border-[#d1d9e0] rounded bg-white text-[#1C2B34] placeholder:text-[#adb5bd] disabled:bg-[#f8f9fb] focus:outline-none focus:border-[#632CA6]" />
+              </div>
+              <div>
+                <label className="text-[11px] font-semibold text-[#506e81] uppercase tracking-wider block mb-1.5">Tags (comma separated)</label>
+                <input value={tags} onChange={e => setTags(e.target.value)} placeholder="env:prod, team:platform"
+                  className="w-full h-9 px-3 text-[13px] border border-[#d1d9e0] rounded bg-white text-[#1C2B34] placeholder:text-[#adb5bd] focus:outline-none focus:border-[#632CA6]" />
+              </div>
+            </div>
+          </div>
+
+          {/* After instrumentation */}
+          <div className="bg-white border border-[#d1d9e0] rounded-lg p-6">
+            <h3 className="text-sm font-semibold text-[#1C2B34] mb-4">After instrumentation you'll be able to...</h3>
+            <div className="grid grid-cols-3 gap-4">
+              {[
+                { t: 'Distributed Tracing', d: 'Trace requests across services with flame graphs and waterfall views' },
+                { t: 'Service Map', d: 'Visualize service dependencies and detect bottlenecks automatically' },
+                { t: 'Performance Metrics', d: 'Monitor latency, throughput, and error rates with pre-built dashboards' },
+              ].map((f, i) => (
+                <div key={i} className="flex items-start gap-3 p-4 bg-[#f8f9fb] rounded-lg">
+                  <div className="w-6 h-6 rounded-full bg-[#e8f5e9] flex items-center justify-center shrink-0 mt-0.5">
+                    <svg className="w-3.5 h-3.5 text-[#2DB88D]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><path d="M5 13l4 4L19 7"/></svg>
+                  </div>
+                  <div>
+                    <p className="text-[13px] font-semibold text-[#1C2B34]">{f.t}</p>
+                    <p className="text-[12px] text-[#506e81] mt-1">{f.d}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      ) : (
+        /* Instrumentation Rules tab */
+        <div className="bg-white border border-[#d1d9e0] rounded-lg p-16 text-center">
+          <svg className="w-12 h-12 text-[#d1d9e0] mx-auto mb-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1"><path d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+          <h3 className="text-base font-semibold text-[#1C2B34] mb-1">No instrumentation rules</h3>
+          <p className="text-sm text-[#8b9bb4] max-w-md mx-auto">Instrumentation rules will appear here once you configure auto-instrumentation policies for your services.</p>
+        </div>
+      )}
+
+      {/* Agent verification section */}
+      <div className="bg-white border border-[#d1d9e0] rounded-lg p-6 mt-6">
+        <h3 className="text-sm font-semibold text-[#1C2B34] mb-4">Connected Agents</h3>
+        {agents.length === 0 ? (
+          <div className="text-center py-8">
+            <div className="w-10 h-10 rounded-full bg-[#f0f2f5] flex items-center justify-center mx-auto mb-3">
+              <svg className="w-5 h-5 text-[#8b9bb4]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/></svg>
+            </div>
+            <p className="text-[13px] text-[#8b9bb4]">No agents connected yet</p>
+            <p className="text-[11px] text-[#adb5bd] mt-1">Run the installation command above to connect your first agent</p>
           </div>
         ) : (
-          <div>
-            <div className="flex items-center gap-4 mb-3">
-              {active.length > 0 && <span className="flex items-center gap-2 text-sm"><span className="w-2 h-2 rounded-full bg-emerald-500 dot-live" /><span className="font-medium text-zinc-700">{active.length} {t('agentSetup.active')}</span></span>}
-              {expired.length > 0 && <span className="flex items-center gap-2 text-sm"><span className="w-2 h-2 rounded-full bg-amber-400" /><span className="font-medium text-zinc-500">{expired.length} {t('agentSetup.stale')}</span></span>}
-              <span className="text-xs text-zinc-400">{n} {t('agentSetup.registered')}</span>
-            </div>
-            {active.map(a => (
-              <div key={a.id} className="flex items-center justify-between px-5 py-3 bg-emerald-50/30 border border-emerald-100 rounded-xl mb-2">
-                <div className="flex items-center gap-3 min-w-0">
-                  <span className="w-2 h-2 rounded-full bg-emerald-500 dot-live shrink-0" />
-                  <div className="min-w-0"><p className="text-sm font-medium text-zinc-800 truncate">{a.name}</p><p className="text-xs text-zinc-400">{a.ctrl_ip} &middot; {a.revision} &middot; {timeAgo(a.synced_controller_at, t)}</p></div>
-                </div>
-                <span className="text-xs text-emerald-600 font-medium shrink-0">{t('agentSetup.connected')}</span>
-              </div>
-            ))}
-            {expired.length > 0 && (
-              <details className="mt-2"><summary className="text-xs text-zinc-400 cursor-pointer hover:text-zinc-600 py-1">{expired.length}{expired.length > 1 ? t('agentSetup.staleAgents') : t('agentSetup.staleAgent')}</summary>
-                <div className="mt-2 space-y-1">{expired.map(a => (
-                  <div key={a.id} className="flex items-center justify-between px-4 py-2 bg-zinc-50 rounded-lg">
-                    <div className="flex items-center gap-2 min-w-0"><span className="w-1.5 h-1.5 rounded-full bg-amber-400 shrink-0" /><span className="text-xs text-zinc-600 truncate">{a.name}</span><span className="text-xs text-zinc-400">{a.ctrl_ip}</span></div>
-                    <span className="text-xs text-zinc-400">{timeAgo(a.synced_controller_at, t)}</span>
-                  </div>
-                ))}</div>
-              </details>
-            )}
-          </div>
+          <table className="w-full text-[13px]">
+            <thead><tr className="border-b border-[#d1d9e0] text-left text-[11px] font-semibold text-[#8b9bb4] uppercase tracking-wider">
+              <th className="py-2 px-4">Agent</th><th className="py-2 px-4">IP</th><th className="py-2 px-4">Status</th><th className="py-2 px-4">Last Seen</th>
+            </tr></thead>
+            <tbody>
+              {agents.map((a: any, i: number) => (
+                <tr key={i} className="border-b border-[#f0f2f5]">
+                  <td className="py-2.5 px-4 font-medium text-[#1C2B34]">{a.name || `Agent-${i + 1}`}</td>
+                  <td className="py-2.5 px-4 text-[#506e81] font-mono text-[12px]">{a.ctrl_ip || '—'}</td>
+                  <td className="py-2.5 px-4"><span className="inline-flex items-center gap-1.5 text-[#2DB88D]"><span className="w-1.5 h-1.5 rounded-full bg-[#2DB88D]"/>Online</span></td>
+                  <td className="py-2.5 px-4 text-[#8b9bb4]">{a.synced_controller_at || '—'}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         )}
-      </div></div></div>);
-}
-
-/* ---------- Main page ---------- */
-export default function AgentSetup() {
-  const { t } = useTranslation();
-  const [platform, setPlatform] = useState<Platform>('linux');
-  const [apiKeys, setApiKeys] = useState<ApiKeyOption[]>([]);
-  const [selectedKeyId, setSelectedKeyId] = useState<number | null>(null);
-  const [selectedKeyValue, setSelectedKeyValue] = useState('');
-  const [keysLoading, setKeysLoading] = useState(true);
-  const [tagInput, setTagInput] = useState('');
-  const [creatingKey, setCreatingKey] = useState(false);
-  const [newKeyName, setNewKeyName] = useState('');
-  const [newKeyValue, setNewKeyValue] = useState('');
-
-  const host = window.location.hostname;
-  const hasKey = !!selectedKeyValue;
-
-  useEffect(() => { loadKeys(); }, []);
-  const loadKeys = async () => {
-    setKeysLoading(true);
-    try { const data = await api.listApiKeys(); setApiKeys(data.api_keys?.filter((k: ApiKeyOption) => k.status === 'active') || []); } catch { /* */ }
-    finally { setKeysLoading(false); }
-  };
-  const handleSelectKey = async (id: number) => {
-    setSelectedKeyId(id);
-    try {
-      const data = await api.revealApiKey(id);
-      setSelectedKeyValue(data.key);
-    } catch (err: any) {
-      message.error('Failed to reveal key: ' + (err.message || 'unknown error'));
-      setSelectedKeyValue('');
-    }
-    setNewKeyValue('');
-  };
-  const handlePasteKey = (val: string) => { setSelectedKeyValue(val.trim()); if (val.trim()) setSelectedKeyId(-1); };
-  const handleCreateKey = async () => {
-    if (!newKeyName.trim()) return; setCreatingKey(true);
-    try { const data = await api.createApiKey({ name: newKeyName.trim(), scopes: ['ingest:*'] }); setNewKeyValue(data.api_key.key); setSelectedKeyValue(data.api_key.key); message.success('Key created'); loadKeys(); }
-    catch (err: any) { message.error(err.message); }
-    finally { setCreatingKey(false); }
-  };
-
-  const installCmd = buildInstallCmd(platform, host);
-  const runCmd = buildRunCmd(platform, selectedKeyValue, host, tagInput);
-  const { agents, polling, error: agentError } = useAgentPolling(hasKey);
-
-  return (
-    <div className="animate-fade-in">
-      <div className="mb-10">
-        <h2 className="text-2xl font-bold tracking-tight text-zinc-900">{t('agentSetup.title')}</h2>
-        <p className="text-sm text-zinc-500 mt-1 max-w-xl">{t('agentSetup.subtitle')}</p>
-
-      </div>
-
-      {/* Platform selector */}
-      <div className="flex flex-wrap gap-2 mb-10">
-        {platforms.map(p => (
-          <button key={p.key} onClick={() => setPlatform(p.key)}
-            className={`flex items-center gap-2.5 px-5 py-2.5 rounded-2xl text-sm font-medium transition-all duration-200 ${platform === p.key ? 'bg-zinc-900 text-white shadow-elevated' : 'bg-white text-zinc-600 hover:text-zinc-900 border border-zinc-200/60 hover:border-zinc-300'}`}>
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" className="shrink-0 opacity-70"><path d={p.icon} /></svg>{t(`agentSetup.platforms.${p.key}`)}
-          </button>
-        ))}
-      </div>
-
-      <div className="space-y-8 max-w-3xl stagger-children">
-
-        {/* Step 1 — API Key (Datadog: select key FIRST) */}
-        <div className="bento-card">
-          <div className="flex items-start gap-4">
-            <StepNum n={1} done={hasKey} />
-            <div className="flex-1 min-w-0">
-              <h3 className="text-lg font-semibold text-zinc-900 mb-1">{t('agentSetup.step1Title')}</h3>
-              <p className="text-sm text-zinc-500 mb-4">{t('agentSetup.step1Desc')}</p>
-              <div className="space-y-3">
-                <Select loading={keysLoading} placeholder={t('agentSetup.selectKeyPlaceholder')} value={selectedKeyId} onChange={handleSelectKey} className="w-full" size="large"
-                  options={apiKeys.map(k => ({ value: k.id, label: <div className="flex items-center gap-3"><span className="font-medium text-sm">{k.name}</span><code className="text-xs text-zinc-400 font-mono">{k.key_prefix}</code></div> }))}
-                  notFoundContent={<div className="py-4 text-center text-sm text-zinc-400">{t('agentSetup.noActiveKeys')}</div>} />
-                <Input.Password placeholder={t('agentSetup.orPasteKey')} value={selectedKeyId === -1 ? selectedKeyValue : ''} onChange={e => handlePasteKey(e.target.value)} className="h-11 font-mono" />
-                <div className="flex gap-2 pt-2 border-t border-zinc-100">
-                  <Input placeholder={t('agentSetup.newKeyName')} value={newKeyName} onChange={e => setNewKeyName(e.target.value)} className="h-10 flex-1" />
-                  <Button loading={creatingKey} onClick={handleCreateKey} className="h-10 font-medium">{t('dashboard.generate')}</Button>
-                </div>
-                {newKeyValue && (<div className="p-3 bg-emerald-50 border border-emerald-200 rounded-xl"><p className="text-xs text-emerald-700 mb-1 font-medium">{t('agentSetup.keyCreatedCopyNow')}</p><code className="text-xs font-mono text-emerald-800 break-all select-all">{newKeyValue}</code></div>)}
-              </div>
-              {hasKey && <div className="mt-4 flex items-center gap-2 text-xs text-emerald-600 font-medium"><span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />{t('agentSetup.keyReady')}</div>}
-            </div>
-          </div>
-        </div>
-
-        {/* Step 2 — Tags (optional) */}
-        <div className="bento-card">
-          <div className="flex items-start gap-4">
-            <StepNum n={2} />
-            <div className="flex-1 min-w-0">
-              <h3 className="text-lg font-semibold text-zinc-900 mb-1">{t('agentSetup.step2Title')}</h3>
-              <p className="text-sm text-zinc-500 mb-3">{t('agentSetup.step2Desc')}</p>
-              <Input placeholder={t('agentSetup.tagsPlaceholder')} value={tagInput} onChange={e => setTagInput(e.target.value)} className="h-11 font-mono text-sm" />
-            </div>
-          </div>
-        </div>
-
-        {/* Step 3 — Install (no API key in command) */}
-        <div className="bento-card">
-          <div className="flex items-start gap-4">
-            <StepNum n={3} />
-            <div className="flex-1 min-w-0">
-              <h3 className="text-lg font-semibold text-zinc-900 mb-1">{t('agentSetup.step3Title')}</h3>
-              <p className="text-sm text-zinc-500 mb-2">{platforms.find(p => p.key === platform)!.osLabel} &middot; {platforms.find(p => p.key === platform)!.archLabel}</p>
-              <CodeBlock code={installCmd} lang="shell" />
-            </div>
-          </div>
-        </div>
-
-        {/* Step 4 — Run (API key injected as ZT_API_KEY env var) */}
-        <div className="bento-card">
-          <div className="flex items-start gap-4">
-            <StepNum n={4} />
-            <div className="flex-1 min-w-0">
-              <h3 className="text-lg font-semibold text-zinc-900 mb-1">{t('agentSetup.step4Title')}</h3>
-              <p className="text-sm text-zinc-500 mb-2">{t('agentSetup.step4Desc')}</p>
-              <CodeBlock code={runCmd} lang="shell" />
-              {!hasKey && <p className="text-xs text-amber-600 mt-2">{t('agentSetup.noKeyWarning')}</p>}
-            </div>
-          </div>
-        </div>
-
-        {/* Step 5 — Agent verification (DB-based, like Datadog Infrastructure) */}
-        <AgentStatusCard agents={agents} polling={polling} error={agentError} />
-      </div>
-
-      <div className="mt-12 pt-8 border-t border-zinc-200/60">
-        <p className="text-xs text-zinc-400 max-w-lg">
-          {t('agentSetup.footerNote')}
-        </p>
       </div>
     </div>
   );

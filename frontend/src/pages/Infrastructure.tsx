@@ -58,16 +58,16 @@ function NavTabs({ active }: { active: string }) {
   ];
 
   return (
-    <div className="flex items-center gap-1 mb-4 border-b border-zinc-200">
+    <div className="flex items-center gap-1 mb-4 border-b border-gray-200">
       {tabs.map(tab => (
         <button
           key={tab.key}
-          className={`flex items-center gap-1.5 px-3 py-2 text-[13px] font-medium transition-all relative
-            ${active === tab.key ? 'text-zinc-900' : 'text-zinc-400 hover:text-zinc-600'}`}
+          className={`flex items-center gap-1.5 px-4 py-2.5 text-[13px] font-medium transition-all relative
+            ${active === tab.key ? 'text-brand-600' : 'text-gray-500 hover:text-gray-700'}`}
         >
           {tab.label}
           {active === tab.key && (
-            <span className="absolute bottom-0 left-0 right-0 h-[2px] bg-[#632CA6] rounded-t" />
+            <span className="absolute bottom-0 left-0 right-0 h-[2px] bg-brand-600 rounded-t" />
           )}
         </button>
       ))}
@@ -93,14 +93,16 @@ function Toolbar({
   onGroupByChange: (g: string) => void;
   infraView: 'table' | 'map';
   onViewChange: (v: 'table' | 'map') => void;
+  timeRange: string;
+  onTimeRangeChange: (v: string) => void;
   onExport: (format: 'csv' | 'json') => void;
   searchRef: React.Ref<HTMLInputElement>;
 }) {
   return (
-    <div className="flex items-center justify-between bg-white border border-zinc-200 rounded-lg px-4 py-2">
-      <div className="flex items-center gap-3">
+    <div className="flex items-center justify-between bg-white border border-gray-200 rounded-md px-3 py-1.5">
+      <div className="flex items-center gap-2">
         <div className="relative">
-          <svg className="absolute left-2.5 top-1/2 -translate-y-1/2 text-zinc-400 w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+          <svg className="absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-400 w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
             <circle cx="11" cy="11" r="8" /><path d="m21 21-4.35-4.35" />
           </svg>
           <input
@@ -109,43 +111,41 @@ function Toolbar({
             value={searchQuery}
             onChange={e => onSearchChange(e.target.value)}
             placeholder="Filter hosts..."
-            className="w-[280px] h-8 pl-8 pr-3 text-[13px] border border-zinc-200 rounded bg-white
-              placeholder:text-zinc-400 focus:outline-none focus:border-[#632CA6] focus:ring-1 focus:ring-[#632CA6]/10 transition-all"
+            className="w-[260px] h-8 pl-8 pr-3 text-[13px] border border-gray-200 rounded bg-white
+              placeholder:text-gray-400 focus:outline-none focus:border-brand-500 focus:ring-1 focus:ring-brand-500/10 transition-all"
           />
         </div>
-        <div className="flex items-center rounded border border-zinc-200 overflow-hidden">
+        <div className="flex items-center rounded border border-gray-200 overflow-hidden">
           <button onClick={() => onGroupByChange('none')}
-            className={`px-3 py-1.5 text-[11px] font-medium transition-colors ${groupBy === 'none' ? 'bg-zinc-100 text-zinc-800' : 'bg-white text-zinc-500 hover:text-zinc-700'}`}>
+            className={`px-2.5 py-1 text-[11px] font-medium transition-colors ${groupBy === 'none' ? 'bg-gray-100 text-gray-800' : 'bg-white text-gray-500 hover:text-gray-700'}`}>
             No Grouping
           </button>
           <button onClick={() => onGroupByChange('status')}
-            className={`px-3 py-1.5 text-[11px] font-medium border-l border-zinc-200 transition-colors ${groupBy === 'status' ? 'bg-zinc-100 text-zinc-800' : 'bg-white text-zinc-500 hover:text-zinc-700'}`}>
+            className={`px-2.5 py-1 text-[11px] font-medium border-l border-gray-200 transition-colors ${groupBy === 'status' ? 'bg-gray-100 text-gray-800' : 'bg-white text-gray-500 hover:text-gray-700'}`}>
             Status
           </button>
         </div>
       </div>
 
       <div className="flex items-center gap-2">
-        {/* Export dropdown */}
         <div className="relative group">
-          <button className="flex items-center gap-1 px-2.5 h-8 text-[11px] font-medium text-zinc-500 hover:text-zinc-700 border border-zinc-200 rounded bg-white hover:bg-zinc-50 transition-colors">
+          <button className="flex items-center gap-1 px-2.5 h-7 text-[11px] font-medium text-gray-500 hover:text-gray-700 border border-gray-200 rounded bg-white hover:bg-gray-50 transition-colors">
             <DownloadOutlined style={{ fontSize: 12 }} />
             Export
             <svg className="w-3 h-3" viewBox="0 0 12 12" fill="currentColor"><path d="M6 8L2 4h8z" /></svg>
           </button>
-          <div className="absolute right-0 top-full mt-1 bg-white border border-zinc-200 rounded-lg shadow-lg z-20 hidden group-hover:block py-1 min-w-[120px]">
-            <button onClick={() => onExport('csv')} className="w-full text-left px-3 py-1.5 text-[12px] text-zinc-700 hover:bg-zinc-50 transition-colors">Export CSV</button>
-            <button onClick={() => onExport('json')} className="w-full text-left px-3 py-1.5 text-[12px] text-zinc-700 hover:bg-zinc-50 transition-colors">Export JSON</button>
+          <div className="absolute right-0 top-full mt-1 bg-white border border-gray-200 rounded-md shadow-lg z-20 hidden group-hover:block py-1 min-w-[120px]">
+            <button onClick={() => onExport('csv')} className="w-full text-left px-3 py-1.5 text-[12px] text-gray-700 hover:bg-gray-50 transition-colors">Export CSV</button>
+            <button onClick={() => onExport('json')} className="w-full text-left px-3 py-1.5 text-[12px] text-gray-700 hover:bg-gray-50 transition-colors">Export JSON</button>
           </div>
         </div>
 
-        {/* View toggle */}
-        <div className="flex items-center rounded border border-zinc-200 overflow-hidden">
+        <div className="flex items-center rounded border border-gray-200 overflow-hidden">
           <button onClick={() => onViewChange('table')}
-            className={`p-1.5 transition-colors ${infraView === 'table' ? 'bg-zinc-100 text-zinc-700' : 'bg-white text-zinc-400 hover:text-zinc-600'}`}
+            className={`p-1.5 transition-colors ${infraView === 'table' ? 'bg-gray-100 text-gray-700' : 'bg-white text-gray-400 hover:text-gray-600'}`}
             title="Table"><UnorderedListOutlined style={{ fontSize: 14 }} /></button>
           <button onClick={() => onViewChange('map')}
-            className={`p-1.5 border-l border-zinc-200 transition-colors ${infraView === 'map' ? 'bg-zinc-100 text-zinc-700' : 'bg-white text-zinc-400 hover:text-zinc-600'}`}
+            className={`p-1.5 border-l border-gray-200 transition-colors ${infraView === 'map' ? 'bg-gray-100 text-gray-700' : 'bg-white text-gray-400 hover:text-gray-600'}`}
             title="Map"><GlobalOutlined style={{ fontSize: 14 }} /></button>
         </div>
       </div>
@@ -158,8 +158,8 @@ function Toolbar({
 function KeyboardHint({ visible, shortcut, label }: { visible: boolean; shortcut: string; label: string }) {
   if (!visible) return null;
   return (
-    <div className="fixed bottom-6 left-1/2 -translate-x-1/2 bg-zinc-900 text-white px-4 py-2 rounded-lg shadow-xl text-[12px] z-50 flex items-center gap-3 animate-fade-in">
-      <kbd className="bg-zinc-700 text-zinc-200 px-1.5 py-0.5 rounded text-[11px] font-mono">{shortcut}</kbd>
+    <div className="fixed bottom-6 left-1/2 -translate-x-1/2 bg-gray-900 text-white px-4 py-2 rounded-lg shadow-xl text-[12px] z-50 flex items-center gap-3 animate-fade-in">
+      <kbd className="bg-gray-700 text-gray-200 px-1.5 py-0.5 rounded text-[11px] font-mono">{shortcut}</kbd>
       <span>{label}</span>
     </div>
   );
@@ -363,14 +363,17 @@ export default function Infrastructure() {
   return (
     <div className="animate-fade-in" style={{ maxWidth: 1480 }}>
       {/* ── Page Header ── */}
-      <div className="flex items-center justify-between mb-2">
-        <h1 className="text-[22px] font-bold text-zinc-900">{t('infrastructure.title')}</h1>
+      <div className="flex items-center justify-between mb-1">
+        <div>
+          <h1 className="text-xl font-bold text-gray-900">Infrastructure</h1>
+          <p className="text-sm text-gray-400 mt-0.5">Host List</p>
+        </div>
         <div className="flex items-center gap-2">
           <Select defaultValue="default"
             options={[{ value: 'default', label: 'Default View' }, { value: 'cpu', label: 'High CPU' }, { value: 'memory', label: 'High Memory' }]}
             size="small" className="w-40" />
           <TimeRangePicker value={range} onChange={v => setRange(v)} />
-          <Button icon={<ReloadOutlined />} onClick={fetch} size="small" className="border-zinc-200" />
+          <Button icon={<ReloadOutlined />} onClick={fetch} size="small" className="border-gray-200" />
         </div>
       </div>
 
@@ -392,6 +395,7 @@ export default function Infrastructure() {
             searchQuery={searchQuery} onSearchChange={setSearchQuery}
             groupBy={groupBy} onGroupByChange={setGroupBy}
             infraView={infraView} onViewChange={setInfraView}
+            timeRange={range} onTimeRangeChange={setRange}
             onExport={handleExport} searchRef={searchRef}
           />
 
@@ -427,15 +431,15 @@ export default function Infrastructure() {
       </div>
 
       {/* Footer with keyboard shortcut hint */}
-      <div className="flex items-center justify-between text-[10px] text-zinc-400 mt-4 pb-8">
+      <div className="flex items-center justify-between text-[10px] text-gray-400 mt-4 pb-8">
         <div className="flex items-center gap-2">
           <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 dot-live" />
           {t('infrastructure.autoRefresh')}
         </div>
-        <div className="flex items-center gap-3 text-zinc-300">
-          <span><kbd className="bg-zinc-100 text-zinc-400 px-1 py-0.5 rounded text-[10px] font-mono">/</kbd> Search</span>
-          <span><kbd className="bg-zinc-100 text-zinc-400 px-1 py-0.5 rounded text-[10px] font-mono">R</kbd> Refresh</span>
-          <span><kbd className="bg-zinc-100 text-zinc-400 px-1 py-0.5 rounded text-[10px] font-mono">Esc</kbd> Close</span>
+        <div className="flex items-center gap-3 text-gray-300">
+          <span><kbd className="bg-gray-100 text-gray-400 px-1 py-0.5 rounded text-[10px] font-mono">/</kbd> Search</span>
+          <span><kbd className="bg-gray-100 text-gray-400 px-1 py-0.5 rounded text-[10px] font-mono">R</kbd> Refresh</span>
+          <span><kbd className="bg-gray-100 text-gray-400 px-1 py-0.5 rounded text-[10px] font-mono">Esc</kbd> Close</span>
         </div>
       </div>
 
@@ -449,7 +453,7 @@ export default function Infrastructure() {
 
       {/* Keyboard hint toast */}
       {keyboardHint && (
-        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 bg-zinc-900 text-white px-4 py-2 rounded-lg shadow-xl text-[12px] z-50 animate-fade-in">
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 bg-gray-900 text-white px-4 py-2 rounded-lg shadow-xl text-[12px] z-50 animate-fade-in">
           {keyboardHint}
         </div>
       )}

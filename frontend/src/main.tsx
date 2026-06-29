@@ -17,8 +17,8 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
         colorWarning: '#E2903C',
         colorError: '#E65C5C',
         colorInfo: '#632CA6',
-        borderRadius: 6,
-        borderRadiusLG: 10,
+        borderRadius: 4,
+        borderRadiusLG: 8,
         fontFamily: 'Geist Sans, system-ui, -apple-system, sans-serif',
         fontSize: 13,
         colorBgContainer: '#ffffff',
@@ -29,21 +29,21 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
       },
       components: {
         Button: {
-          borderRadius: 10,
+          borderRadius: 6,
           controlHeight: 40,
           paddingContentHorizontal: 20,
         },
         Input: {
-          borderRadius: 10,
+          borderRadius: 6,
           controlHeight: 40,
         },
         Card: {
-          borderRadiusLG: 20,
-          paddingLG: 28,
+          borderRadiusLG: 8,
+          paddingLG: 24,
         },
         Table: {
-          borderRadiusLG: 16,
-          headerBg: '#fafafa',
+          borderRadiusLG: 8,
+          headerBg: '#f9fafb',
           headerColor: '#71717a',
         },
         Tag: {
