@@ -9,6 +9,7 @@ import Register from './pages/Register';
 import DashboardLayout, { ApiKeysPage } from './pages/Dashboard';
 import { AgentMgmtLayout } from './pages/AgentMgmt';
 import AgentSetup from './pages/AgentSetup';
+import APMServiceSetup from './pages/APMServiceSetup';
 import { OrgLayout, UsersPage, SettingsPage } from './pages/Organization';
 import Infrastructure from './pages/Infrastructure';
 import APMPage from './pages/APM';
@@ -51,6 +52,7 @@ function AppRoutes() {
       <Route path="apm/settings/generate-metrics" element={<GenerateMetricsPage/>}/>
       <Route path="apm/settings/ingestion-control" element={<IngestionControlPage/>}/>
       <Route path="apm/settings/retention-filters" element={<RetentionFiltersPage/>}/>
+      <Route path="apm/service-setup" element={<APMServiceSetup/>}/>
       <Route path="apm/settings/ingestion" element={<IngestionControlPage/>}/>
       <Route path="apm/settings/retention" element={<RetentionFiltersPage/>}/>
       <Route path="apm/recommendations" element={<RecommendationsPage/>}/>
@@ -80,10 +82,9 @@ function AppRoutes() {
       <Route path="ai-observability" element={<AIObservabilityPage/>}/>
       <Route path="security" element={<SecurityPage/>}/>
       {/* Agents */}
-      <Route path="agents/setup" element={<AgentSetup/>}/>
       <Route path="agents" element={<AgentMgmtLayout/>}>
-        <Route index element={<Navigate to="/agents/setup" replace/>}/>
         <Route path="setup" element={<AgentSetup/>}/>
+        <Route path="status" element={<AgentSetup/>}/>
       </Route>
       {/* Organization */}
       <Route path="org" element={<OrgLayout/>}>
