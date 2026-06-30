@@ -182,7 +182,7 @@ pub async fn metrics_query(
     let name = params.name.unwrap_or_default();
     let interval = params.interval.unwrap_or(60);
     let db = clickhouse::effective_flow_log_db(auth.org_id);
-    let team_clause = clickhouse::team_filter(&auth.team_ids);
+    let team_clause = clickhouse::org_filter(auth.org_id);
 
     let display_name = metric_definitions()
         .iter()

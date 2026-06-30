@@ -24,7 +24,7 @@ pub async fn data_overview(
         .map_err(|e| AppError::internal(e.to_string()))?;
 
     let db = clickhouse::effective_flow_log_db(auth.org_id);
-    let team_clause = clickhouse::team_filter(&auth.team_ids);
+    let team_clause = clickhouse::org_filter(auth.org_id);
 
     // Agents from vtap API — scoped to the authenticated user's org via X-Org-Id.
     let df_url = std::env::var("ZEROTRACE_SERVER_URL")

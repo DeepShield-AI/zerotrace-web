@@ -2,7 +2,7 @@
 // ClickHouse query helpers — now in crate::clickhouse; re-exported here for
 // convenience of the query building macros in this file.
 // ---------------------------------------------------------------------------
-use crate::clickhouse::{ch_client, ch_query, effective_flow_log_db as flow_log_db, val_i64};
+use crate::clickhouse::{ch_client, ch_query, effective_flow_log_db as flow_log_db, init_org_db_if_needed, val_i64};
 use crate::{clickhouse, db::DbPool, errors::AppError, middleware::auth::AuthContext};
 use axum::{
     Json,
@@ -365,7 +365,9 @@ pub async fn apm_tags(
 ) -> Result<axum::response::Response, AppError> {
     let client = ch_client()?;
     let db = flow_log_db(auth.org_id);
-    let team_clause = clickhouse::team_filter(&auth.team_ids);
+    let team_clause = clickhouse::org_filter(auth.org_id);
+    // Lazy-init ClickHouse org database (tables + MVs) on first query
+    init_org_db_if_needed(&client, auth.org_id).await;
 
     let start = q.start.unwrap_or(default_window().0);
     let end = q.end.unwrap_or(default_window().1);
@@ -384,7 +386,7 @@ pub async fn apm_tags(
          WHERE {time_filter} AND length(attribute_names) > 0 \
          {team_clause} GROUP BY tag_key \
          ORDER BY cnt DESC \
-         {team_clause} LIMIT 100 FORMAT JSONEachRow"
+         LIMIT 100 FORMAT JSONEachRow"
     );
 
     let rows = ch_query(&client, &sql).await;
@@ -397,7 +399,7 @@ pub async fn apm_tags(
          {team_clause} GROUP BY name \
          HAVING name != '' \
          ORDER BY cnt DESC \
-         {team_clause} LIMIT 100 FORMAT JSONEachRow"
+         LIMIT 100 FORMAT JSONEachRow"
     );
 
     let services = ch_query(&client, &services_sql).await;
@@ -420,7 +422,9 @@ pub async fn apm_services(
 ) -> Result<axum::response::Response, AppError> {
     let client = ch_client()?;
     let db = flow_log_db(auth.org_id);
-    let team_clause = clickhouse::team_filter(&auth.team_ids);
+    let team_clause = clickhouse::org_filter(auth.org_id);
+    // Lazy-init ClickHouse org database (tables + MVs) on first query
+    init_org_db_if_needed(&client, auth.org_id).await;
 
     let start = q.start.unwrap_or(default_window().0);
     let end = q.end.unwrap_or(default_window().1);
@@ -445,7 +449,7 @@ pub async fn apm_services(
          {team_clause} GROUP BY service_name \
          HAVING service_name != '' \
          ORDER BY request_count DESC \
-         {team_clause} LIMIT 100 FORMAT JSONEachRow"
+         LIMIT 100 FORMAT JSONEachRow"
     );
 
     let rows = ch_query(&client, &sql).await;
@@ -463,7 +467,9 @@ pub async fn apm_operations(
 ) -> Result<axum::response::Response, AppError> {
     let client = ch_client()?;
     let db = flow_log_db(auth.org_id);
-    let team_clause = clickhouse::team_filter(&auth.team_ids);
+    let team_clause = clickhouse::org_filter(auth.org_id);
+    // Lazy-init ClickHouse org database (tables + MVs) on first query
+    init_org_db_if_needed(&client, auth.org_id).await;
 
     let start = q.start.unwrap_or(default_window().0);
     let end = q.end.unwrap_or(default_window().1);
@@ -481,7 +487,7 @@ pub async fn apm_operations(
          WHERE {where_clause} {team_clause} AND request_resource != '' \
          {team_clause} GROUP BY operation_name \
          ORDER BY request_count DESC \
-         {team_clause} LIMIT 100 FORMAT JSONEachRow"
+         LIMIT 100 FORMAT JSONEachRow"
     );
 
     let rows = ch_query(&client, &sql).await;
@@ -499,7 +505,9 @@ pub async fn apm_stats(
 ) -> Result<axum::response::Response, AppError> {
     let client = ch_client()?;
     let db = flow_log_db(auth.org_id);
-    let team_clause = clickhouse::team_filter(&auth.team_ids);
+    let team_clause = clickhouse::org_filter(auth.org_id);
+    // Lazy-init ClickHouse org database (tables + MVs) on first query
+    init_org_db_if_needed(&client, auth.org_id).await;
 
     let start = q.start.unwrap_or(default_window().0);
     let end = q.end.unwrap_or(default_window().1);
@@ -589,7 +597,9 @@ pub async fn apm_traces(
 ) -> Result<axum::response::Response, AppError> {
     let client = ch_client()?;
     let db = flow_log_db(auth.org_id);
-    let team_clause = clickhouse::team_filter(&auth.team_ids);
+    let team_clause = clickhouse::org_filter(auth.org_id);
+    // Lazy-init ClickHouse org database (tables + MVs) on first query
+    init_org_db_if_needed(&client, auth.org_id).await;
 
     let start = q.start.unwrap_or(default_window().0);
     let end = q.end.unwrap_or(default_window().1);
@@ -693,7 +703,9 @@ pub async fn apm_trace_detail(
 ) -> Result<axum::response::Response, AppError> {
     let client = ch_client()?;
     let db = flow_log_db(auth.org_id);
-    let team_clause = clickhouse::team_filter(&auth.team_ids);
+    let team_clause = clickhouse::org_filter(auth.org_id);
+    // Lazy-init ClickHouse org database (tables + MVs) on first query
+    init_org_db_if_needed(&client, auth.org_id).await;
 
     let safe_tid = trace_id.replace('\'', "''");
 
@@ -745,7 +757,7 @@ pub async fn apm_trace_detail(
          FROM {db}.l7_flow_log \
          WHERE {trace_filter} \
          ORDER BY start_time_us ASC \
-         {team_clause} LIMIT 100 FORMAT JSONEachRow"
+         LIMIT 100 FORMAT JSONEachRow"
     );
 
     let spans = ch_query(&client, &spans_sql).await;
@@ -1072,7 +1084,9 @@ pub async fn apm_span_detail(
 ) -> Result<axum::response::Response, AppError> {
     let client = ch_client()?;
     let db = flow_log_db(auth.org_id);
-    let team_clause = clickhouse::team_filter(&auth.team_ids);
+    let team_clause = clickhouse::org_filter(auth.org_id);
+    // Lazy-init ClickHouse org database (tables + MVs) on first query
+    init_org_db_if_needed(&client, auth.org_id).await;
 
     let safe_sid = span_id.replace('\'', "''");
 
@@ -1103,7 +1117,7 @@ pub async fn apm_span_detail(
             attribute_values \
          FROM {db}.l7_flow_log \
          WHERE (span_id = '{safe_sid}' OR toString(flow_id) = '{safe_sid}') \
-         {team_clause} LIMIT 100 FORMAT JSONEachRow"
+         LIMIT 100 FORMAT JSONEachRow"
     );
 
     let rows = ch_query(&client, &sql).await;
@@ -1124,7 +1138,9 @@ pub async fn apm_service_detail(
 ) -> Result<axum::response::Response, AppError> {
     let client = ch_client()?;
     let db = flow_log_db(auth.org_id);
-    let team_clause = clickhouse::team_filter(&auth.team_ids);
+    let team_clause = clickhouse::org_filter(auth.org_id);
+    // Lazy-init ClickHouse org database (tables + MVs) on first query
+    init_org_db_if_needed(&client, auth.org_id).await;
 
     let start = q.start.unwrap_or(default_window().0);
     let end = q.end.unwrap_or(default_window().1);
@@ -1157,7 +1173,7 @@ pub async fn apm_service_detail(
          WHERE {where_clause} \
          {team_clause} GROUP BY operation_name \
          ORDER BY cnt DESC \
-         {team_clause} LIMIT 100 FORMAT JSONEachRow"
+         LIMIT 100 FORMAT JSONEachRow"
     );
 
     // Rate per minute
@@ -1205,7 +1221,9 @@ pub async fn apm_topology(
 ) -> Result<axum::response::Response, AppError> {
     let client = ch_client()?;
     let db = flow_log_db(auth.org_id);
-    let team_clause = clickhouse::team_filter(&auth.team_ids);
+    let team_clause = clickhouse::org_filter(auth.org_id);
+    // Lazy-init ClickHouse org database (tables + MVs) on first query
+    init_org_db_if_needed(&client, auth.org_id).await;
 
     let start = q.start.unwrap_or(default_window().0);
     let end = q.end.unwrap_or(default_window().1);
@@ -1263,7 +1281,7 @@ pub async fn apm_topology(
          {team_clause} GROUP BY source, target \
          HAVING call_count >= 1 \
          ORDER BY call_count DESC \
-         {team_clause} LIMIT 100 FORMAT JSONEachRow"
+         LIMIT 100 FORMAT JSONEachRow"
     );
 
     // Node stats: per-service summaries
@@ -1280,7 +1298,7 @@ pub async fn apm_topology(
          WHERE {where_clause} {team_clause} AND {SERVICE_EXPR} != '' \
          {team_clause} GROUP BY service_name \
          ORDER BY request_count DESC \
-         {team_clause} LIMIT 100 FORMAT JSONEachRow"
+         LIMIT 100 FORMAT JSONEachRow"
     );
 
     let edges = ch_query(&client, &edges_sql).await;
@@ -1312,7 +1330,9 @@ pub async fn apm_service_dependencies(
 ) -> Result<axum::response::Response, AppError> {
     let client = ch_client()?;
     let db = flow_log_db(auth.org_id);
-    let team_clause = clickhouse::team_filter(&auth.team_ids);
+    let team_clause = clickhouse::org_filter(auth.org_id);
+    // Lazy-init ClickHouse org database (tables + MVs) on first query
+    init_org_db_if_needed(&client, auth.org_id).await;
 
     let start = q.start.unwrap_or(default_window().0);
     let end = q.end.unwrap_or(default_window().1);
@@ -1364,7 +1384,7 @@ pub async fn apm_service_dependencies(
          ) \
          {team_clause} GROUP BY downstream_service \
          ORDER BY call_count DESC \
-         {team_clause} LIMIT 100 FORMAT JSONEachRow"
+         LIMIT 100 FORMAT JSONEachRow"
     );
 
     // Upstream: services that call THIS service
@@ -1413,7 +1433,7 @@ pub async fn apm_service_dependencies(
          ) \
          {team_clause} GROUP BY upstream_service \
          ORDER BY call_count DESC \
-         {team_clause} LIMIT 100 FORMAT JSONEachRow"
+         LIMIT 100 FORMAT JSONEachRow"
     );
 
     let downstream = ch_query(&client, &downstream_sql).await;
