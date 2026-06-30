@@ -326,3 +326,13 @@
 .dark .ant-input:focus {
   @apply border-brand-600;
 }
+
+/* Test mode: disable animations for reliable Playwright pixel comparison */
+[data-test-mode] .animate-fade-in,
+[data-test-mode] .animate-slide-up,
+[data-test-mode] .stagger-children > *,
+[data-test-mode] [class*="animate-"] {
+  animation: none !important;
+  opacity: 1 !important;
+  transform: none !important;
+}

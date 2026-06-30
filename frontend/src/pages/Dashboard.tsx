@@ -164,7 +164,7 @@ function Sidebar() {
         {user && (
           <div className={`flex items-center mx-1 mt-1 pt-1 border-t border-white/[0.06] ${collapsed?'justify-center':'gap-1.5 px-2'}`}>
             <div className="w-6 h-6 rounded-full flex items-center justify-center text-white text-[9px] font-bold shrink-0" style={{background:'linear-gradient(135deg,#632CA6,#8B5CF6)'}}>{user.email?.[0]?.toUpperCase()||'U'}</div>
-            {!collapsed&&<><div className="flex-1 min-w-0"><p className="text-[11px] text-white/70 truncate font-medium">{user.name||user.email}</p></div><button onClick={async()=>{await logout();navigate('/login');}} className="text-white/20 hover:text-white/50 transition-colors"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" className="w-3.5 h-3.5"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg></button></>}
+            {!collapsed&&<><div className="flex-1 min-w-0"><p className="text-[11px] text-white/70 truncate font-medium">{user.name||user.email}</p></div><button onClick={async()=>{try{await logout();}catch{}navigate('/login');}} className="text-white/20 hover:text-white/50 transition-colors"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" className="w-3.5 h-3.5"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg></button></>}
           </div>
         )}
       </div>
