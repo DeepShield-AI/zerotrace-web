@@ -68,6 +68,8 @@ export default function FacetPanel({
   selectedService,
   onStatusChange,
   onServiceChange,
+  onDurationChange,
+  selectedDuration,
   tracesTotal,
   errorCount,
   okCount,
@@ -78,6 +80,8 @@ export default function FacetPanel({
   selectedService: string;
   onStatusChange: (s: string) => void;
   onServiceChange: (s: string) => void;
+  onDurationChange?: (q: string) => void;
+  selectedDuration?: string;
   tracesTotal: number;
   errorCount?: number;
   okCount?: number;
@@ -87,9 +91,10 @@ export default function FacetPanel({
   const hasFilters = selectedStatus !== '' || selectedService !== '';
   const maxServiceCount = Math.max(...services.map(s => num(s.request_count)), 1);
 
-  // Compute status counts from all services when not provided
-  const errCnt = errorCount ?? services.reduce((sum, s) => sum + num(s.error_count), 0);
-  const okCnt = okCount ?? tracesTotal - errCnt;
+  // Compute status counts: use explicit props if provided, otherwise from trace total
+  // (service-level error counts are NOT trace status counts — don't mix them)
+  const errCnt = errorCount ?? 0;
+  const okCnt = okCount ?? Math.max(0, tracesTotal - errCnt);
 
   // Filter services by search
   const filteredServices = search
@@ -167,7 +172,12 @@ export default function FacetPanel({
           ].map((item) => (
             <button
               key={item.label}
-              className="w-full text-left px-2.5 py-1.5 rounded-md text-xs text-zinc-600 hover:bg-zinc-50 transition-colors border border-transparent"
+              onClick={() => onDurationChange?.(item.query)}
+              className={`w-full text-left px-2.5 py-1.5 rounded-md text-xs transition-colors border ${
+                selectedDuration === item.query
+                  ? 'bg-purple-50 text-purple-700 font-medium border-purple-100'
+                  : 'text-zinc-600 hover:bg-zinc-50 border-transparent'
+              }`}
             >
               {item.label}
             </button>
