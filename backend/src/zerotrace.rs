@@ -151,3 +151,31 @@ pub async fn provision_org(pool: &sqlx::MySqlPool, org_name: &str) -> Result<i64
     );
     Ok(org_id)
 }
+
+/// Update all vtap (agent) records for this org to have `org_id` set correctly.
+/// This ensures ClickHouse rows are tagged with the correct org_id
+/// so per-org Materialized View routing works correctly.
+/// Safe to call multiple times — just updates existing vtap records.
+pub async fn sync_vtap_org_id(pool: &sqlx::MySqlPool, org_id: i64) -> Result<(), AppError> {
+    if org_id <= 1 {
+        return Ok(());
+    }
+    let result = sqlx::query(
+        "UPDATE vtap SET org_id = ? WHERE org_id IS NULL OR org_id = 1"
+    )
+    .bind(org_id)
+    .execute(pool)
+    .await;
+    match result {
+        Ok(r) => {
+            if r.rows_affected() > 0 {
+                tracing::info!(org_id, affected = r.rows_affected(), "Updated vtap team_id to match org_id");
+            }
+            Ok(())
+        }
+        Err(e) => {
+            tracing::warn!(org_id, error = ?e, "Failed to update vtap team_id");
+            Err(AppError::internal(e.to_string()))
+        }
+    }
+}

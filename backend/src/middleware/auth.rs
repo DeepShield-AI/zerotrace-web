@@ -4,20 +4,16 @@ use axum_extra::extract::cookie::CookieJar;
 
 /// Context injected into request extensions after auth.
 ///
-/// Team filtering: if `team_ids` is non-empty, queries SHOULD filter data by team_id.
-/// If empty, the user is an org admin and sees all data within the org.
+/// Data isolation: each org sees only data tagged with `team_id = org_id` in ClickHouse.
+/// This maps the DeepFlow `team_id` column to our `org_id` concept — one team per org.
 #[derive(Debug, Clone)]
 pub struct AuthContext {
     pub user_id: i64,
     pub org_id: i64,
     pub user_role: String,
-    /// IDs of teams the user belongs to (for same-org user isolation).
-    /// Empty means "see all teams in this org" (admin behavior).
-    pub team_ids: Vec<i64>,
 }
 
 /// Implement FromRequestParts so handlers can extract AuthContext directly.
-/// The middleware must have already inserted it into request extensions.
 impl<S: Send + Sync + 'static> axum::extract::FromRequestParts<S> for AuthContext {
     type Rejection = AppError;
 
@@ -45,12 +41,10 @@ pub async fn require_auth(
     if let Some(session_cookie) = cookie_jar.get("zt_session") {
         if let Some(session) = Session::find_valid(&pool, session_cookie.value()).await? {
             let user_role = load_user_role(&pool, session.user_id).await.unwrap_or_else(|_| "member".into());
-            let team_ids = load_user_team_ids(&pool, session.user_id).await.unwrap_or_default();
             request.extensions_mut().insert(AuthContext {
                 user_id: session.user_id,
                 org_id: session.org_id,
                 user_role,
-                team_ids,
             });
             return Ok(next.run(request).await);
         }
@@ -63,12 +57,10 @@ pub async fn require_auth(
             // Try as session ID
             if let Some(session) = Session::find_valid(&pool, token).await? {
                 let user_role = load_user_role(&pool, session.user_id).await.unwrap_or_else(|_| "member".into());
-                let team_ids = load_user_team_ids(&pool, session.user_id).await.unwrap_or_default();
                 request.extensions_mut().insert(AuthContext {
                     user_id: session.user_id,
                     org_id: session.org_id,
                     user_role,
-                    team_ids,
                 });
                 return Ok(next.run(request).await);
             }
@@ -79,13 +71,10 @@ pub async fn require_auth(
                 crate::models::api_key::ApiKey::find_by_hash(&pool, &key_hash).await?
             {
                 let _ = crate::models::api_key::ApiKey::touch(&pool, api_key.id).await;
-                // For API key auth, team scope comes from the key's team_id
-                let team_ids = api_key.team_id.map(|t| vec![t]).unwrap_or_default();
                 request.extensions_mut().insert(AuthContext {
                     user_id: api_key.user_id,
                     org_id: api_key.org_id,
                     user_role: "member".to_string(),
-                    team_ids,
                 });
                 return Ok(next.run(request).await);
             }
@@ -93,13 +82,6 @@ pub async fn require_auth(
     }
 
     Err(AppError::unauthorized("invalid or expired authentication"))
-}
-
-/// Load the team IDs a user belongs to. Returns empty vec (meaning "see all teams")
-/// when no team membership table exists or the user is an org admin.
-async fn load_user_team_ids(pool: &sqlx::MySqlPool, user_id: i64) -> Result<Vec<i64>, sqlx::Error> {
-    let _ = (pool, user_id);
-    Ok(vec![])
 }
 
 /// Look up the user's actual role from the web_users table.
@@ -112,13 +94,11 @@ async fn load_user_role(pool: &sqlx::MySqlPool, user_id: i64) -> Result<String, 
 }
 
 /// Middleware: enforce that the org has at least one active subscription.
-/// Admins and billing/account paths are excluded from the check.
 pub async fn require_subscription(
     axum::extract::State(pool): axum::extract::State<DbPool>,
     request: axum::extract::Request,
     next: Next,
 ) -> Result<Response, AppError> {
-    // Skip subscription check for billing/auth/account paths
     let path = request.uri().path().to_string();
     if path.starts_with("/api/v1/billing") || path.starts_with("/api/v1/auth")
         || path.starts_with("/api/v1/api-keys") || path.starts_with("/api/v1/users")
@@ -127,18 +107,15 @@ pub async fn require_subscription(
         return Ok(next.run(request).await);
     }
 
-    // Extract auth context (set by require_auth middleware)
     let auth = match request.extensions().get::<AuthContext>() {
         Some(a) => a.clone(),
         None => return Err(AppError::unauthorized("authentication required")),
     };
 
-    // super_admin bypasses everything (platform-wide admin)
     if auth.user_role == "super_admin" {
         return Ok(next.run(request).await);
     }
 
-    // Only the Zerotrace org (slug="zerotrace") gets free access
     let org_slug: Option<(String,)> = sqlx::query_as(
         "SELECT slug FROM organizations WHERE id = ?"
     )
@@ -153,7 +130,6 @@ pub async fn require_subscription(
         }
     }
 
-    // All other orgs (including org admins) require an active subscription
     let count: (i64,) = sqlx::query_as(
         "SELECT COUNT(*) FROM subscriptions WHERE org_id = ? AND status = 'active'"
     )

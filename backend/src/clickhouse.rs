@@ -1,17 +1,22 @@
 // Shared ClickHouse query helpers used across handlers and the guardian module.
-// Consolidates duplicated helpers previously scattered across apm.rs, data.rs,
-// metrics.rs, baseline.rs, and correlator.rs.
 
 use crate::errors::AppError;
 use serde_json::Value;
+use std::collections::HashSet;
+use std::sync::Mutex;
+use std::sync::OnceLock;
 
 // ---------------------------------------------------------------------------
 // Org-scoped database name
 // ---------------------------------------------------------------------------
 
 /// Returns the org-scoped flow_log database name.
-/// org_id=1 → "flow_log" (the default DeepFlow database)
-/// org_id=N → "{:04}_flow_log" (e.g., org 2 → "0002_flow_log")
+/// org_id=1 → "flow_log" (default / admin)
+/// org_id=N → "{:04}_flow_log" (e.g., org 3 → "0003_flow_log")
+///
+/// Each org database is automatically initialised with cloned MergeTree tables
+/// and materialized views from the shared `flow_log` database on first access.
+/// See `ensure_org_database`.
 pub fn flow_log_db(org_id: i64) -> String {
     if org_id <= 1 {
         "flow_log".to_string()
@@ -20,18 +25,138 @@ pub fn flow_log_db(org_id: i64) -> String {
     }
 }
 
-/// Returns the effective database to query.
-///
-/// org_id=1 → "flow_log" (the default DeepFlow database)
-/// org_id>1 → "{:04}_flow_log" (e.g., org 2 → "0002_flow_log")
-///
-/// The DeepFlow ingester auto-creates org-scoped ClickHouse databases when it
-/// discovers a new org (polls GetORGIDs every 60s). If the database doesn't
-/// exist yet, ch_query_raw auto-creates it and retries. If tables don't exist
-/// yet (brand-new org), a structured error is returned so the frontend can
-/// show an appropriate message.
 pub fn effective_flow_log_db(org_id: i64) -> String {
     flow_log_db(org_id)
+}
+
+// ---------------------------------------------------------------------------
+// Org database initialisation
+// ---------------------------------------------------------------------------
+
+/// Tables to clone from `flow_log` into each org database.
+/// Only tables with a `team_id` column are cloned — this ensures org isolation.
+/// `span_with_trace_id` and `trace_tree` are deepflow-server internal tables
+/// without team_id; they stay in the shared `flow_log` database.
+/// Our backend queries traces via `l7_flow_log` (which has team_id), not these tables.
+const CLONE_TABLES: &[(&str, &str)] = &[
+    ("l7_flow_log_local", "l7_flow_log"),
+    ("l4_flow_log_local", "l4_flow_log"),
+];
+
+/// Create a ClickHouse database via HTTP POST (DDL).
+pub async fn create_database_http(client: &reqwest::Client, db_name: &str) -> Result<(), String> {
+    let sql = format!("CREATE DATABASE IF NOT EXISTS {}", db_name);
+    ch_post(client, &sql).await
+}
+
+/// Initialise an org's ClickHouse database with cloned tables and Materialized View
+/// routing from the shared `flow_log` database, filtered by `team_id = org_id`.
+///
+/// For each table (e.g. `l7_flow_log_local`):
+///   1. CREATE TABLE {org_db}.{table} AS flow_log.{src_local}
+///   2. Backfill: INSERT INTO {org_db}.{table} SELECT * FROM flow_log.{src_local}
+///      WHERE team_id = {org_id}
+///   3. CREATE MATERIALIZED VIEW in `flow_log` that auto-routes new rows
+///      matching `team_id = org_id` into the org database.
+///
+/// Idempotent — safe to call multiple times.
+pub async fn ensure_org_database(
+    client: &reqwest::Client,
+    org_id: i64,
+) -> Result<(), String> {
+    if org_id <= 1 {
+        return Ok(());
+    }
+
+    let db = flow_log_db(org_id);
+
+    // 1. Create database
+    create_database_http(client, &db).await?;
+
+    // 2. For each table, create clone + backfill + MV
+    for (src_local, dst_table) in CLONE_TABLES {
+        let create_sql = format!(
+            "CREATE TABLE IF NOT EXISTS {db}.{dst_table} AS flow_log.{src_local}"
+        );
+        if let Err(e) = ch_post(client, &create_sql).await {
+            tracing::warn!(%db, %dst_table, error = %e, "Failed to create cloned table");
+            continue;
+        }
+
+        // Backfill: copy existing rows matching this org's team_id (= org_id)
+        let backfill_sql = format!(
+            "INSERT INTO {db}.{dst_table} \
+             SELECT * FROM flow_log.{src_local} \
+             WHERE team_id = {org_id}"
+        );
+        if let Err(e) = ch_post(client, &backfill_sql).await {
+            tracing::warn!(%db, %dst_table, error = %e,
+                "Backfill INSERT may have partially failed (OK if already populated)");
+        }
+
+        // Materialized View: auto-route new rows with team_id = org_id
+        let mv_name = format!("{}_org{}_mv", src_local, org_id);
+        let mv_sql = format!(
+            "CREATE MATERIALIZED VIEW IF NOT EXISTS flow_log.{mv_name} \
+             TO {db}.{dst_table} \
+             AS SELECT * FROM flow_log.{src_local} \
+             WHERE team_id = {org_id}"
+        );
+        if let Err(e) = ch_post(client, &mv_sql).await {
+            tracing::warn!(%mv_name, error = %e, "Failed to create materialized view");
+        } else {
+            tracing::info!(%mv_name, %db, "Materialized view created — data routing active");
+        }
+    }
+
+    tracing::info!(%db, org_id, "Org ClickHouse database initialised");
+    Ok(())
+}
+
+// ---------------------------------------------------------------------------
+// Lazy org database initialisation (called on first query for each org)
+// ---------------------------------------------------------------------------
+
+static INITIALIZED_ORGS: OnceLock<Mutex<HashSet<i64>>> = OnceLock::new();
+
+fn is_org_initialized(org_id: i64) -> bool {
+    let set = INITIALIZED_ORGS.get_or_init(|| Mutex::new(HashSet::new()));
+    set.lock().unwrap().contains(&org_id)
+}
+
+fn mark_org_initialized(org_id: i64) {
+    let set = INITIALIZED_ORGS.get_or_init(|| Mutex::new(HashSet::new()));
+    set.lock().unwrap().insert(org_id);
+}
+
+/// Ensure the ClickHouse org database exists and has tables.  Idempotent —
+/// safe to call multiple times.  Returns true if init was attempted.
+/// Lazy init skips backfill (tables already have data via Materialized Views) so
+/// it completes quickly on the first query.
+pub async fn init_org_db_if_needed(client: &reqwest::Client, org_id: i64) -> bool {
+    if org_id <= 1 || is_org_initialized(org_id) {
+        return false;
+    }
+    let db = flow_log_db(org_id);
+    match create_database_http(client, &db).await {
+        Ok(()) => {
+            // Only CREATE TABLE — skip backfill (MVs already route live data).
+            // The startup init handles full backfill for existing orgs.
+            for (src_local, dst_table) in CLONE_TABLES {
+                let sql = format!("CREATE TABLE IF NOT EXISTS {db}.{dst_table} AS flow_log.{src_local}");
+                if let Err(e) = ch_post(client, &sql).await {
+                    tracing::warn!(%db, %dst_table, error = %e, "Lazy create table failed");
+                }
+            }
+            mark_org_initialized(org_id);
+            tracing::info!(org_id, "Lazy org ClickHouse database initialised (tables only)");
+            true
+        }
+        Err(e) => {
+            tracing::warn!(org_id, error = %e, "Lazy org ClickHouse init failed — will retry");
+            false
+        }
+    }
 }
 
 // ---------------------------------------------------------------------------
@@ -49,11 +174,30 @@ pub fn ch_client() -> Result<reqwest::Client, AppError> {
         .map_err(|e| AppError::internal(e.to_string()))
 }
 
+/// Execute a ClickHouse DDL statement via HTTP POST.
+async fn ch_post(client: &reqwest::Client, sql: &str) -> Result<(), String> {
+    let url = format!("{}/", clickhouse_url());
+    tracing::info!(sql = %sql, "ClickHouse DDL");
+    let resp = client
+        .post(&url)
+        .body(sql.to_string())
+        .send()
+        .await
+        .map_err(|e| e.to_string())?;
+    if resp.status().is_success() {
+        Ok(())
+    } else {
+        let body = resp.text().await.unwrap_or_default();
+        // "already exists" errors are harmless for idempotent init
+        if body.to_lowercase().contains("already exists") {
+            Ok(())
+        } else {
+            Err(body)
+        }
+    }
+}
+
 /// Execute a ClickHouse query via HTTP, returning JSONEachRow rows as a Value::Array.
-///
-/// Detects common error conditions:
-/// - Database not found → auto-creates it and retries
-/// - Table not found → returns structured error (schema not yet created)
 pub async fn ch_query(client: &reqwest::Client, sql: &str) -> Value {
     ch_query_raw(client, sql).await
 }
@@ -68,18 +212,22 @@ async fn ch_query_raw(client: &reqwest::Client, sql: &str) -> Value {
             let text = r.text().await.unwrap_or_default();
             tracing::info!(status = %status, text_len = text.len(), "ClickHouse response");
 
-            // Detect database not found → auto-create, then retry once
             let lower = text.to_lowercase();
             if lower.contains("database") && (lower.contains("doesn't exist") ||
                 lower.contains("does not exist") || lower.contains("not found"))
             {
                 if let Some(db_name) = extract_db_from_error(&text) {
                     tracing::info!(db = %db_name, "Auto-creating ClickHouse database");
-                    if let Err(e) = create_database(client, &db_name).await {
+                    if let Err(e) = create_database_http(client, &db_name).await {
                         tracing::warn!(db = %db_name, error = %e, "Failed to auto-create database");
                     } else {
-                        tracing::info!(db = %db_name, "Retrying query after db creation");
-                        return Box::pin(ch_query_raw(client, sql)).await;
+                        tracing::info!(db = %db_name, "Database created — run org init for tables");
+                        // Return structured error so frontend can show appropriate message
+                        return serde_json::json!([{
+                            "error": "org_database_not_ready",
+                            "message": "Data store initializing. Retry in a few seconds.",
+                            "detail": text
+                        }]);
                     }
                 }
                 return serde_json::json!([{
@@ -91,7 +239,7 @@ async fn ch_query_raw(client: &reqwest::Client, sql: &str) -> Value {
             if lower.contains("table") && lower.contains("doesn't exist") {
                 return serde_json::json!([{
                     "error": "table_not_found",
-                    "message": "Data table not yet created.",
+                    "message": "Data table not yet created. Run org init.",
                     "detail": text
                 }]);
             }
@@ -116,34 +264,14 @@ async fn ch_query_raw(client: &reqwest::Client, sql: &str) -> Value {
     }
 }
 
-/// Extract the database name from a ClickHouse error message like:
-/// "Database `0003_flow_log` does not exist."
 fn extract_db_from_error(text: &str) -> Option<String> {
-    // Match `database_name` in backticks
     let start = text.find('`')?;
     let end = text[start + 1..].find('`')?;
     Some(text[start + 1..start + 1 + end].to_string())
 }
 
-/// Create a ClickHouse database via HTTP POST (DDL requires POST, not GET).
-async fn create_database(client: &reqwest::Client, db_name: &str) -> Result<(), String> {
-    let sql = format!("CREATE DATABASE IF NOT EXISTS {}", db_name);
-    let url = format!("{}/", clickhouse_url());
-    let resp = client
-        .post(&url)
-        .body(sql)
-        .send()
-        .await
-        .map_err(|e| e.to_string())?;
-    if resp.status().is_success() {
-        Ok(())
-    } else {
-        Err(resp.text().await.unwrap_or_default())
-    }
-}
-
 // ---------------------------------------------------------------------------
-// URL encoding for ClickHouse SQL over HTTP GET
+// URL encoding
 // ---------------------------------------------------------------------------
 
 pub fn urlencoding(s: &str) -> String {
@@ -161,7 +289,7 @@ pub fn urlencoding(s: &str) -> String {
 }
 
 // ---------------------------------------------------------------------------
-// Value extractors (ClickHouse JSONEachRow returns all values as strings)
+// Value extractors
 // ---------------------------------------------------------------------------
 
 pub fn val_i64(v: &Value) -> Option<i64> {
@@ -188,9 +316,6 @@ pub fn val_str<'a>(v: &'a Value) -> Option<&'a str> {
 // Time filter builder
 // ---------------------------------------------------------------------------
 
-/// Build a ClickHouse time filter clause.
-/// When both start and end are provided, uses a bounded range;
-/// otherwise falls back to a relative interval.
 pub fn time_filter(start: Option<i64>, end: Option<i64>, default_interval: &str) -> String {
     match (start, end) {
         (Some(s), Some(e)) => {
@@ -203,20 +328,16 @@ pub fn time_filter(start: Option<i64>, end: Option<i64>, default_interval: &str)
 }
 
 // ---------------------------------------------------------------------------
-// Team-based data isolation (same-org user isolation)
+// Org-based data isolation (maps to ClickHouse `team_id` column)
 // ---------------------------------------------------------------------------
 
-/// Build a team filter clause for ClickHouse WHERE conditions.
-/// - If team_ids is empty → returns empty string (user sees all teams in the org).
-/// - If team_ids is non-empty → returns "AND team_id IN (1, 2, 3)".
-///
-/// This implements same-org user isolation: users only see data from teams
-/// they belong to, unless they are org admins (team_ids is empty).
-pub fn team_filter(team_ids: &[i64]) -> String {
-    if team_ids.is_empty() {
+/// Returns a SQL filter clause that restricts queries to the org's data.
+/// Maps `auth.org_id` → ClickHouse `team_id` column.
+/// org_id ≤ 1 (super_admin / zerotrace) sees all data.
+pub fn org_filter(org_id: i64) -> String {
+    if org_id <= 1 {
         String::new()
     } else {
-        let ids: Vec<String> = team_ids.iter().map(|id| id.to_string()).collect();
-        format!("AND team_id IN ({}) ", ids.join(", "))
+        format!("AND team_id = {} ", org_id)
     }
 }

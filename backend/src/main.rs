@@ -40,6 +40,42 @@ async fn main() -> anyhow::Result<()> {
     let pool = db::init_pool(&config.database_url).await?;
     db::run_migrations(&pool).await?;
 
+    // Initialise org-scoped ClickHouse databases in a background task.
+    // This is non-blocking — the HTTP server starts immediately, and APM
+    // handlers lazily init any org database that isn't ready on first query.
+    {
+        let pool_bg = pool.clone();
+        tokio::spawn(async move {
+            let ch = match clickhouse::ch_client() {
+                Ok(c) => c,
+                Err(e) => {
+                    tracing::warn!(error = ?e, "Skipping background org DB init");
+                    return;
+                }
+            };
+            let orgs = match sqlx::query_as::<_, (i64,)>("SELECT DISTINCT org_id FROM web_users")
+                .fetch_all(&pool_bg)
+                .await
+            {
+                Ok(o) => o,
+                Err(e) => {
+                    tracing::warn!(error = ?e, "Skipping background org DB init");
+                    return;
+                }
+            };
+            for (org_id,) in orgs {
+                if let Err(e) = clickhouse::ensure_org_database(&ch, org_id).await {
+                    tracing::warn!(org_id, error = ?e, "Org database initialisation failed");
+                }
+                // Sync vtap team_id → org_id so existing agents get org routing
+                if let Err(e) = crate::zerotrace::sync_vtap_org_id(&pool_bg, org_id).await {
+                    tracing::warn!(org_id, error = ?e, "Vtap sync skipped");
+                }
+            }
+            tracing::info!("Background org DB init complete");
+        });
+    }
+
     // Spawn usage collector background task
     {
         let collector_pool = pool.clone();
@@ -95,6 +131,7 @@ async fn main() -> anyhow::Result<()> {
             post(api_keys::reveal_api_key),
         )
         .route("/api/v1/agents/status", get(agents::agent_status))
+        .route("/api/v1/agents/register", post(agents::agent_register))
         .route("/api/v1/data/overview", get(data::data_overview))
         .route("/api/v1/metrics/list", get(metrics::metrics_list))
         .route("/api/v1/metrics/query", get(metrics::metrics_query))

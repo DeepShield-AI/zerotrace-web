@@ -177,6 +177,34 @@ pub async fn register_handler(
         });
     }
 
+    // Initialise ClickHouse org database (tables + materialized views) in background.
+    // This ensures new orgs have their data routed immediately after registration.
+    {
+        let ch_org_id = org.id;
+        tokio::spawn(async move {
+            if let Ok(client) = crate::clickhouse::ch_client() {
+                tracing::info!(org_id = ch_org_id, "Initialising ClickHouse org database");
+                match crate::clickhouse::ensure_org_database(&client, ch_org_id).await {
+                    Ok(()) => tracing::info!(org_id = ch_org_id, "ClickHouse org database initialised"),
+                    Err(e) => tracing::warn!(org_id = ch_org_id, error = ?e, "ClickHouse org init failed — will be lazily initialised on first query"),
+                }
+            }
+        });
+    }
+
+    // Sync vtap records: set team_id = org_id for any agent that belongs to this org.
+    // This is what makes per-org data isolation work — the DeepFlow ingester
+    // reads vtap.team_id and tags every ClickHouse row with it.
+    {
+        let vtap_org_id = org.id;
+        let vtap_pool = pool.clone();
+        tokio::spawn(async move {
+            if let Err(e) = crate::zerotrace::sync_vtap_org_id(&vtap_pool, vtap_org_id).await {
+                tracing::warn!(org_id = vtap_org_id, error = ?e, "Failed to sync vtap team_id");
+            }
+        });
+    }
+
     let user_response: UserResponse = user.into();
     let cookie = build_session_cookie(&session_id);
     let warning: Option<&str> = if zerotrace_provisioned {
