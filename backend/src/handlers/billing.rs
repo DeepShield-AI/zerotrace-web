@@ -208,8 +208,7 @@ pub async fn create_subscription(
         if plan.tier_level <= sibling_plan.tier_level {
             return Err(AppError::bad_request(format!(
                 "You already have '{}' (tier {}). '{}' is tier {} — only upgrades to higher tiers are automatic. Cancel the current plan first to switch.",
-                sibling_key, sibling_plan.tier_level,
-                plan.product_key, plan.tier_level
+                sibling_key, sibling_plan.tier_level, plan.product_key, plan.tier_level
             )));
         }
 
@@ -714,18 +713,20 @@ pub async fn billing_summary(
     use crate::billing::invoicer;
 
     let now = chrono::Utc::now();
-    let month_start = now
-        .date_naive()
-        .with_day(1)
-        .unwrap()
-        .and_hms_opt(0, 0, 0)
-        .unwrap()
-        .and_utc();
+    let month_start = now.date_naive().with_day(1).unwrap().and_hms_opt(0, 0, 0).unwrap().and_utc();
 
     // Load all data in parallel
     let (subscriptions, usage_records, all_plans, invoices) = futures::try_join!(
-        async { Subscription::find_active_by_org(&pool, auth.org_id).await.map_err(AppError::from) },
-        async { UsageRecord::query(&pool, auth.org_id, month_start, now).await.map_err(AppError::from) },
+        async {
+            Subscription::find_active_by_org(&pool, auth.org_id)
+                .await
+                .map_err(AppError::from)
+        },
+        async {
+            UsageRecord::query(&pool, auth.org_id, month_start, now)
+                .await
+                .map_err(AppError::from)
+        },
         async { Plan::list_all(&pool).await.map_err(AppError::from) },
         async { Invoice::list_by_org(&pool, auth.org_id).await.map_err(AppError::from) },
     )?;
@@ -733,22 +734,27 @@ pub async fn billing_summary(
     let allotments = PlanAllotment::list_by_plan_ids(
         &pool,
         &subscriptions.iter().map(|s| s.plan_id).collect::<Vec<_>>(),
-    ).await?;
+    )
+    .await?;
 
     let plan_map: std::collections::HashMap<i64, &Plan> =
         all_plans.iter().map(|p| (p.id, p)).collect();
 
     let mut allotment_map: std::collections::HashMap<i64, Vec<&PlanAllotment>> =
         std::collections::HashMap::new();
-    for a in &allotments { allotment_map.entry(a.plan_id).or_default().push(a); }
+    for a in &allotments {
+        allotment_map.entry(a.plan_id).or_default().push(a);
+    }
 
     // Build subscription-with-plan list
     let subs_with_plans: Vec<SubscriptionWithPlan> = subscriptions
         .iter()
-        .filter_map(|sub| plan_map.get(&sub.plan_id).map(|p| SubscriptionWithPlan {
-            subscription: sub.clone(),
-            plan: (*p).clone(),
-        }))
+        .filter_map(|sub| {
+            plan_map.get(&sub.plan_id).map(|p| SubscriptionWithPlan {
+                subscription: sub.clone(),
+                plan: (*p).clone(),
+            })
+        })
         .collect();
 
     // Compute per-product rows
@@ -764,14 +770,28 @@ pub async fn billing_summary(
     }
 
     for sub in &subscriptions {
-        let plan = match plan_map.get(&sub.plan_id) { Some(p) => p, None => continue };
+        let plan = match plan_map.get(&sub.plan_id) {
+            Some(p) => p,
+            None => continue,
+        };
 
         let records = usage_by_product.get(&plan.product_key).map(|v| v.as_slice()).unwrap_or(&[]);
         let agg_method = plan.aggregation_method.as_str();
-        let raw_billable = invoicer::aggregate_usage_for_estimation(agg_method, &records.iter().map(|r| *r).collect::<Vec<_>>());
+        let raw_billable = invoicer::aggregate_usage_for_estimation(
+            agg_method,
+            &records.iter().map(|r| *r).collect::<Vec<_>>(),
+        );
 
-        let committed = if raw_billable < sub.committed_quantity { raw_billable } else { sub.committed_quantity };
-        let overage = if raw_billable > sub.committed_quantity { raw_billable - sub.committed_quantity } else { rust_decimal::Decimal::ZERO };
+        let committed = if raw_billable < sub.committed_quantity {
+            raw_billable
+        } else {
+            sub.committed_quantity
+        };
+        let overage = if raw_billable > sub.committed_quantity {
+            raw_billable - sub.committed_quantity
+        } else {
+            rust_decimal::Decimal::ZERO
+        };
 
         let committed_total = committed * sub.unit_price;
         let overage_rate = sub.unit_price * rust_decimal::Decimal::new(15, 1);
@@ -783,10 +803,20 @@ pub async fn billing_summary(
         let mut allotment_info = Vec::new();
         if let Some(alts) = allotment_map.get(&sub.plan_id) {
             for alt in alts {
-                let free_qty = if alt.per_unit == "per_host" { alt.allotted_quantity * committed } else { alt.allotted_quantity };
-                let used = usage_by_product.get(&alt.allotted_product_key).map(|v| {
-                    invoicer::aggregate_usage_for_estimation("sum", &v.iter().map(|r| *r).collect::<Vec<_>>())
-                }).unwrap_or_default();
+                let free_qty = if alt.per_unit == "per_host" {
+                    alt.allotted_quantity * committed
+                } else {
+                    alt.allotted_quantity
+                };
+                let used = usage_by_product
+                    .get(&alt.allotted_product_key)
+                    .map(|v| {
+                        invoicer::aggregate_usage_for_estimation(
+                            "sum",
+                            &v.iter().map(|r| *r).collect::<Vec<_>>(),
+                        )
+                    })
+                    .unwrap_or_default();
                 allotment_info.push(ProductAllotmentInfo {
                     product_key: alt.allotted_product_key.clone(),
                     free_quantity: free_qty,

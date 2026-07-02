@@ -1,6 +1,6 @@
 use argon2::{
     Argon2,
-    password_hash::{PasswordHash, PasswordHasher, PasswordVerifier, SaltString, rand_core::OsRng},
+    password_hash::{PasswordHash, PasswordHasher, PasswordVerifier, SaltString},
 };
 use serde::{Deserialize, Serialize};
 use sqlx::MySqlPool;
@@ -57,9 +57,22 @@ impl From<User> for UserResponse {
     }
 }
 
+// Minimal crypto RNG backed by getrandom (avoids OsRng version conflicts)
+struct SimpleOsRng;
+impl rand_core::RngCore for SimpleOsRng {
+    fn next_u32(&mut self) -> u32 { rand_core::impls::next_u32_via_fill(self) }
+    fn next_u64(&mut self) -> u64 { rand_core::impls::next_u64_via_fill(self) }
+    fn fill_bytes(&mut self, dest: &mut [u8]) { getrandom::getrandom(dest).expect("getrandom failed"); }
+    fn try_fill_bytes(&mut self, dest: &mut [u8]) -> Result<(), rand_core::Error> {
+        self.fill_bytes(dest);
+        Ok(())
+    }
+}
+impl rand_core::CryptoRng for SimpleOsRng {}
+
 impl User {
     pub fn hash_password(p: &str) -> Result<String, argon2::password_hash::Error> {
-        let salt = SaltString::generate(&mut OsRng);
+        let salt = SaltString::generate(&mut SimpleOsRng);
         Ok(Argon2::default().hash_password(p.as_bytes(), &salt)?.to_string())
     }
     pub fn verify_password(p: &str, hash: &str) -> Result<bool, argon2::password_hash::Error> {

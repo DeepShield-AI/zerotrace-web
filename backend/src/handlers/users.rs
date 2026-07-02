@@ -1,6 +1,9 @@
-use axum::{Json, extract::{State, Path}};
-use serde::{Deserialize, Serialize};
 use crate::{db::DbPool, errors::AppError, middleware::auth::AuthContext};
+use axum::{
+    Json,
+    extract::{Path, State},
+};
+use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, sqlx::FromRow)]
 pub struct OrgUser {
@@ -58,29 +61,31 @@ pub async fn update_user(
     }
 
     // Verify the user exists
-    let target: (i64, String, String) = sqlx::query_as(
-        "SELECT org_id, role, email FROM web_users WHERE id = ?"
-    )
-    .bind(user_id)
-    .fetch_optional(&pool)
-    .await?
-    .ok_or_else(|| AppError::not_found("user not found"))?;
+    let target: (i64, String, String) =
+        sqlx::query_as("SELECT org_id, role, email FROM web_users WHERE id = ?")
+            .bind(user_id)
+            .fetch_optional(&pool)
+            .await?
+            .ok_or_else(|| AppError::not_found("user not found"))?;
 
     // Org admin can only manage users in their own org; super_admin can manage anyone
     if !is_super && target.0 != auth.org_id {
-        return Err(AppError::forbidden("cannot manage users in other organizations"));
+        return Err(AppError::forbidden(
+            "cannot manage users in other organizations",
+        ));
     }
 
     // Don't allow demoting the last admin in an org (unless super_admin)
     if !is_super && target.1 == "admin" && input.role.as_deref() == Some("member") {
-        let admin_count: (i64,) = sqlx::query_as(
-            "SELECT COUNT(*) FROM web_users WHERE org_id = ? AND role = 'admin'"
-        )
-        .bind(auth.org_id)
-        .fetch_one(&pool)
-        .await?;
+        let admin_count: (i64,) =
+            sqlx::query_as("SELECT COUNT(*) FROM web_users WHERE org_id = ? AND role = 'admin'")
+                .bind(auth.org_id)
+                .fetch_one(&pool)
+                .await?;
         if admin_count.0 <= 1 {
-            return Err(AppError::bad_request("cannot remove the last admin of an organization"));
+            return Err(AppError::bad_request(
+                "cannot remove the last admin of an organization",
+            ));
         }
     }
 
@@ -98,7 +103,9 @@ pub async fn update_user(
 
     if let Some(ref status) = input.status {
         if status != "active" && status != "disabled" {
-            return Err(AppError::bad_request("status must be 'active' or 'disabled'"));
+            return Err(AppError::bad_request(
+                "status must be 'active' or 'disabled'",
+            ));
         }
         sqlx::query("UPDATE web_users SET status = ? WHERE id = ?")
             .bind(status)
@@ -107,5 +114,7 @@ pub async fn update_user(
             .await?;
     }
 
-    Ok(Json(serde_json::json!({ "ok": true, "message": "user updated" })))
+    Ok(Json(
+        serde_json::json!({ "ok": true, "message": "user updated" }),
+    ))
 }

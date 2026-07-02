@@ -1,6 +1,6 @@
+use crate::{db::DbPool, errors::AppError, middleware::auth::AuthContext};
 use axum::{Json, extract::State};
 use serde::{Deserialize, Serialize};
-use crate::{db::DbPool, errors::AppError, middleware::auth::AuthContext};
 
 #[derive(Serialize, sqlx::FromRow)]
 struct OrgInfo {
@@ -29,19 +29,16 @@ pub async fn get_org(
     .await?
     .ok_or_else(|| AppError::not_found("Organization not found"))?;
 
-    let user_count: (i64,) = sqlx::query_as(
-        "SELECT COUNT(*) FROM web_users WHERE org_id = ?"
-    )
-    .bind(auth.org_id)
-    .fetch_one(&pool)
-    .await?;
+    let user_count: (i64,) = sqlx::query_as("SELECT COUNT(*) FROM web_users WHERE org_id = ?")
+        .bind(auth.org_id)
+        .fetch_one(&pool)
+        .await?;
 
-    let sub_count: (i64,) = sqlx::query_as(
-        "SELECT COUNT(*) FROM subscriptions WHERE org_id = ? AND status = 'active'"
-    )
-    .bind(auth.org_id)
-    .fetch_one(&pool)
-    .await?;
+    let sub_count: (i64,) =
+        sqlx::query_as("SELECT COUNT(*) FROM subscriptions WHERE org_id = ? AND status = 'active'")
+            .bind(auth.org_id)
+            .fetch_one(&pool)
+            .await?;
 
     Ok(Json(serde_json::json!({
         "organization": {
@@ -66,7 +63,9 @@ pub async fn update_org(
     Json(input): Json<UpdateOrgInput>,
 ) -> Result<Json<serde_json::Value>, AppError> {
     if auth.user_role != "admin" && auth.user_role != "super_admin" {
-        return Err(AppError::forbidden("Only admins can update organization settings"));
+        return Err(AppError::forbidden(
+            "Only admins can update organization settings",
+        ));
     }
 
     if let Some(ref name) = input.name {
@@ -80,5 +79,7 @@ pub async fn update_org(
             .await?;
     }
 
-    Ok(Json(serde_json::json!({ "ok": true, "message": "Organization updated" })))
+    Ok(Json(
+        serde_json::json!({ "ok": true, "message": "Organization updated" }),
+    ))
 }
