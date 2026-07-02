@@ -189,7 +189,10 @@ export default function Infrastructure() {
   const [keyboardHint, setKeyboardHint] = useState<string | null>(null);
   const hintTimer = useRef<ReturnType<typeof setTimeout>>();
   const intervalRef = useRef<ReturnType<typeof setInterval>>();
-  const [refreshInterval, setRefreshInterval] = useState(10000); // Adaptive polling
+  const [refreshInterval, setRefreshInterval] = useState(10000);
+  const [activeNav, setActiveNav] = useState<'hosts' | 'containers' | 'processes'>('hosts');
+  const [processes, setProcesses] = useState<any[]>([]);
+  const [hostsData, setHostsData] = useState<any[]>([]);
 
   const { start, end } = parseRange(range);
 
@@ -207,8 +210,14 @@ export default function Infrastructure() {
 
   const fetch = useCallback(async () => {
     try {
-      const result = await api.getDataOverview({ start, end });
-      setData(result);
+      const [overview, hosts, procs] = await Promise.all([
+        api.getDataOverview({ start, end }),
+        api.getInfraHosts({ start, end }).catch(() => ({ hosts: [] })),
+        api.getInfraProcesses({ start, end }).catch(() => ({ processes: [] })),
+      ]);
+      setData(overview);
+      setHostsData(hosts.hosts || []);
+      setProcesses(procs.processes || []);
       setLastUpdated(new Date());
     } catch { /* keep previous data */ }
     finally { setLoading(false); }
@@ -269,7 +278,9 @@ export default function Infrastructure() {
     return () => window.removeEventListener('keydown', handleKey);
   }, [fetch, detailOpen, showHint]);
 
-  const agents: AgentItem[] = data?.agents?.list || [];
+  // Use hostsData from GET /infra/hosts (enriched with metrics) when available,
+  // fall back to getDataOverview's agent list for backward compatibility
+  const agents: any[] = hostsData.length > 0 ? hostsData : (data?.agents?.list || []);
   const l4: L4Stats = (data?.l4_stats || [])[0] || { cnt: 0, tx: 0, rx: 0 };
   const l7: L7Stats = (data?.l7_stats || [])[0] || { cnt: 0 };
   const topL7: TopEndpoint[] = data?.top_l7 || [];
@@ -378,13 +389,69 @@ export default function Infrastructure() {
       </div>
 
       {/* ── Nav Tabs ── */}
-      <NavTabs active="hosts" />
+      <div className="flex items-center gap-0 mb-3 border-b border-[#DEE2E6]">
+        {(['hosts', 'containers', 'processes'] as const).map(k => (
+          <button key={k} onClick={() => setActiveNav(k)}
+            className={`relative px-4 py-2.5 text-[13px] font-medium transition-colors ${
+              activeNav === k ? 'text-[#632CA6]' : 'text-[#6C757D] hover:text-[#212529]'
+            }`}
+          >
+            {k === 'hosts' ? 'Hosts' : k === 'containers' ? 'Containers' : 'Processes'}
+            {activeNav === k && <span className="absolute bottom-0 left-0 right-0 h-[2px] bg-[#632CA6] rounded-t" />}
+          </button>
+        ))}
+      </div>
 
       {/* ── Stats bar ── */}
-      <StatsBar stats={statsData} loading={loading} />
+      {activeNav === 'hosts' && <StatsBar stats={statsData} loading={loading} />}
 
-      {/* ── Layout ── */}
-      <div className="flex gap-4 min-h-[600px]">
+      {/* ── Process view ── */}
+      {activeNav === 'processes' && (
+        <div className="bg-white border border-[#DEE2E6] rounded-lg overflow-hidden mt-3">
+          <div className="px-5 py-3 border-b border-[#DEE2E6]">
+            <h2 className="text-sm font-semibold text-[#212529]">Processes</h2>
+            <p className="text-[12px] text-[#6C757D] mt-0.5">Processes discovered from L7 traffic (applications generating HTTP/gRPC requests)</p>
+          </div>
+          {processes.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-16 text-center">
+              <svg className="w-12 h-12 text-[#DEE2E6] mx-auto mb-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8m-4-4v4"/></svg>
+              <p className="text-[13px] font-medium text-[#212529]">No process data</p>
+              <p className="text-[12px] text-[#6C757D] mt-1 max-w-md">Processes appear here when applications generate L7 traffic. Deploy a web service and the eBPF agent will discover it automatically.</p>
+            </div>
+          ) : (
+            <table className="w-full text-[12px]">
+              <thead><tr className="border-b border-[#DEE2E6] text-left text-[10px] font-semibold text-[#ADB5BD] uppercase tracking-wider">
+                <th className="px-4 py-2">Process</th><th className="px-4 py-2">Host ID</th><th className="px-4 py-2">Requests</th><th className="px-4 py-2">Avg Latency</th><th className="px-4 py-2">Errors</th>
+              </tr></thead>
+              <tbody>
+                {processes.map((p: any, i: number) => (
+                  <tr key={i} className="border-b border-[#F1F3F5] hover:bg-[#F8F9FA]">
+                    <td className="px-4 py-2 font-medium text-[#212529] font-mono">{p.process_name}</td>
+                    <td className="px-4 py-2 text-[#6C757D]">{p.host_id}</td>
+                    <td className="px-4 py-2 text-[#6C757D] tabular-nums">{p.request_count}</td>
+                    <td className="px-4 py-2 text-[#6C757D] tabular-nums">{parseFloat(p.avg_latency_ms||0).toFixed(1)}ms</td>
+                    <td className="px-4 py-2"><span className={`text-[11px] font-medium px-1.5 py-0.5 rounded ${parseInt(p.error_count||0) > 0 ? 'text-red-700 bg-red-50' : 'text-emerald-700 bg-emerald-50'}`}>{p.error_count}</span></td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
+        </div>
+      )}
+
+      {/* ── Containers placeholder ── */}
+      {activeNav === 'containers' && (
+        <div className="bg-white border border-[#DEE2E6] rounded-lg overflow-hidden mt-3">
+          <div className="flex flex-col items-center justify-center py-20 text-center">
+            <svg className="w-16 h-16 text-[#DEE2E6] mx-auto mb-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="0.5"><rect x="1" y="1" width="22" height="22" rx="4"/><rect x="5" y="5" width="14" height="14" rx="2"/><circle cx="12" cy="12" r="3"/></svg>
+            <h3 className="text-base font-semibold text-[#212529] mb-1">No containers detected</h3>
+            <p className="text-sm text-[#6C757D] max-w-md">Connect a Kubernetes cluster to enable container monitoring. The eBPF agent will auto-discover pods, services, and deployments.</p>
+          </div>
+        </div>
+      )}
+
+      {/* ── Hosts Layout ── */}
+      {activeNav === 'hosts' && (<><div className="flex gap-4 min-h-[600px]">
         <InfrastructureDirectory
           agents={agents} selectedHost={selectedHost}
           onHostSelect={name => setSelectedHost(selectedHost === name ? '' : name)} loading={loading}
@@ -429,6 +496,7 @@ export default function Infrastructure() {
           <TopEndpoints l7Endpoints={topL7} l4Talkers={topL4} loading={loading} />
         </div>
       </div>
+      </>)}  {/* close activeNav === hosts fragment */}
 
       {/* Footer with keyboard shortcut hint */}
       <div className="flex items-center justify-between text-[10px] text-gray-400 mt-4 pb-8">
@@ -443,13 +511,15 @@ export default function Infrastructure() {
         </div>
       </div>
 
-      <HostDetailPanel
-        host={detailHost} open={detailOpen}
-        onClose={() => { setDetailOpen(false); setDetailHost(null); }}
-        l4Stats={l4} l7Stats={l7}
-        flowRate={flowRate} l4Bandwidth={l4Bandwidth} l7Rate={l7Rate}
-        topL7AvgLatency={topL7[0]?.avg_latency}
-      />
+      {detailOpen && detailHost && (<>
+        <HostDetailPanel
+          host={detailHost} open={detailOpen}
+          onClose={() => { setDetailOpen(false); setDetailHost(null); }}
+          l4Stats={l4} l7Stats={l7}
+          flowRate={flowRate} l4Bandwidth={l4Bandwidth} l7Rate={l7Rate}
+          topL7AvgLatency={topL7[0]?.avg_latency}
+        />
+      </>)}
 
       {/* Keyboard hint toast */}
       {keyboardHint && (
