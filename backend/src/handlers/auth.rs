@@ -123,12 +123,10 @@ pub async fn register_handler(
         .map_err(|e| AppError::internal(format!("password hashing failed: {}", e)))?;
 
     // Determine role: first user of an org becomes admin, subsequent users are members
-    let user_count: (i64,) = sqlx::query_as(
-        "SELECT COUNT(*) FROM web_users WHERE org_id = ?"
-    )
-    .bind(org.id)
-    .fetch_one(&mut *tx)
-    .await?;
+    let user_count: (i64,) = sqlx::query_as("SELECT COUNT(*) FROM web_users WHERE org_id = ?")
+        .bind(org.id)
+        .fetch_one(&mut *tx)
+        .await?;
     let role = if user_count.0 == 0 { "admin" } else { "member" };
 
     sqlx::query(
@@ -169,10 +167,15 @@ pub async fn register_handler(
         let org_id = org.id;
         let org_name = org.name.clone();
         tokio::spawn(async move {
-            tracing::info!(org_id, org_name, "retrying DeepFlow org DB creation post-registration");
+            tracing::info!(
+                org_id,
+                org_name,
+                "retrying DeepFlow org DB creation post-registration"
+            );
             match zerotrace::create_zerotrace_org_db(org_id).await {
                 Ok(()) => tracing::info!(org_id, "DeepFlow org DB created on retry"),
-                Err(e) => tracing::warn!(org_id, error = ?e, "DeepFlow org DB creation still failed (will be auto-created on first agent registration)"),
+                Err(e) =>
+                    tracing::warn!(org_id, error = ?e, "DeepFlow org DB creation still failed (will be auto-created on first agent registration)"),
             }
         });
     }
@@ -185,8 +188,10 @@ pub async fn register_handler(
             if let Ok(client) = crate::clickhouse::ch_client() {
                 tracing::info!(org_id = ch_org_id, "Initialising ClickHouse org database");
                 match crate::clickhouse::ensure_org_database(&client, ch_org_id).await {
-                    Ok(()) => tracing::info!(org_id = ch_org_id, "ClickHouse org database initialised"),
-                    Err(e) => tracing::warn!(org_id = ch_org_id, error = ?e, "ClickHouse org init failed — will be lazily initialised on first query"),
+                    Ok(()) =>
+                        tracing::info!(org_id = ch_org_id, "ClickHouse org database initialised"),
+                    Err(e) =>
+                        tracing::warn!(org_id = ch_org_id, error = ?e, "ClickHouse org init failed — will be lazily initialised on first query"),
                 }
             }
         });

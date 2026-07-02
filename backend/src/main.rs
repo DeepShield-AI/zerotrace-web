@@ -13,7 +13,8 @@ use crate::{
     config::Config,
     guardian::{guardian_analyze, guardian_stories, guardian_story_detail},
     handlers::{
-        agents, api_keys, apm, auth, billing as billing_handlers, data, installer, metrics, organization, users,
+        agents, api_keys, apm, auth, billing as billing_handlers, data, infra, installer, metrics,
+        organization, users,
     },
     middleware::auth::{require_auth, require_subscription},
 };
@@ -51,7 +52,7 @@ async fn main() -> anyhow::Result<()> {
                 Err(e) => {
                     tracing::warn!(error = ?e, "Skipping background org DB init");
                     return;
-                }
+                },
             };
             let orgs = match sqlx::query_as::<_, (i64,)>("SELECT DISTINCT org_id FROM web_users")
                 .fetch_all(&pool_bg)
@@ -61,7 +62,7 @@ async fn main() -> anyhow::Result<()> {
                 Err(e) => {
                     tracing::warn!(error = ?e, "Skipping background org DB init");
                     return;
-                }
+                },
             };
             for (org_id,) in orgs {
                 if let Err(e) = clickhouse::ensure_org_database(&ch, org_id).await {
@@ -109,6 +110,7 @@ async fn main() -> anyhow::Result<()> {
         .route("/api/v1/auth/me", get(auth::me))
         .route("/agent/install.sh", get(installer::serve_install_script))
         .route("/api/v1/server-info", get(installer::server_info))
+        .route("/api/v1/agents/register", post(agents::agent_register))
         .nest_service(
             "/agent/binaries",
             ServeDir::new(std::env::var("BINARIES_DIR").unwrap_or_else(|_| {
@@ -118,9 +120,12 @@ async fn main() -> anyhow::Result<()> {
 
     // Protected routes
     let protected_routes = Router::new()
-            .route("/api/v1/users", get(users::list_users))
-            .route("/api/v1/users/{id}", put(users::update_user))
-            .route("/api/v1/organization", get(organization::get_org).put(organization::update_org))
+        .route("/api/v1/users", get(users::list_users))
+        .route("/api/v1/users/{id}", put(users::update_user))
+        .route(
+            "/api/v1/organization",
+            get(organization::get_org).put(organization::update_org),
+        )
         .route(
             "/api/v1/api-keys",
             get(api_keys::list_api_keys).post(api_keys::create_api_key),
@@ -131,8 +136,9 @@ async fn main() -> anyhow::Result<()> {
             post(api_keys::reveal_api_key),
         )
         .route("/api/v1/agents/status", get(agents::agent_status))
-        .route("/api/v1/agents/register", post(agents::agent_register))
         .route("/api/v1/data/overview", get(data::data_overview))
+        .route("/api/v1/infra/hosts", get(infra::infra_hosts))
+        .route("/api/v1/infra/processes", get(infra::infra_processes))
         .route("/api/v1/metrics/list", get(metrics::metrics_list))
         .route("/api/v1/metrics/query", get(metrics::metrics_query))
         .route("/api/v1/apm/tags", get(apm::apm_tags))

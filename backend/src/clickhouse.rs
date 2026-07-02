@@ -2,9 +2,10 @@
 
 use crate::errors::AppError;
 use serde_json::Value;
-use std::collections::HashSet;
-use std::sync::Mutex;
-use std::sync::OnceLock;
+use std::{
+    collections::HashSet,
+    sync::{Mutex, OnceLock},
+};
 
 // ---------------------------------------------------------------------------
 // Org-scoped database name
@@ -60,10 +61,7 @@ pub async fn create_database_http(client: &reqwest::Client, db_name: &str) -> Re
 ///      matching `team_id = org_id` into the org database.
 ///
 /// Idempotent — safe to call multiple times.
-pub async fn ensure_org_database(
-    client: &reqwest::Client,
-    org_id: i64,
-) -> Result<(), String> {
+pub async fn ensure_org_database(client: &reqwest::Client, org_id: i64) -> Result<(), String> {
     if org_id <= 1 {
         return Ok(());
     }
@@ -75,9 +73,8 @@ pub async fn ensure_org_database(
 
     // 2. For each table, create clone + backfill + MV
     for (src_local, dst_table) in CLONE_TABLES {
-        let create_sql = format!(
-            "CREATE TABLE IF NOT EXISTS {db}.{dst_table} AS flow_log.{src_local}"
-        );
+        let create_sql =
+            format!("CREATE TABLE IF NOT EXISTS {db}.{dst_table} AS flow_log.{src_local}");
         if let Err(e) = ch_post(client, &create_sql).await {
             tracing::warn!(%db, %dst_table, error = %e, "Failed to create cloned table");
             continue;
@@ -109,8 +106,51 @@ pub async fn ensure_org_database(
         }
     }
 
+    // 3. Create service_edges table (for topology — populated via refresh, not MV)
+    //    Avoids the O(n²) syscall JOIN on every query by pre-computing edges.
+    let edges_sql = format!(
+        "CREATE TABLE IF NOT EXISTS {db}.service_edges \
+         (source String, target String, call_count UInt64, \
+          avg_latency_ms Float64, p95_latency_ms Float64, error_count UInt64) \
+         ENGINE = SummingMergeTree ORDER BY (source, target)"
+    );
+    if let Err(e) = ch_post(client, &edges_sql).await {
+        tracing::warn!(%db, error = %e, "Failed to create service_edges table");
+    }
+
     tracing::info!(%db, org_id, "Org ClickHouse database initialised");
     Ok(())
+}
+
+/// Refresh service_edges for an org by joining syscall-trace-correlated spans.
+/// Runs the expensive O(n²) query once so the topology handler can do O(1) SELECT.
+pub async fn refresh_service_edges(client: &reqwest::Client, org_id: i64) -> Result<(), String> {
+    if org_id <= 1 { return Ok(()); }
+    let db = flow_log_db(org_id);
+
+    // Insert edges by joining on syscall trace correlation.
+    // Limit to recent 1h to avoid memory explosion.
+    let sql = format!(
+        "INSERT INTO {db}.service_edges \
+         SELECT \
+           if(a.app_service != '', a.app_service, a.request_domain) AS source, \
+           if(b.app_service != '', b.app_service, b.request_domain) AS target, \
+           count() AS call_count, \
+           avg(b.response_duration) / 1000 AS avg_latency_ms, \
+           quantile(0.95)(b.response_duration) / 1000 AS p95_latency_ms, \
+           countIf(b.response_code >= 500 OR b.response_code = 0) AS error_count \
+         FROM {db}.l7_flow_log AS a \
+         INNER JOIN {db}.l7_flow_log AS b \
+           ON a.syscall_trace_id_response = b.syscall_trace_id_request \
+         WHERE a.time > now() - INTERVAL 1 HOUR \
+           AND b.time > now() - INTERVAL 1 HOUR \
+           AND a.syscall_trace_id_response != 0 \
+           AND b.syscall_trace_id_request != 0 \
+         GROUP BY source, target \
+         HAVING source != target AND source != '' AND target != ''"
+    );
+
+    ch_post(client, &sql).await
 }
 
 // ---------------------------------------------------------------------------
@@ -143,19 +183,23 @@ pub async fn init_org_db_if_needed(client: &reqwest::Client, org_id: i64) -> boo
             // Only CREATE TABLE — skip backfill (MVs already route live data).
             // The startup init handles full backfill for existing orgs.
             for (src_local, dst_table) in CLONE_TABLES {
-                let sql = format!("CREATE TABLE IF NOT EXISTS {db}.{dst_table} AS flow_log.{src_local}");
+                let sql =
+                    format!("CREATE TABLE IF NOT EXISTS {db}.{dst_table} AS flow_log.{src_local}");
                 if let Err(e) = ch_post(client, &sql).await {
                     tracing::warn!(%db, %dst_table, error = %e, "Lazy create table failed");
                 }
             }
             mark_org_initialized(org_id);
-            tracing::info!(org_id, "Lazy org ClickHouse database initialised (tables only)");
+            tracing::info!(
+                org_id,
+                "Lazy org ClickHouse database initialised (tables only)"
+            );
             true
-        }
+        },
         Err(e) => {
             tracing::warn!(org_id, error = %e, "Lazy org ClickHouse init failed — will retry");
             false
-        }
+        },
     }
 }
 
@@ -213,8 +257,10 @@ async fn ch_query_raw(client: &reqwest::Client, sql: &str) -> Value {
             tracing::info!(status = %status, text_len = text.len(), "ClickHouse response");
 
             let lower = text.to_lowercase();
-            if lower.contains("database") && (lower.contains("doesn't exist") ||
-                lower.contains("does not exist") || lower.contains("not found"))
+            if lower.contains("database") &&
+                (lower.contains("doesn't exist") ||
+                    lower.contains("does not exist") ||
+                    lower.contains("not found"))
             {
                 if let Some(db_name) = extract_db_from_error(&text) {
                     tracing::info!(db = %db_name, "Auto-creating ClickHouse database");

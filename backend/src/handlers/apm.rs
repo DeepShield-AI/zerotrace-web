@@ -2,8 +2,15 @@
 // ClickHouse query helpers — now in crate::clickhouse; re-exported here for
 // convenience of the query building macros in this file.
 // ---------------------------------------------------------------------------
-use crate::clickhouse::{ch_client, ch_query, effective_flow_log_db as flow_log_db, init_org_db_if_needed, val_i64};
-use crate::{clickhouse, db::DbPool, errors::AppError, middleware::auth::AuthContext};
+use crate::{
+    clickhouse,
+    clickhouse::{
+        ch_client, ch_query, effective_flow_log_db as flow_log_db, init_org_db_if_needed, val_i64,
+    },
+    db::DbPool,
+    errors::AppError,
+    middleware::auth::AuthContext,
+};
 use axum::{
     Json,
     extract::{Path, Query, State},
@@ -638,10 +645,12 @@ pub async fn apm_traces(
 
     let where_clause = build_where(start, end, &pq, None, None, None, None);
 
-    // Use subquery to pre-compute synthetic trace_id, then count.
+    // Count queries: total traces + error breakdown for facet panel.
+    // Include team_id in the inner SELECT so the outer WHERE can filter on it.
     let count_sql = format!(
-        "SELECT COUNT() AS total FROM \
-         (SELECT _trace_id FROM (SELECT {TRACE_ID_EXPR} AS _trace_id FROM {db}.l7_flow_log WHERE {where_clause}) WHERE _trace_id != '' {team_clause} GROUP BY _trace_id) \
+        "SELECT COUNT() AS total, \
+         countIf(status = 'error') AS error_total \
+         FROM (SELECT _trace_id, if(countIf(response_code >= 500 OR response_code = 0) > 0, 'error', 'ok') AS status FROM (SELECT {TRACE_ID_EXPR} AS _trace_id, team_id, response_code FROM {db}.l7_flow_log WHERE {where_clause}) WHERE _trace_id != '' {team_clause} GROUP BY _trace_id) \
          FORMAT JSONEachRow"
     );
 
@@ -682,10 +691,19 @@ pub async fn apm_traces(
         .and_then(|r| r.get("total"))
         .and_then(val_i64)
         .unwrap_or(0);
+    let error_total: i64 = count_result
+        .as_array()
+        .and_then(|a| a.first())
+        .and_then(|r| r.get("error_total"))
+        .and_then(val_i64)
+        .unwrap_or(0);
+    let ok_total = total.saturating_sub(error_total);
 
     Ok(Json(json!({
         "traces": traces,
         "total": total,
+        "error_total": error_total,
+        "ok_total": ok_total,
         "limit": limit,
         "offset": offset,
     }))
@@ -1230,55 +1248,16 @@ pub async fn apm_topology(
     let pq = q.query.as_deref().map(parse_query).unwrap_or_default();
     let where_clause = build_where(start, end, &pq, q.service.as_deref(), None, None, None);
 
-    // Service-to-service edges: correlation via syscall_trace_id
-    // When service A calls service B: A.syscall_trace_id_request == B.syscall_trace_id_response
-    // Also try span parent-child for services that do have real trace context
+    // Service edges: read from pre-computed service_edges table (refreshed periodically).
+    // This avoids the O(n²) syscall JOIN that previously caused 9GB memory explosions.
+    // Falls back to empty if the table hasn't been populated yet.
     let edges_sql = format!(
-        "SELECT \
-            source, \
-            target, \
-            SUM(call_count) AS call_count, \
-            AVG(avg_latency) / 1000 AS avg_latency_ms, \
-            max(p95_latency) / 1000 AS p95_latency_ms, \
-            SUM(error_count) AS error_count \
-         FROM ( \
-             SELECT \
-                 {Q_SERVICE_EXPR_A} AS source, \
-                 {Q_SERVICE_EXPR_B} AS target, \
-                 COUNT(*) AS call_count, \
-                 AVG(b.response_duration) AS avg_latency, \
-                 quantile(0.95)(b.response_duration) AS p95_latency, \
-                 countIf(b.response_code >= 500 OR b.response_code = 0) AS error_count \
-             FROM {db}.l7_flow_log AS a \
-             INNER JOIN {db}.l7_flow_log AS b \
-                 ON a.syscall_trace_id_request = b.syscall_trace_id_response \
-                 AND a.syscall_trace_id_request != 0 \
-                 AND b.syscall_trace_id_response != 0 \
-             WHERE a.time >= toDateTime({start}) AND a.time <= toDateTime({end}) \
-               AND b.time >= toDateTime({start}) AND b.time <= toDateTime({end}) \
-               AND {Q_SERVICE_EXPR_A} != '' AND {Q_SERVICE_EXPR_B} != '' \
-               AND {Q_SERVICE_EXPR_A} != {Q_SERVICE_EXPR_B} \
-             {team_clause} GROUP BY source, target \
-             UNION ALL \
-             SELECT \
-                 {Q_SERVICE_EXPR_P} AS source, \
-                 {Q_SERVICE_EXPR_C} AS target, \
-                 COUNT(*) AS call_count, \
-                 AVG(c.response_duration) AS avg_latency, \
-                 quantile(0.95)(c.response_duration) AS p95_latency, \
-                 countIf(c.response_code >= 500 OR c.response_code = 0) AS error_count \
-             FROM {db}.l7_flow_log AS c \
-             INNER JOIN {db}.l7_flow_log AS p \
-                 ON c.parent_span_id = p.span_id \
-                 AND c.trace_id = p.trace_id \
-             WHERE p.time >= toDateTime({start}) AND p.time <= toDateTime({end}) \
-               AND c.time >= toDateTime({start}) AND c.time <= toDateTime({end}) \
-               AND c.parent_span_id != '' AND c.parent_span_id != '0' \
-               AND {Q_SERVICE_EXPR_P} != '' AND {Q_SERVICE_EXPR_C} != '' \
-               AND {Q_SERVICE_EXPR_P} != {Q_SERVICE_EXPR_C} \
-             {team_clause} GROUP BY source, target \
-         ) \
-         {team_clause} GROUP BY source, target \
+        "SELECT source, target, SUM(call_count) AS call_count, \
+         AVG(avg_latency_ms) AS avg_latency_ms, \
+         max(p95_latency_ms) AS p95_latency_ms, \
+         SUM(error_count) AS error_count \
+         FROM {db}.service_edges \
+         GROUP BY source, target \
          HAVING call_count >= 1 \
          ORDER BY call_count DESC \
          LIMIT 100 FORMAT JSONEachRow"
@@ -1338,100 +1317,26 @@ pub async fn apm_service_dependencies(
     let end = q.end.unwrap_or(default_window().1);
     let safe_svc = service_name.replace('\'', "''");
 
-    // Downstream: services THIS service calls
-    // Use syscall_trace_id correlation: this service's request side matched to target's response side
+    // Downstream: services THIS service calls (from pre-computed service_edges)
     let downstream_sql = format!(
-        "SELECT \
-            target AS downstream_service, \
-            SUM(call_count) AS call_count, \
-            AVG(avg_latency_ms) AS avg_latency_ms, \
-            max(p95_latency_ms) AS p95_latency_ms, \
-            SUM(error_count) AS error_count \
-         FROM ( \
-             SELECT \
-                 {Q_SERVICE_EXPR_B} AS target, \
-                 COUNT(*) AS call_count, \
-                 AVG(b.response_duration) / 1000 AS avg_latency_ms, \
-                 quantile(0.95)(b.response_duration) / 1000 AS p95_latency_ms, \
-                 countIf(b.response_code >= 500 OR b.response_code = 0) AS error_count \
-             FROM {db}.l7_flow_log AS a \
-             INNER JOIN {db}.l7_flow_log AS b \
-                 ON a.syscall_trace_id_request = b.syscall_trace_id_response \
-                 AND a.syscall_trace_id_request != 0 \
-                 AND b.syscall_trace_id_response != 0 \
-             WHERE a.time >= toDateTime({start}) AND a.time <= toDateTime({end}) \
-               AND b.time >= toDateTime({start}) AND b.time <= toDateTime({end}) \
-               AND {Q_SERVICE_EXPR_A} = '{safe_svc}' \
-               AND {Q_SERVICE_EXPR_B} != '' AND {Q_SERVICE_EXPR_B} != '{safe_svc}' \
-             {team_clause} GROUP BY target \
-             UNION ALL \
-             SELECT \
-                 {Q_SERVICE_EXPR_C} AS target, \
-                 COUNT(*) AS call_count, \
-                 AVG(c.response_duration) / 1000 AS avg_latency_ms, \
-                 quantile(0.95)(c.response_duration) / 1000 AS p95_latency_ms, \
-                 countIf(c.response_code >= 500 OR c.response_code = 0) AS error_count \
-             FROM {db}.l7_flow_log AS c \
-             INNER JOIN {db}.l7_flow_log AS p \
-                 ON c.parent_span_id = p.span_id \
-                 AND c.trace_id = p.trace_id \
-             WHERE p.time >= toDateTime({start}) AND p.time <= toDateTime({end}) \
-               AND c.time >= toDateTime({start}) AND c.time <= toDateTime({end}) \
-               AND c.parent_span_id != '' AND c.parent_span_id != '0' \
-               AND {Q_SERVICE_EXPR_P} = '{safe_svc}' \
-               AND {Q_SERVICE_EXPR_C} != '' AND {Q_SERVICE_EXPR_C} != '{safe_svc}' \
-             {team_clause} GROUP BY target \
-         ) \
-         {team_clause} GROUP BY downstream_service \
+        "SELECT target AS downstream_service, SUM(call_count) AS call_count, \
+         AVG(avg_latency_ms) AS avg_latency_ms, max(p95_latency_ms) AS p95_latency_ms, \
+         SUM(error_count) AS error_count \
+         FROM {db}.service_edges \
+         WHERE source = '{safe_svc}' AND target != '{safe_svc}' \
+         GROUP BY downstream_service \
          ORDER BY call_count DESC \
          LIMIT 100 FORMAT JSONEachRow"
     );
 
-    // Upstream: services that call THIS service
-    // Use syscall_trace_id correlation: caller's request side matched to our response side
+    // Upstream: services that call THIS service (from pre-computed service_edges)
     let upstream_sql = format!(
-        "SELECT \
-            source AS upstream_service, \
-            SUM(call_count) AS call_count, \
-            AVG(avg_latency_ms) AS avg_latency_ms, \
-            max(p95_latency_ms) AS p95_latency_ms, \
-            SUM(error_count) AS error_count \
-         FROM ( \
-             SELECT \
-                 {Q_SERVICE_EXPR_A} AS source, \
-                 COUNT(*) AS call_count, \
-                 AVG(b.response_duration) / 1000 AS avg_latency_ms, \
-                 quantile(0.95)(b.response_duration) / 1000 AS p95_latency_ms, \
-                 countIf(b.response_code >= 500 OR b.response_code = 0) AS error_count \
-             FROM {db}.l7_flow_log AS a \
-             INNER JOIN {db}.l7_flow_log AS b \
-                 ON a.syscall_trace_id_request = b.syscall_trace_id_response \
-                 AND a.syscall_trace_id_request != 0 \
-                 AND b.syscall_trace_id_response != 0 \
-             WHERE a.time >= toDateTime({start}) AND a.time <= toDateTime({end}) \
-               AND b.time >= toDateTime({start}) AND b.time <= toDateTime({end}) \
-               AND {Q_SERVICE_EXPR_B} = '{safe_svc}' \
-               AND {Q_SERVICE_EXPR_A} != '' AND {Q_SERVICE_EXPR_A} != '{safe_svc}' \
-             {team_clause} GROUP BY source \
-             UNION ALL \
-             SELECT \
-                 {Q_SERVICE_EXPR_P} AS source, \
-                 COUNT(*) AS call_count, \
-                 AVG(c.response_duration) / 1000 AS avg_latency_ms, \
-                 quantile(0.95)(c.response_duration) / 1000 AS p95_latency_ms, \
-                 countIf(c.response_code >= 500 OR c.response_code = 0) AS error_count \
-             FROM {db}.l7_flow_log AS c \
-             INNER JOIN {db}.l7_flow_log AS p \
-                 ON c.parent_span_id = p.span_id \
-                 AND c.trace_id = p.trace_id \
-             WHERE p.time >= toDateTime({start}) AND p.time <= toDateTime({end}) \
-               AND c.time >= toDateTime({start}) AND c.time <= toDateTime({end}) \
-               AND c.parent_span_id != '' AND c.parent_span_id != '0' \
-               AND {Q_SERVICE_EXPR_C} = '{safe_svc}' \
-               AND {Q_SERVICE_EXPR_P} != '' AND {Q_SERVICE_EXPR_P} != '{safe_svc}' \
-             {team_clause} GROUP BY source \
-         ) \
-         {team_clause} GROUP BY upstream_service \
+        "SELECT source AS upstream_service, SUM(call_count) AS call_count, \
+         AVG(avg_latency_ms) AS avg_latency_ms, max(p95_latency_ms) AS p95_latency_ms, \
+         SUM(error_count) AS error_count \
+         FROM {db}.service_edges \
+         WHERE target = '{safe_svc}' AND source != '{safe_svc}' \
+         GROUP BY upstream_service \
          ORDER BY call_count DESC \
          LIMIT 100 FORMAT JSONEachRow"
     );

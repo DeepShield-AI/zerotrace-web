@@ -129,13 +129,20 @@ function TraceHeader({ trace, services }: { trace: TraceData; services: string[]
     <div className="mb-4">
       {/* Breadcrumb */}
       <div className="flex items-center gap-2.5 mb-3">
-        <Link to="/apm" className="text-zinc-400 hover:text-zinc-500"><ArrowLeftOutlined className="text-xs" /></Link>
+        <button onClick={() => window.history.back()} className="text-zinc-400 hover:text-zinc-500"><ArrowLeftOutlined className="text-xs" /></button>
         <span className="text-zinc-300 text-xs">/</span>
-        <Link to="/apm" className="text-xs text-zinc-500 hover:text-zinc-700">Traces</Link>
+        <Link to="/apm?view=traces" className="text-xs text-zinc-500 hover:text-zinc-700">Traces</Link>
         <span className="text-zinc-300 text-xs">/</span>
         <span className="text-xs font-mono font-semibold text-zinc-800 truncate max-w-[280px]">
           {trace.trace_id.length > 28 ? trace.trace_id.slice(0, 28) + '…' : trace.trace_id}
         </span>
+        <button
+          onClick={() => { navigator.clipboard.writeText(trace.trace_id); }}
+          className="text-[10px] text-zinc-400 hover:text-zinc-600 bg-zinc-100 hover:bg-zinc-200 px-2 py-0.5 rounded border border-zinc-200 transition-colors"
+          title="Copy trace ID"
+        >
+          Copy ID
+        </button>
       </div>
 
       {/* Status + Metadata row */}

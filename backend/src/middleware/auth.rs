@@ -40,7 +40,8 @@ pub async fn require_auth(
     // Try session cookie first
     if let Some(session_cookie) = cookie_jar.get("zt_session") {
         if let Some(session) = Session::find_valid(&pool, session_cookie.value()).await? {
-            let user_role = load_user_role(&pool, session.user_id).await.unwrap_or_else(|_| "member".into());
+            let user_role =
+                load_user_role(&pool, session.user_id).await.unwrap_or_else(|_| "member".into());
             request.extensions_mut().insert(AuthContext {
                 user_id: session.user_id,
                 org_id: session.org_id,
@@ -56,7 +57,9 @@ pub async fn require_auth(
         if let Some(token) = auth_header.strip_prefix("Bearer ") {
             // Try as session ID
             if let Some(session) = Session::find_valid(&pool, token).await? {
-                let user_role = load_user_role(&pool, session.user_id).await.unwrap_or_else(|_| "member".into());
+                let user_role = load_user_role(&pool, session.user_id)
+                    .await
+                    .unwrap_or_else(|_| "member".into());
                 request.extensions_mut().insert(AuthContext {
                     user_id: session.user_id,
                     org_id: session.org_id,
@@ -100,10 +103,13 @@ pub async fn require_subscription(
     next: Next,
 ) -> Result<Response, AppError> {
     let path = request.uri().path().to_string();
-    if path.starts_with("/api/v1/billing") || path.starts_with("/api/v1/auth")
-        || path.starts_with("/api/v1/api-keys") || path.starts_with("/api/v1/users")
-        || path.starts_with("/api/v1/organization")
-        || path.starts_with("/agent/") {
+    if path.starts_with("/api/v1/billing") ||
+        path.starts_with("/api/v1/auth") ||
+        path.starts_with("/api/v1/api-keys") ||
+        path.starts_with("/api/v1/users") ||
+        path.starts_with("/api/v1/organization") ||
+        path.starts_with("/agent/")
+    {
         return Ok(next.run(request).await);
     }
 
@@ -116,13 +122,11 @@ pub async fn require_subscription(
         return Ok(next.run(request).await);
     }
 
-    let org_slug: Option<(String,)> = sqlx::query_as(
-        "SELECT slug FROM organizations WHERE id = ?"
-    )
-    .bind(auth.org_id)
-    .fetch_optional(&pool)
-    .await
-    .unwrap_or(None);
+    let org_slug: Option<(String,)> = sqlx::query_as("SELECT slug FROM organizations WHERE id = ?")
+        .bind(auth.org_id)
+        .fetch_optional(&pool)
+        .await
+        .unwrap_or(None);
 
     if let Some((slug,)) = org_slug {
         if slug == "zerotrace" {
@@ -130,13 +134,12 @@ pub async fn require_subscription(
         }
     }
 
-    let count: (i64,) = sqlx::query_as(
-        "SELECT COUNT(*) FROM subscriptions WHERE org_id = ? AND status = 'active'"
-    )
-    .bind(auth.org_id)
-    .fetch_one(&pool)
-    .await
-    .unwrap_or((0,));
+    let count: (i64,) =
+        sqlx::query_as("SELECT COUNT(*) FROM subscriptions WHERE org_id = ? AND status = 'active'")
+            .bind(auth.org_id)
+            .fetch_one(&pool)
+            .await
+            .unwrap_or((0,));
 
     if count.0 == 0 {
         return Err(AppError::payment_required(
