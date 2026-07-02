@@ -65,6 +65,23 @@ export const api = {
     return request<DataOverviewResponse>(`/data/overview${s ? '?' + s : ''}`);
   },
 
+  getInfraHosts: (params?: { start?: number; end?: number; search?: string }) => {
+    const qs = new URLSearchParams();
+    if (params?.start != null) qs.set('start', String(params.start));
+    if (params?.end != null) qs.set('end', String(params.end));
+    if (params?.search) qs.set('search', params.search);
+    const s = qs.toString();
+    return request<{ hosts: any[] }>(`/infra/hosts${s ? '?' + s : ''}`);
+  },
+
+  getInfraProcesses: (params?: { start?: number; end?: number }) => {
+    const qs = new URLSearchParams();
+    if (params?.start != null) qs.set('start', String(params.start));
+    if (params?.end != null) qs.set('end', String(params.end));
+    const s = qs.toString();
+    return request<{ processes: any[] }>(`/infra/processes${s ? '?' + s : ''}`);
+  },
+
   // APM
   getApmTags: (params?: { start?: number; end?: number }) => {
     const qs = new URLSearchParams();
@@ -135,7 +152,7 @@ export const api = {
     if (params?.sort) qs.set('sort', params.sort);
     if (params?.sort_dir) qs.set('sort_dir', params.sort_dir);
     const s = qs.toString();
-    return request<{ traces: any[]; total: number; limit: number; offset: number }>(`/apm/traces${s ? '?' + s : ''}`);
+    return request<{ traces: any[]; total: number; ok_total?: number; error_total?: number; limit: number; offset: number }>(`/apm/traces${s ? '?' + s : ''}`);
   },
 
   getApmTraceDetail: (traceId: string) =>

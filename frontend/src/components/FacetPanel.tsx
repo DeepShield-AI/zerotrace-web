@@ -115,24 +115,21 @@ export default function FacetPanel({
   ];
 
   return (
-    <div className="w-60 shrink-0 space-y-4">
+    <div className="w-60 shrink-0 space-y-3" style={{ fontFamily: 'inherit' }}>
       {/* Title + clear */}
-      <div className="flex items-center justify-between px-1">
-        <h3 className="text-sm font-semibold text-zinc-800 tracking-tight">Filters</h3>
+      <div className="flex items-center justify-between">
+        <h3 className="text-[13px] font-semibold" style={{ color: '#212529' }}>Filters</h3>
         {hasFilters && (
-          <button
-            onClick={() => { onStatusChange(''); onServiceChange(''); }}
-            className="text-[11px] text-purple-600 hover:text-purple-800 font-medium transition-colors flex items-center gap-1"
-          >
-            <CloseOutlined style={{ fontSize: 10 }} />
-            Clear all
+          <button onClick={() => { onStatusChange(''); onServiceChange(''); }}
+            className="text-[11px] font-medium transition-colors flex items-center gap-1" style={{ color: '#632CA6' }}>
+            <CloseOutlined style={{ fontSize: 10 }} /> Clear
           </button>
         )}
       </div>
 
       {/* Search */}
       <div className="relative">
-        <SearchOutlined className="absolute left-2.5 top-1/2 -translate-y-1/2 text-zinc-300 text-xs" />
+        <SearchOutlined className="absolute left-2.5 top-1/2 -translate-y-1/2 text-xs" style={{ color: '#ADB5BD' }} />
         <input
           type="text"
           value={search}

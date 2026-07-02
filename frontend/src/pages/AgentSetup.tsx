@@ -21,7 +21,7 @@ function getInstallCmd(p: Platform, apiKey: string, host: string): string {
   const port = '5173';
   const keySuffix = apiKey ? ` ZEROTRACE_API_KEY="${apiKey}" bash` : ' bash';
   switch (p) {
-    case 'linux': return `curl -fsSL http://${host}:${port}/agent/install.sh |${keySuffix}`;
+    case 'linux': return `curl -fsSL http://${host}:${port}/agent/install.sh | sudo ${keySuffix}`;
     case 'docker': return `docker pull registry.cn-hongkong.aliyuncs.com/deepflow-ce/deepflow-agent:latest
 sudo mkdir -p /etc/deepflow-agent
 cat << EOF | sudo tee /etc/deepflow-agent/deepflow-agent.yaml

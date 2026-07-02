@@ -76,6 +76,8 @@ echo "→ Creating installation directories..."
 sudo mkdir -p "${BIN_DIR}"
 sudo mkdir -p "${CONFIG_DIR}"
 sudo mkdir -p "${LOG_DIR}"
+sudo mkdir -p "${INSTALL_DIR}/tmp"
+sudo mkdir -p "${INSTALL_DIR}/var/run"
 
 # ── Stop any existing agent ───────────────────────────────────
 if sudo systemctl is-active --quiet zerotrace-agent 2>/dev/null; then
@@ -84,6 +86,15 @@ if sudo systemctl is-active --quiet zerotrace-agent 2>/dev/null; then
 fi
 # Also kill any running instance
 sudo pkill -f "${BINARY_PATH}" 2>/dev/null || true
+sleep 1
+
+# Clean up stale eBPF socket from previous runs (avoids "Address already in use")
+if [ -S /var/run/zerotrace_bpf_ctrl ]; then
+    echo "→ Cleaning up stale eBPF socket..."
+    sudo rm -f /var/run/zerotrace_bpf_ctrl || true
+fi
+# Also clean up the old eBPF ctrl file if it exists
+sudo rm -f /usr/bin/zerotrace-ebpfctl 2>/dev/null || true
 
 # ── Write config ──────────────────────────────────────────────
 echo "→ Generating config at ${CONFIG_PATH}..."
@@ -194,8 +205,7 @@ PrivateTmp=yes
 NoNewPrivileges=yes
 ProtectSystem=strict
 ProtectHome=yes
-ReadWritePaths=${LOG_DIR}
-ReadOnlyPaths=${CONFIG_DIR}
+ReadWritePaths=${LOG_DIR} /var/run /run
 
 [Install]
 WantedBy=multi-user.target

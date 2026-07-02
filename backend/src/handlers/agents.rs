@@ -36,10 +36,9 @@ pub async fn agent_register(
         return Ok(Json(json!({"ok": false, "error": "invalid org_id"})).into_response());
     }
 
-    // Upsert vtap record: set org_id so zerotrace-server can scope by org.
-    // The genesis handler creates the vtap in the default database on first sync.
-    // We just need to ensure org_id is set correctly for our X-Org-Id filtering
-    // and that the vtap is copied into org-scoped databases.
+    // Upsert vtap by unique key (ctrl_ip, ctrl_mac).
+    // One machine = one agent = one vtap = one org (Datadog model).
+    // Reinstalling with a different API key updates the vtap's org_id.
     let vtap_name = format!("auto-{}-{}", body.ctrl_ip, body.hostname);
     let result = sqlx::query(
         "INSERT INTO vtap (name, type, ctrl_ip, ctrl_mac, org_id, enable, state, \
@@ -65,11 +64,14 @@ pub async fn agent_register(
         Ok(_) => {
             tracing::info!(org_id, ctrl_ip=%body.ctrl_ip, "Agent registered in org database");
             Ok(Json(json!({"ok": true, "org_id": org_id})).into_response())
-        }
+        },
         Err(e) => {
             tracing::warn!(org_id, error=%e, "Agent vtap insert failed");
-            Ok(Json(json!({"ok": false, "error": format!("vtap insert failed: {}", e)})).into_response())
-        }
+            Ok(
+                Json(json!({"ok": false, "error": format!("vtap insert failed: {}", e)}))
+                    .into_response(),
+            )
+        },
     }
 }
 
@@ -90,11 +92,7 @@ pub async fn agent_status(
         .map_err(|e| AppError::internal(e.to_string()))?;
 
     let url = format!("{}/v1/vtaps/", zerotrace_api_url);
-    let resp = client
-        .get(&url)
-        .header("Content-Type", "application/json")
-        .send()
-        .await;
+    let resp = client.get(&url).header("Content-Type", "application/json").send().await;
 
     match resp {
         Ok(r) if r.status().is_success() => {
