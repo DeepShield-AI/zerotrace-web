@@ -15,17 +15,17 @@ export function EventsPage() {
   return (
     <div className="animate-fade-in space-y-4">
       <div className="flex items-center justify-between">
-        <div><h2 className="text-xl font-bold text-gray-900">Events</h2><p className="text-sm text-gray-400 mt-1">Monitor and correlate events across your stack</p></div>
+        <div><h2 className="text-xl font-bold text-fg-primary">Events</h2><p className="text-sm text-fg-tertiary mt-1">Monitor and correlate events across your stack</p></div>
         <TimeRangeSelector value={timeRange} onChange={setTimeRange} />
       </div>
-      <div className="bg-white border border-gray-200 rounded-xl overflow-hidden">
+      <div className="bg-bg-elevated border border-border rounded-xl overflow-hidden">
         <DataTable
           columns={[
             { key: 'status', header: 'Status', width: '80px', render: (e: any) => <StatusBadge status={e.status} /> },
-            { key: 'title', header: 'Title', render: (e: any) => <div><span className="text-sm font-medium text-gray-900">{e.title}</span><p className="text-[11px] text-gray-400">{e.source}</p></div> },
-            { key: 'priority', header: 'Priority', width: '90px', render: (e: any) => <span className={`text-xs font-semibold ${e.priority === 'high' ? 'text-red-600' : e.priority === 'medium' ? 'text-amber-600' : 'text-gray-500'}`}>{e.priority}</span> },
-            { key: 'date', header: 'Date', width: '140px', render: (e: any) => <span className="text-xs text-gray-400">{new Date(e.date).toLocaleString()}</span> },
-            { key: 'tags', header: 'Tags', render: (e: any) => <div className="flex flex-wrap gap-1">{e.tags.map((t: string) => <span key={t} className="text-[10px] px-1.5 py-0.5 bg-gray-100 text-gray-500 rounded">{t}</span>)}</div> },
+            { key: 'title', header: 'Title', render: (e: any) => <div><span className="text-sm font-medium text-fg-primary">{e.title}</span><p className="text-[11px] text-fg-tertiary">{e.source}</p></div> },
+            { key: 'priority', header: 'Priority', width: '90px', render: (e: any) => <span className={`text-xs font-semibold ${e.priority === 'high' ? 'text-accent-danger' : e.priority === 'medium' ? 'text-accent-warning' : 'text-fg-tertiary'}`}>{e.priority}</span> },
+            { key: 'date', header: 'Date', width: '140px', render: (e: any) => <span className="text-xs text-fg-tertiary">{new Date(e.date).toLocaleString()}</span> },
+            { key: 'tags', header: 'Tags', render: (e: any) => <div className="flex flex-wrap gap-1">{e.tags.map((t: string) => <span key={t} className="text-[10px] px-1.5 py-0.5 bg-bg-muted text-fg-tertiary rounded">{t}</span>)}</div> },
           ]}
           rows={MOCK_EVENTS} emptyMessage="No events"
         />
@@ -44,8 +44,8 @@ export function IncidentsPage() {
   return (
     <div className="animate-fade-in space-y-4">
       <div className="flex items-center justify-between mb-4">
-        <div><h2 className="text-xl font-bold text-gray-900">Incidents</h2><p className="text-sm text-gray-400 mt-1">Manage and respond to incidents</p></div>
-        <button className="px-4 py-2 bg-brand-600 text-white text-sm font-semibold rounded-lg hover:bg-brand-700 transition-colors">+ Declare Incident</button>
+        <div><h2 className="text-xl font-bold text-fg-primary">Incidents</h2><p className="text-sm text-fg-tertiary mt-1">Manage and respond to incidents</p></div>
+        <button className="px-4 py-2 bg-accent-primary text-fg-inverse text-sm font-semibold rounded-lg hover:opacity-90 transition-colors">+ Declare Incident</button>
       </div>
       <div className="grid grid-cols-4 gap-3 mb-4">
         <KpiCard label="Active" value="2" accent="red" />
@@ -53,15 +53,15 @@ export function IncidentsPage() {
         <KpiCard label="MTTR" value="2h 15m" accent="amber" />
         <KpiCard label="Open Incidents" value="2" accent="default" />
       </div>
-      <div className="bg-white border border-gray-200 rounded-xl overflow-hidden">
+      <div className="bg-bg-elevated border border-border rounded-xl overflow-hidden">
         <DataTable
           columns={[
-            { key: 'severity', header: 'Severity', width: '90px', render: (i: any) => <span className={`text-xs font-bold ${i.severity === 'critical' ? 'text-red-600' : i.severity === 'high' ? 'text-amber-600' : 'text-blue-600'}`}>{i.severity.toUpperCase()}</span> },
-            { key: 'title', header: 'Title', render: (i: any) => <span className="text-sm font-medium text-gray-900">{i.title}</span> },
+            { key: 'severity', header: 'Severity', width: '90px', render: (i: any) => <span className={`text-xs font-bold ${i.severity === 'critical' ? 'text-accent-danger' : i.severity === 'high' ? 'text-accent-warning' : 'text-accent-info'}`}>{i.severity.toUpperCase()}</span> },
+            { key: 'title', header: 'Title', render: (i: any) => <span className="text-sm font-medium text-fg-primary">{i.title}</span> },
             { key: 'status', header: 'Status', width: '90px', render: (i: any) => <StatusBadge status={i.status} /> },
-            { key: 'commander', header: 'Commander', width: '130px', render: (i: any) => <span className="text-xs text-gray-600">{i.commander}</span> },
-            { key: 'created', header: 'Created', width: '150px', render: (i: any) => <span className="text-xs text-gray-400">{new Date(i.created).toLocaleString()}</span> },
-            { key: 'duration', header: 'Duration', width: '90px', render: (i: any) => <span className="text-xs text-gray-500">{i.duration}</span> },
+            { key: 'commander', header: 'Commander', width: '130px', render: (i: any) => <span className="text-xs text-fg-secondary">{i.commander}</span> },
+            { key: 'created', header: 'Created', width: '150px', render: (i: any) => <span className="text-xs text-fg-tertiary">{new Date(i.created).toLocaleString()}</span> },
+            { key: 'duration', header: 'Duration', width: '90px', render: (i: any) => <span className="text-xs text-fg-tertiary">{i.duration}</span> },
           ]}
           rows={MOCK_INCIDENTS} emptyMessage="No incidents"
         />
@@ -79,15 +79,15 @@ const MOCK_WATCHDOG = [
 export function WatchdogPage() {
   return (
     <div className="animate-fade-in space-y-4">
-      <div><h2 className="text-xl font-bold text-gray-900">Watchdog</h2><p className="text-sm text-gray-400 mt-1">ML-based anomaly detection across your services</p></div>
-      <div className="bg-white border border-gray-200 rounded-xl overflow-hidden">
+      <div><h2 className="text-xl font-bold text-fg-primary">Watchdog</h2><p className="text-sm text-fg-tertiary mt-1">ML-based anomaly detection across your services</p></div>
+      <div className="bg-bg-elevated border border-border rounded-xl overflow-hidden">
         <DataTable
           columns={[
-            { key: 'severity', header: 'Severity', width: '80px', render: (w: any) => <span className={`text-xs font-bold ${w.severity === 'critical' ? 'text-red-600' : w.severity === 'high' ? 'text-amber-600' : 'text-blue-600'}`}>{w.severity.toUpperCase()}</span> },
-            { key: 'finding', header: 'Finding', render: (w: any) => <div><span className="text-sm font-medium text-gray-900">{w.finding}</span><p className="text-[11px] text-gray-400">{w.story}</p></div> },
-            { key: 'service', header: 'Service', width: '120px', render: (w: any) => <span className="text-xs text-gray-600">{w.service}</span> },
+            { key: 'severity', header: 'Severity', width: '80px', render: (w: any) => <span className={`text-xs font-bold ${w.severity === 'critical' ? 'text-accent-danger' : w.severity === 'high' ? 'text-accent-warning' : 'text-accent-info'}`}>{w.severity.toUpperCase()}</span> },
+            { key: 'finding', header: 'Finding', render: (w: any) => <div><span className="text-sm font-medium text-fg-primary">{w.finding}</span><p className="text-[11px] text-fg-tertiary">{w.story}</p></div> },
+            { key: 'service', header: 'Service', width: '120px', render: (w: any) => <span className="text-xs text-fg-secondary">{w.service}</span> },
             { key: 'status', header: 'Status', width: '110px', render: (w: any) => <StatusBadge status={w.status} /> },
-            { key: 'time', header: 'Time', width: '150px', render: (w: any) => <span className="text-xs text-gray-400">{new Date(w.time).toLocaleString()}</span> },
+            { key: 'time', header: 'Time', width: '150px', render: (w: any) => <span className="text-xs text-fg-tertiary">{new Date(w.time).toLocaleString()}</span> },
           ]}
           rows={MOCK_WATCHDOG} emptyMessage="No anomalies detected"
         />
@@ -105,33 +105,33 @@ const MOCK_SLOS = [
 export function SLOsPage() {
   return (
     <div className="animate-fade-in space-y-4">
-      <div className="flex items-center justify-between"><div><h2 className="text-xl font-bold text-gray-900">SLOs</h2><p className="text-sm text-gray-400 mt-1">Service Level Objectives and error budgets</p></div><div className="flex items-center gap-3"><a href="/slo/manage" className="text-xs font-medium text-brand-600 hover:text-brand-700">Learn More</a><button className="px-4 py-2 bg-brand-600 text-white text-sm font-semibold rounded-lg hover:bg-brand-700 transition-colors">+ New SLO</button></div></div>
+      <div className="flex items-center justify-between"><div><h2 className="text-xl font-bold text-fg-primary">SLOs</h2><p className="text-sm text-fg-tertiary mt-1">Service Level Objectives and error budgets</p></div><div className="flex items-center gap-3"><a href="/slo/manage" className="text-xs font-medium text-accent-primary hover:text-accent-primary">Learn More</a><button className="px-4 py-2 bg-accent-primary text-fg-inverse text-sm font-semibold rounded-lg hover:opacity-90 transition-colors">+ New SLO</button></div></div>
       {/* DD: 5 KPI cards — BREACHED / WARNING / OK / NO DATA / TOTAL */}
       <div className="grid grid-cols-5 gap-3">
         {[
-          { label: 'Breached', value: '—', bg: 'bg-red-50 border-red-200', text: 'text-red-700' },
-          { label: 'Warning', value: '—', bg: 'bg-amber-50 border-amber-200', text: 'text-amber-700' },
-          { label: 'OK', value: '—', bg: 'bg-emerald-50 border-emerald-200', text: 'text-emerald-700' },
-          { label: 'No Data', value: '—', bg: 'bg-gray-50 border-gray-200', text: 'text-gray-500' },
-          { label: 'Total', value: '—', bg: 'bg-white border-gray-200', text: 'text-gray-900' },
+          { label: 'Breached', value: '—', bg: 'bg-accent-danger-bg border-accent-danger/20', text: 'text-accent-danger' },
+          { label: 'Warning', value: '—', bg: 'bg-accent-warning-bg border-accent-warning/20', text: 'text-accent-warning' },
+          { label: 'OK', value: '—', bg: 'bg-accent-success-bg border-accent-success/20', text: 'text-accent-success' },
+          { label: 'No Data', value: '—', bg: 'bg-bg-subtle border-border', text: 'text-fg-tertiary' },
+          { label: 'Total', value: '—', bg: 'bg-bg-elevated border-border', text: 'text-fg-primary' },
         ].map(k => (
           <div key={k.label} className={`rounded-xl border p-4 ${k.bg}`}>
-            <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-1">{k.label}</p>
+            <p className="text-[11px] font-semibold text-fg-tertiary uppercase tracking-wider mb-1">{k.label}</p>
             <p className={`text-xl font-bold ${k.text}`}>{k.value}</p>
           </div>
         ))}
       </div>
       {/* DD: 7-column table — TYPE / NAME / TIME / TARGET / STATUS / ERROR BUDGET LEFT / TAGS */}
-      <div className="bg-white border border-gray-200 rounded-xl overflow-hidden">
+      <div className="bg-bg-elevated border border-border rounded-xl overflow-hidden">
         <DataTable
           columns={[
-            { key: 'type', header: 'Type', width: '80px', render: (s: any) => <span className="text-xs font-medium text-gray-500">{s.type || 'Metric'}</span> },
-            { key: 'name', header: 'Name', render: (s: any) => <span className="text-sm font-medium text-gray-900">{s.name}</span> },
-            { key: 'time', header: 'Time', width: '70px', render: (s: any) => <span className="text-xs text-gray-400">{s.window}</span> },
-            { key: 'target', header: 'Target', width: '90px', render: (s: any) => <span className="text-sm text-gray-900 font-semibold">{s.target}</span> },
+            { key: 'type', header: 'Type', width: '80px', render: (s: any) => <span className="text-xs font-medium text-fg-tertiary">{s.type || 'Metric'}</span> },
+            { key: 'name', header: 'Name', render: (s: any) => <span className="text-sm font-medium text-fg-primary">{s.name}</span> },
+            { key: 'time', header: 'Time', width: '70px', render: (s: any) => <span className="text-xs text-fg-tertiary">{s.window}</span> },
+            { key: 'target', header: 'Target', width: '90px', render: (s: any) => <span className="text-sm text-fg-primary font-semibold">{s.target}</span> },
             { key: 'status', header: 'Status', width: '90px', render: (s: any) => <StatusBadge status={s.status} /> },
-            { key: 'budget', header: 'Error Budget', width: '110px', render: (s: any) => <span className={`text-sm font-semibold ${parseFloat(s.budget) < 0 ? 'text-red-600' : parseFloat(s.budget) < 50 ? 'text-amber-600' : 'text-emerald-600'}`}>{s.budget}</span> },
-            { key: 'tags', header: 'Tags', width: '120px', render: (s: any) => <div className="flex flex-wrap gap-1">{(s.tags || ['slo']).map((t: string) => <span key={t} className="text-[10px] px-1.5 py-0.5 bg-gray-100 text-gray-500 rounded">{t}</span>)}</div> },
+            { key: 'budget', header: 'Error Budget', width: '110px', render: (s: any) => <span className={`text-sm font-semibold ${parseFloat(s.budget) < 0 ? 'text-accent-danger' : parseFloat(s.budget) < 50 ? 'text-accent-warning' : 'text-accent-success'}`}>{s.budget}</span> },
+            { key: 'tags', header: 'Tags', width: '120px', render: (s: any) => <div className="flex flex-wrap gap-1">{(s.tags || ['slo']).map((t: string) => <span key={t} className="text-[10px] px-1.5 py-0.5 bg-bg-muted text-fg-tertiary rounded">{t}</span>)}</div> },
           ]}
           rows={MOCK_SLOS} emptyMessage="No matching results found"
         />
@@ -149,14 +149,14 @@ const MOCK_ERRORS = [
 export function ErrorTrackingPage() {
   return (
     <div className="animate-fade-in space-y-4">
-      <div><h2 className="text-xl font-bold text-gray-900">Error Tracking</h2><p className="text-sm text-gray-400 mt-1">Track and resolve application errors</p></div>
-      <div className="bg-white border border-gray-200 rounded-xl overflow-hidden">
+      <div><h2 className="text-xl font-bold text-fg-primary">Error Tracking</h2><p className="text-sm text-fg-tertiary mt-1">Track and resolve application errors</p></div>
+      <div className="bg-bg-elevated border border-border rounded-xl overflow-hidden">
         <DataTable
           columns={[
-            { key: 'error', header: 'Error', render: (e: any) => <div><span className="text-sm font-medium text-gray-900 font-mono">{e.error}</span><p className="text-[11px] text-gray-400">{e.type}</p></div> },
-            { key: 'occurrences', header: 'Count', width: '80px', align: 'right', render: (e: any) => <span className="text-sm font-bold text-gray-900">{e.occurrences}</span> },
-            { key: 'firstSeen', header: 'First Seen', width: '140px', render: (e: any) => <span className="text-xs text-gray-400">{new Date(e.firstSeen).toLocaleString()}</span> },
-            { key: 'lastSeen', header: 'Last Seen', width: '140px', render: (e: any) => <span className="text-xs text-gray-400">{new Date(e.lastSeen).toLocaleString()}</span> },
+            { key: 'error', header: 'Error', render: (e: any) => <div><span className="text-sm font-medium text-fg-primary font-mono">{e.error}</span><p className="text-[11px] text-fg-tertiary">{e.type}</p></div> },
+            { key: 'occurrences', header: 'Count', width: '80px', align: 'right', render: (e: any) => <span className="text-sm font-bold text-fg-primary">{e.occurrences}</span> },
+            { key: 'firstSeen', header: 'First Seen', width: '140px', render: (e: any) => <span className="text-xs text-fg-tertiary">{new Date(e.firstSeen).toLocaleString()}</span> },
+            { key: 'lastSeen', header: 'Last Seen', width: '140px', render: (e: any) => <span className="text-xs text-fg-tertiary">{new Date(e.lastSeen).toLocaleString()}</span> },
             { key: 'status', header: 'Status', width: '90px', render: (e: any) => <StatusBadge status={e.status} /> },
           ]}
           rows={MOCK_ERRORS} emptyMessage="No errors"
@@ -175,22 +175,22 @@ const MOCK_PROFILES = [
 export function ProfilingPage() {
   return (
     <div className="animate-fade-in space-y-4">
-      <div><h2 className="text-xl font-bold text-gray-900">Continuous Profiler</h2><p className="text-sm text-gray-400 mt-1">Code-level performance analysis across your services</p></div>
+      <div><h2 className="text-xl font-bold text-fg-primary">Continuous Profiler</h2><p className="text-sm text-fg-tertiary mt-1">Code-level performance analysis across your services</p></div>
       <div className="grid grid-cols-4 gap-3 mb-4">
         <KpiCard label="Services Profiled" value="3" accent="purple" />
         <KpiCard label="Avg CPU" value="25.6%" accent="amber" />
         <KpiCard label="Avg Memory" value="1.75 GB" accent="blue" />
         <KpiCard label="Last Profile" value="2 min ago" accent="default" />
       </div>
-      <div className="bg-white border border-gray-200 rounded-xl overflow-hidden">
+      <div className="bg-bg-elevated border border-border rounded-xl overflow-hidden">
         <DataTable
           columns={[
-            { key: 'service', header: 'Service', render: (p: any) => <span className="text-sm font-medium text-gray-900">{p.service}</span> },
-            { key: 'language', header: 'Language', width: '80px', render: (p: any) => <span className="text-xs px-2 py-1 bg-gray-100 rounded text-gray-600">{p.language}</span> },
-            { key: 'cpu', header: 'CPU', width: '80px', align: 'right', render: (p: any) => <span className="text-sm font-semibold text-gray-900">{p.cpu}</span> },
-            { key: 'memory', header: 'Memory', width: '90px', align: 'right', render: (p: any) => <span className="text-sm font-semibold text-gray-900">{p.memory}</span> },
-            { key: 'goroutines', header: 'Threads/Goroutines', width: '110px', align: 'right', render: (p: any) => <span className="text-sm text-gray-600">{p.goroutines || p.threads}</span> },
-            { key: 'lastProfile', header: 'Last Profile', width: '150px', render: (p: any) => <span className="text-xs text-gray-400">{new Date(p.lastProfile).toLocaleString()}</span> },
+            { key: 'service', header: 'Service', render: (p: any) => <span className="text-sm font-medium text-fg-primary">{p.service}</span> },
+            { key: 'language', header: 'Language', width: '80px', render: (p: any) => <span className="text-xs px-2 py-1 bg-bg-muted rounded text-fg-secondary">{p.language}</span> },
+            { key: 'cpu', header: 'CPU', width: '80px', align: 'right', render: (p: any) => <span className="text-sm font-semibold text-fg-primary">{p.cpu}</span> },
+            { key: 'memory', header: 'Memory', width: '90px', align: 'right', render: (p: any) => <span className="text-sm font-semibold text-fg-primary">{p.memory}</span> },
+            { key: 'goroutines', header: 'Threads/Goroutines', width: '110px', align: 'right', render: (p: any) => <span className="text-sm text-fg-secondary">{p.goroutines || p.threads}</span> },
+            { key: 'lastProfile', header: 'Last Profile', width: '150px', render: (p: any) => <span className="text-xs text-fg-tertiary">{new Date(p.lastProfile).toLocaleString()}</span> },
           ]}
           rows={MOCK_PROFILES} emptyMessage="No profiled services"
         />

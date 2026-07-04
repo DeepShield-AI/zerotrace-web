@@ -182,7 +182,7 @@ const infraFeaturesTable = [
 
 // ─────────────────── Icons (inline SVGs) ───────────────────
 const CheckIcon = () => (
-  <svg className="w-4 h-4 text-purple-600 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+  <svg className="w-4 h-4 text-accent-primary flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
     <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
   </svg>
 );
@@ -274,31 +274,31 @@ const categoryIcons: Record<string, React.ReactNode> = {
 
 function TopNav() {
   return (
-    <nav className="sticky top-0 z-50 bg-white border-b border-gray-100">
+    <nav className="sticky top-0 z-50 bg-bg-elevated border-b border-border-subtle">
       <div className="max-w-[1344px] mx-auto px-6 h-[72px] flex items-center justify-between">
         {/* Left links */}
         <div className="flex items-center gap-8">
-          <a href="#" className="text-sm font-medium text-[#555] hover:text-gray-900 transition-colors tracking-wide">
+          <a href="#" className="text-sm font-medium text-[#555] hover:text-fg-primary transition-colors tracking-wide">
             PRODUCT
           </a>
-          <a href="#" className="text-sm font-medium text-[#555] hover:text-gray-900 transition-colors tracking-wide">
+          <a href="#" className="text-sm font-medium text-[#555] hover:text-fg-primary transition-colors tracking-wide">
             CUSTOMERS
           </a>
-          <a href="#" className="text-sm font-bold text-brand-600 tracking-wide" style={{ color: '#632CA6' }}>
+          <a href="#" className="text-sm font-bold text-accent-primary tracking-wide" style={{ color: '#632CA6' }}>
             PRICING
           </a>
-          <a href="#" className="text-sm font-medium text-[#555] hover:text-gray-900 transition-colors tracking-wide">
+          <a href="#" className="text-sm font-medium text-[#555] hover:text-fg-primary transition-colors tracking-wide">
             SOLUTIONS
           </a>
-          <a href="#" className="text-sm font-medium text-[#555] hover:text-gray-900 transition-colors tracking-wide">
+          <a href="#" className="text-sm font-medium text-[#555] hover:text-fg-primary transition-colors tracking-wide">
             DOCS
           </a>
         </div>
 
         {/* Logo */}
         <div className="flex items-center gap-2">
-          <div className="w-[34px] h-[34px] bg-brand-600 rounded flex items-center justify-center">
-            <svg viewBox="0 0 24 24" className="w-5 h-5 text-white" fill="currentColor">
+          <div className="w-[34px] h-[34px] bg-accent-primary rounded flex items-center justify-center">
+            <svg viewBox="0 0 24 24" className="w-5 h-5 text-fg-inverse" fill="currentColor">
               <path d="M8 18c-1 0-2-.5-2.5-1.5-.5-1 0-2 .5-2.5L12 9l3 3-4.5 4.5c-.5.5-1.5 1.5-2.5 1.5z"/>
               <circle cx="14" cy="12" r="2"/>
               <path d="M18 8h-4l4-4 4 4z"/>
@@ -309,22 +309,22 @@ function TopNav() {
 
         {/* Right links */}
         <div className="flex items-center gap-8">
-          <a href="#" className="text-sm font-medium text-[#555] hover:text-gray-900 transition-colors tracking-wide">
+          <a href="#" className="text-sm font-medium text-[#555] hover:text-fg-primary transition-colors tracking-wide">
             ABOUT
           </a>
-          <a href="#" className="text-sm font-medium text-[#555] hover:text-gray-900 transition-colors tracking-wide">
+          <a href="#" className="text-sm font-medium text-[#555] hover:text-fg-primary transition-colors tracking-wide">
             BLOG
           </a>
-          <a href="#" className="text-sm font-medium text-[#555] hover:text-gray-900 transition-colors tracking-wide">
+          <a href="#" className="text-sm font-medium text-[#555] hover:text-fg-primary transition-colors tracking-wide">
             LOGIN
           </a>
-          <button className="text-sm text-gray-500 hover:text-gray-700">
+          <button className="text-sm text-fg-tertiary hover:text-fg-secondary">
             <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
             </svg>
           </button>
           <button
-            className="px-5 py-2 text-sm font-semibold rounded-full border-2 text-gray-800 hover:bg-brand-50 transition-all tracking-wide"
+            className="px-5 py-2 text-sm font-semibold rounded-full border-2 text-fg-primary hover:bg-accent-primary/10 transition-all tracking-wide"
             style={{
               borderColor: '#632CA6',
               borderImage: 'linear-gradient(90deg, #632CA6, #a855f7) 1',
@@ -342,16 +342,16 @@ function Hero() {
   return (
     <header className="w-full" style={{ background: 'linear-gradient(180deg, #F3EEFA 0%, #EBE3F5 100%)' }}>
       <div className="max-w-[1344px] mx-auto px-6 py-20 text-center">
-        <p className="text-xs font-semibold tracking-[0.2em] text-gray-600 mb-4">PRICING</p>
-        <h1 className="text-4xl md:text-5xl lg:text-[56px] font-bold text-gray-900 leading-tight mb-4 max-w-[900px] mx-auto">
+        <p className="text-xs font-semibold tracking-[0.2em] text-fg-secondary mb-4">PRICING</p>
+        <h1 className="text-4xl md:text-5xl lg:text-[56px] font-bold text-fg-primary leading-tight mb-4 max-w-[900px] mx-auto">
           Flexible, transparent pricing designed to scale with your business
         </h1>
-        <p className="text-base text-gray-500 mb-10">Multi-Year/Volume discounts available</p>
+        <p className="text-base text-fg-tertiary mb-10">Multi-Year/Volume discounts available</p>
         <div className="flex items-center justify-center gap-4">
-          <button className="px-8 py-3 bg-brand-600 text-white font-semibold rounded-lg hover:bg-brand-700 transition-colors text-sm tracking-wide">
+          <button className="px-8 py-3 bg-accent-primary text-fg-inverse font-semibold rounded-lg hover:opacity-90 transition-colors text-sm tracking-wide">
             FREE TRIAL
           </button>
-          <a href="#" className="text-brand-600 font-semibold text-sm hover:underline" style={{ color: '#632CA6' }}>
+          <a href="#" className="text-accent-primary font-semibold text-sm hover:underline" style={{ color: '#632CA6' }}>
             CONTACT US →
           </a>
         </div>
@@ -364,18 +364,18 @@ function SidebarNav({ activeProduct, onSelect }: { activeProduct: string; onSele
   const [expandedCategory, setExpandedCategory] = useState<string>('infrastructure');
 
   return (
-    <aside className="w-[300px] flex-shrink-0 pr-8 pt-8 pb-16 border-r border-gray-100 sticky top-[72px] h-[calc(100vh-72px)] overflow-y-auto">
+    <aside className="w-[300px] flex-shrink-0 pr-8 pt-8 pb-16 border-r border-border-subtle sticky top-[72px] h-[calc(100vh-72px)] overflow-y-auto">
       {/* Site selector */}
       <div className="mb-6">
-        <label className="block text-[11px] font-semibold text-gray-400 tracking-wider mb-2">ZEROTRACE SITE</label>
-        <select className="w-full px-3 py-2 text-sm border border-gray-200 rounded-md text-gray-700 bg-white focus:outline-none focus:ring-2 focus:ring-brand-200 focus:border-brand-500">
+        <label className="block text-[11px] font-semibold text-fg-tertiary tracking-wider mb-2">ZEROTRACE SITE</label>
+        <select className="w-full px-3 py-2 text-sm border border-border rounded-md text-fg-secondary bg-bg-elevated focus:outline-none focus:ring-2 focus:ring-brand-200 focus:border-brand-500">
           <option>US (US1, US3, US5)</option>
           <option>US1-FED</option>
           <option>EU1</option>
           <option>AP1</option>
           <option>AP2</option>
         </select>
-        <div className="mt-4 border-t border-gray-100" />
+        <div className="mt-4 border-t border-border-subtle" />
       </div>
 
       {/* Product navigation */}
@@ -387,9 +387,9 @@ function SidebarNav({ activeProduct, onSelect }: { activeProduct: string; onSele
                 setExpandedCategory(expandedCategory === cat.id ? '' : cat.id);
                 onSelect(cat.id, cat.subItems?.[0]);
               }}
-              className="flex items-center gap-2.5 text-sm font-semibold text-gray-900 hover:text-brand-600 transition-colors w-full text-left"
+              className="flex items-center gap-2.5 text-sm font-semibold text-fg-primary hover:text-accent-primary transition-colors w-full text-left"
             >
-              <span className="text-gray-600">{categoryIcons[cat.id]}</span>
+              <span className="text-fg-secondary">{categoryIcons[cat.id]}</span>
               {cat.label}
             </button>
             <div className="ml-7 mt-1.5 space-y-0.5">
@@ -400,7 +400,7 @@ function SidebarNav({ activeProduct, onSelect }: { activeProduct: string; onSele
                   className={`block text-sm py-1 text-left w-full transition-colors ${
                     activeProduct === cat.id
                       ? 'font-medium'
-                      : 'text-gray-600 hover:text-gray-900'
+                      : 'text-fg-secondary hover:text-fg-primary'
                   }`}
                   style={activeProduct === cat.id ? { color: '#632CA6' } : {}}
                 >
@@ -420,33 +420,33 @@ function PricingCard({ plan, featured }: { plan: PricingPlan; featured?: boolean
     <div
       className={`flex-1 rounded-xl p-8 flex flex-col ${
         featured
-          ? 'border-2 border-brand-600 shadow-lg relative bg-white'
-          : 'border border-gray-200 bg-white hover:shadow-md transition-shadow'
+          ? 'border-2 border-accent-primary shadow-lg relative bg-bg-elevated'
+          : 'border border-border bg-bg-elevated hover:shadow-md transition-shadow'
       }`}
     >
-      <h3 className="text-lg font-bold text-gray-900 mb-1">{plan.name}</h3>
+      <h3 className="text-lg font-bold text-fg-primary mb-1">{plan.name}</h3>
       <div className="mb-3">
-        <span className="text-3xl font-bold text-gray-900">{plan.price}</span>
-        {plan.unit && <span className="text-sm text-gray-500 ml-1">{plan.unit}</span>}
+        <span className="text-3xl font-bold text-fg-primary">{plan.price}</span>
+        {plan.unit && <span className="text-sm text-fg-tertiary ml-1">{plan.unit}</span>}
       </div>
-      <p className="text-sm text-gray-600 mb-6 leading-relaxed">{plan.description}</p>
+      <p className="text-sm text-fg-secondary mb-6 leading-relaxed">{plan.description}</p>
 
       <ul className="space-y-3 mb-8 flex-1">
         {plan.features.map((feat, i) => (
-          <li key={i} className="flex items-start gap-2 text-sm text-gray-700">
+          <li key={i} className="flex items-start gap-2 text-sm text-fg-secondary">
             <CheckIcon />
             <span>{feat}</span>
           </li>
         ))}
       </ul>
 
-      {plan.note && <p className="text-xs text-gray-400 mb-4 -mt-4">{plan.note}</p>}
+      {plan.note && <p className="text-xs text-fg-tertiary mb-4 -mt-4">{plan.note}</p>}
 
       <button
         className={`w-full py-3 rounded-lg font-semibold text-sm tracking-wide transition-all ${
           plan.ctaStyle === 'primary'
-            ? 'bg-brand-600 text-white hover:bg-brand-700'
-            : 'border-2 border-brand-600 text-brand-600 hover:bg-brand-50'
+            ? 'bg-accent-primary text-fg-inverse hover:opacity-90'
+            : 'border-2 border-accent-primary text-accent-primary hover:bg-accent-primary/10'
         }`}
       >
         {plan.ctaText}
@@ -468,21 +468,21 @@ function PricingSection({ product }: { product: ProductSection }) {
   return (
     <section id={product.id} className="py-10">
       {/* Product header */}
-      <h2 className="text-2xl font-bold text-gray-900 text-center mb-2">{product.title}</h2>
-      <p className="text-base text-gray-500 text-center mb-10 max-w-[600px] mx-auto leading-relaxed">
+      <h2 className="text-2xl font-bold text-fg-primary text-center mb-2">{product.title}</h2>
+      <p className="text-base text-fg-tertiary text-center mb-10 max-w-[600px] mx-auto leading-relaxed">
         {product.subtitle}
       </p>
 
       {/* Tabs */}
-      <div className="flex items-center justify-center gap-0 border-b border-gray-200 mb-10">
+      <div className="flex items-center justify-center gap-0 border-b border-border mb-10">
         {tabs.map((tab) => (
           <button
             key={tab.key}
             onClick={() => setActiveView(tab.key)}
             className={`px-5 py-3 text-sm font-medium transition-colors border-b-2 -mb-[2px] ${
               activeView === tab.key
-                ? 'border-brand-600 text-brand-600'
-                : 'border-transparent text-gray-500 hover:text-gray-700'
+                ? 'border-accent-primary text-accent-primary'
+                : 'border-transparent text-fg-tertiary hover:text-fg-secondary'
             }`}
           >
             {tab.label}
@@ -517,25 +517,25 @@ function PricingSection({ product }: { product: ProductSection }) {
         <div className="overflow-x-auto">
           <table className="w-full border-collapse">
             <thead>
-              <tr className="border-b border-gray-200">
-                <th className="text-left py-3 px-4 text-sm font-semibold text-gray-700 w-[40%]">Feature</th>
-                <th className="text-center py-3 px-4 text-sm font-semibold text-gray-700">Free</th>
-                <th className="text-center py-3 px-4 text-sm font-semibold text-gray-700">Pro</th>
-                <th className="text-center py-3 px-4 text-sm font-semibold text-gray-700">Enterprise</th>
+              <tr className="border-b border-border">
+                <th className="text-left py-3 px-4 text-sm font-semibold text-fg-secondary w-[40%]">Feature</th>
+                <th className="text-center py-3 px-4 text-sm font-semibold text-fg-secondary">Free</th>
+                <th className="text-center py-3 px-4 text-sm font-semibold text-fg-secondary">Pro</th>
+                <th className="text-center py-3 px-4 text-sm font-semibold text-fg-secondary">Enterprise</th>
               </tr>
             </thead>
             <tbody>
               {product.featuresTable.map((row, i) => (
-                <tr key={i} className={`border-b border-gray-100 ${i % 2 === 0 ? 'bg-gray-50/50' : 'bg-white'}`}>
-                  <td className="py-3 px-4 text-sm text-gray-700">{row.feature}</td>
-                  <td className="py-3 px-4 text-sm text-center text-gray-600">
-                    {row.free === true ? <span className="text-green-600">✓</span> : row.free === false ? <span className="text-gray-300">—</span> : row.free}
+                <tr key={i} className={`border-b border-border-subtle ${i % 2 === 0 ? 'bg-bg-subtle/50' : 'bg-bg-elevated'}`}>
+                  <td className="py-3 px-4 text-sm text-fg-secondary">{row.feature}</td>
+                  <td className="py-3 px-4 text-sm text-center text-fg-secondary">
+                    {row.free === true ? <span className="text-accent-success">✓</span> : row.free === false ? <span className="text-fg-disabled">—</span> : row.free}
                   </td>
-                  <td className="py-3 px-4 text-sm text-center text-gray-600">
-                    {row.pro === true ? <span className="text-green-600">✓</span> : row.pro === false ? <span className="text-gray-300">—</span> : row.pro}
+                  <td className="py-3 px-4 text-sm text-center text-fg-secondary">
+                    {row.pro === true ? <span className="text-accent-success">✓</span> : row.pro === false ? <span className="text-fg-disabled">—</span> : row.pro}
                   </td>
-                  <td className="py-3 px-4 text-sm text-center text-gray-600">
-                    {row.enterprise === true ? <span className="text-green-600">✓</span> : row.enterprise === false ? <span className="text-gray-300">—</span> : row.enterprise}
+                  <td className="py-3 px-4 text-sm text-center text-fg-secondary">
+                    {row.enterprise === true ? <span className="text-accent-success">✓</span> : row.enterprise === false ? <span className="text-fg-disabled">—</span> : row.enterprise}
                   </td>
                 </tr>
               ))}
@@ -547,14 +547,14 @@ function PricingSection({ product }: { product: ProductSection }) {
       {/* Support Plans */}
       {activeView === 'support' && (
         <div className="max-w-[600px] mx-auto text-center py-8">
-          <p className="text-gray-600 mb-6 leading-relaxed">
+          <p className="text-fg-secondary mb-6 leading-relaxed">
             From basic plans to bespoke offerings, Zerotrace offers the right level of support &amp; services for any organization.
           </p>
           <div className="flex gap-4 justify-center">
-            <button className="px-6 py-3 border-2 border-brand-600 text-brand-600 font-semibold rounded-lg text-sm hover:bg-brand-50 transition-colors">
+            <button className="px-6 py-3 border-2 border-accent-primary text-accent-primary font-semibold rounded-lg text-sm hover:bg-accent-primary/10 transition-colors">
               SUPPORT PLANS
             </button>
-            <button className="px-6 py-3 border-2 border-brand-600 text-brand-600 font-semibold rounded-lg text-sm hover:bg-brand-50 transition-colors">
+            <button className="px-6 py-3 border-2 border-accent-primary text-accent-primary font-semibold rounded-lg text-sm hover:bg-accent-primary/10 transition-colors">
               SERVICES &amp; ENABLEMENT
             </button>
           </div>
@@ -565,20 +565,20 @@ function PricingSection({ product }: { product: ProductSection }) {
       {activeView === 'faq' && product.questions && (
         <div className="max-w-[700px] mx-auto space-y-4 py-4">
           {product.questions.map((item, i) => (
-            <details key={i} className="group border border-gray-200 rounded-lg overflow-hidden">
-              <summary className="px-6 py-4 text-sm font-medium text-gray-800 cursor-pointer hover:bg-gray-50 list-none flex items-center justify-between">
+            <details key={i} className="group border border-border rounded-lg overflow-hidden">
+              <summary className="px-6 py-4 text-sm font-medium text-fg-primary cursor-pointer hover:bg-bg-subtle list-none flex items-center justify-between">
                 {item.q}
-                <svg className="w-4 h-4 text-gray-400 group-open:rotate-180 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <svg className="w-4 h-4 text-fg-tertiary group-open:rotate-180 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
                 </svg>
               </summary>
-              <div className="px-6 pb-4 text-sm text-gray-600 leading-relaxed">{item.a}</div>
+              <div className="px-6 pb-4 text-sm text-fg-secondary leading-relaxed">{item.a}</div>
             </details>
           ))}
         </div>
       )}
       {activeView === 'faq' && !product.questions && (
-        <div className="text-center py-12 text-gray-400 text-sm">Frequently asked questions about {product.title} pricing and features.</div>
+        <div className="text-center py-12 text-fg-tertiary text-sm">Frequently asked questions about {product.title} pricing and features.</div>
       )}
     </section>
   );
@@ -632,7 +632,7 @@ function Footer() {
         </div>
         <div className="border-t border-white/10 pt-8 flex items-center justify-between">
           <div className="flex items-center gap-4">
-            <div className="w-[30px] h-[30px] bg-brand-600 rounded flex items-center justify-center">
+            <div className="w-[30px] h-[30px] bg-accent-primary rounded flex items-center justify-center">
               <span className="text-white text-xs font-bold">DD</span>
             </div>
             <span className="text-sm text-white/40">© 2026 Zerotrace. All rights reserved.</span>
@@ -753,7 +753,7 @@ export default function ZerotracePricing() {
   const currentProduct = productSections.find((p) => p.id === activeProduct) || productSections[0];
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-bg-base">
       <TopNav />
       <Hero />
 
