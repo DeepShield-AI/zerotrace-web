@@ -246,9 +246,9 @@ export default function QueryBar({ value, onChange, onSubmit, placeholder, start
 
   return (
     <div className="relative">
-      <div className="flex items-center gap-2 bg-white rounded-xl border border-zinc-200/60 px-4 py-2 focus-within:border-brand-400 focus-within:ring-2 focus-within:ring-brand-100 transition-all">
+      <div className="flex items-center gap-2 bg-bg-elevated rounded-xl border border-border/60 px-4 py-2 focus-within:border-accent-primary focus-within:ring-2 focus-within:ring-accent-primary/20 transition-all">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-          strokeWidth="2" strokeLinecap="round" className="text-zinc-400 shrink-0">
+          strokeWidth="2" strokeLinecap="round" className="text-fg-tertiary shrink-0">
           <circle cx="11" cy="11" r="8" />
           <line x1="21" y1="21" x2="16.65" y2="16.65" />
         </svg>
@@ -260,14 +260,14 @@ export default function QueryBar({ value, onChange, onSubmit, placeholder, start
           onKeyDown={handleKeyDown}
           onFocus={() => setShowSuggestions(true)}
           placeholder={placeholder || 'Search traces…  service:api  operation:GET  status:error  duration:>100ms  tag:env:prod'}
-          className="flex-1 bg-transparent text-sm text-zinc-800 placeholder:text-zinc-400 outline-none font-mono"
+          className="flex-1 bg-transparent text-sm text-fg-primary placeholder:text-fg-tertiary outline-none font-mono"
           spellCheck={false}
           autoComplete="off"
         />
         {value && (
           <button
             onClick={() => onChange('')}
-            className="text-zinc-400 hover:text-zinc-600 transition-colors"
+            className="text-fg-tertiary hover:text-fg-secondary transition-colors"
           >
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
               strokeWidth="2" strokeLinecap="round">
@@ -281,11 +281,11 @@ export default function QueryBar({ value, onChange, onSubmit, placeholder, start
       {showSuggestions && filteredSuggestions.length > 0 && (
         <div
           ref={dropdownRef}
-          className="absolute top-full mt-1 left-0 right-0 bg-white border border-zinc-200 rounded-xl shadow-elevated z-50 max-h-72 overflow-y-auto animate-slide-up"
+          className="absolute top-full mt-1 left-0 right-0 bg-bg-elevated border border-border rounded-xl shadow-elevated z-50 max-h-72 overflow-y-auto animate-slide-up"
         >
           {filteredSuggestions.map((group, gi) => (
             <div key={group.label}>
-              <div className="px-4 py-1.5 text-[10px] font-semibold uppercase tracking-wider text-zinc-400 bg-zinc-50/50">
+              <div className="px-4 py-1.5 text-[10px] font-semibold uppercase tracking-wider text-fg-tertiary bg-bg-subtle/50">
                 {group.label}
               </div>
               {group.items.map((item, ii) => {
@@ -294,13 +294,13 @@ export default function QueryBar({ value, onChange, onSubmit, placeholder, start
                   <button
                     key={item.text}
                     className={`w-full text-left px-4 py-2 flex items-center gap-3 transition-colors ${
-                      selectedIndex === globalIndex ? 'bg-brand-50 text-brand-700' : 'hover:bg-zinc-50 text-zinc-700'
+                      selectedIndex === globalIndex ? 'bg-accent-primary/10 text-accent-primary' : 'hover:bg-bg-subtle text-fg-secondary'
                     }`}
                     onMouseDown={(e) => { e.preventDefault(); handleSelect(item); }}
                     onMouseEnter={() => setSelectedIndex(globalIndex)}
                   >
                     <code className="text-xs font-mono flex-1">{item.text}</code>
-                    <span className="text-[10px] text-zinc-400">{item.description}</span>
+                    <span className="text-[10px] text-fg-tertiary">{item.description}</span>
                   </button>
                 );
               })}
@@ -313,7 +313,7 @@ export default function QueryBar({ value, onChange, onSubmit, placeholder, start
       {value && (
         <div className="flex flex-wrap gap-1.5 mt-2">
           {value.split(/\s+/).filter(Boolean).map((token, i) => (
-            <span key={i} className="inline-flex items-center gap-1 bg-brand-50 text-brand-700 text-[11px] font-mono px-2 py-0.5 rounded-md border border-brand-100">
+            <span key={i} className="inline-flex items-center gap-1 bg-accent-primary/10 text-accent-primary text-[11px] font-mono px-2 py-0.5 rounded-md border border-accent-primary">
               {token}
               <button
                 onClick={() => {
@@ -321,7 +321,7 @@ export default function QueryBar({ value, onChange, onSubmit, placeholder, start
                   tokens.splice(i, 1);
                   onChange(tokens.join(' '));
                 }}
-                className="text-brand-400 hover:text-brand-600 ml-0.5"
+                className="text-accent-primary hover:text-accent-primary ml-0.5"
               >
                 <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                   strokeWidth="2.5" strokeLinecap="round">

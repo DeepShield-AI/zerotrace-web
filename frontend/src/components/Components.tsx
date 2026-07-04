@@ -7,22 +7,22 @@ export function KpiCard({ label, value, subtitle, accent = 'default', icon }: {
   icon?: ReactNode;
 }) {
   const colors: Record<string, { border: string; bg: string; value: string }> = {
-    purple: { border: 'border-l-brand-600', bg: 'bg-brand-50/30', value: 'text-brand-700' },
-    amber: { border: 'border-l-amber-400', bg: 'bg-amber-50/30', value: 'text-amber-700' },
-    green: { border: 'border-l-emerald-500', bg: 'bg-emerald-50/30', value: 'text-emerald-700' },
-    red: { border: 'border-l-red-400', bg: 'bg-red-50/30', value: 'text-red-700' },
-    blue: { border: 'border-l-blue-500', bg: 'bg-blue-50/30', value: 'text-blue-700' },
-    default: { border: 'border-l-gray-200', bg: 'bg-white', value: 'text-gray-900' },
+    purple: { border: 'border-l-accent-primary', bg: 'bg-accent-primary/10', value: 'text-accent-primary' },
+    amber: { border: 'border-l-amber-400', bg: 'bg-accent-warning-bg', value: 'text-accent-warning' },
+    green: { border: 'border-l-emerald-500', bg: 'bg-accent-success-bg', value: 'text-accent-success' },
+    red: { border: 'border-l-red-400', bg: 'bg-accent-danger-bg', value: 'text-accent-danger' },
+    blue: { border: 'border-l-blue-500', bg: 'bg-accent-info-bg', value: 'text-accent-info' },
+    default: { border: 'border-l-border', bg: 'bg-bg-elevated', value: 'text-fg-primary' },
   };
   const c = colors[accent];
   return (
-    <div className={`rounded-lg border border-gray-200 border-l-4 ${c.border} ${c.bg} p-4`}>
+    <div className={`rounded-lg border border-border border-l-4 ${c.border} ${c.bg} p-4`}>
       <div className="flex items-center gap-2 mb-1">
         {icon}
-        <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider">{label}</p>
+        <p className="text-xs font-semibold text-fg-tertiary uppercase tracking-wider">{label}</p>
       </div>
       <p className={`text-2xl font-bold ${c.value}`}>{value}</p>
-      {subtitle && <p className="text-xs text-gray-400 mt-1">{subtitle}</p>}
+      {subtitle && <p className="text-xs text-fg-tertiary mt-1">{subtitle}</p>}
     </div>
   );
 }
@@ -30,14 +30,14 @@ export function KpiCard({ label, value, subtitle, accent = 'default', icon }: {
 // ════════════════════════ STATUS BADGE ════════════════════════
 export function StatusBadge({ status, size = 'sm' }: { status: string; size?: 'xs' | 'sm' | 'md' }) {
   const m: Record<string, string> = {
-    active: 'bg-emerald-100 text-emerald-700', paid: 'bg-emerald-100 text-emerald-700',
-    open: 'bg-blue-100 text-blue-700', pending: 'bg-amber-100 text-amber-700',
-    draft: 'bg-gray-100 text-gray-600', canceled: 'bg-red-100 text-red-500',
-    error: 'bg-red-100 text-red-600', warning: 'bg-amber-100 text-amber-600',
-    success: 'bg-emerald-100 text-emerald-600', info: 'bg-blue-100 text-blue-600',
-    failed: 'bg-red-100 text-red-600', triggered: 'bg-red-100 text-red-600',
-    resolved: 'bg-emerald-100 text-emerald-600', muted: 'bg-gray-100 text-gray-500',
-    critical: 'bg-red-100 text-red-700', healthy: 'bg-emerald-100 text-emerald-700',
+    active: 'bg-accent-success-bg text-accent-success', paid: 'bg-accent-success-bg text-accent-success',
+    open: 'bg-accent-info-bg text-accent-info', pending: 'bg-accent-warning-bg text-accent-warning',
+    draft: 'bg-bg-muted text-fg-secondary', canceled: 'bg-accent-danger-bg text-accent-danger',
+    error: 'bg-accent-danger-bg text-accent-danger', warning: 'bg-accent-warning-bg text-accent-warning',
+    success: 'bg-accent-success-bg text-accent-success', info: 'bg-accent-info-bg text-accent-info',
+    failed: 'bg-accent-danger-bg text-accent-danger', triggered: 'bg-accent-danger-bg text-accent-danger',
+    resolved: 'bg-accent-success-bg text-accent-success', muted: 'bg-bg-muted text-fg-tertiary',
+    critical: 'bg-accent-danger-bg text-accent-danger', healthy: 'bg-accent-success-bg text-accent-success',
   };
   const sizes = { xs: 'px-1.5 py-0 text-[10px]', sm: 'px-2.5 py-0.5 text-[11px]', md: 'px-3 py-1 text-xs' };
   return (
@@ -48,7 +48,7 @@ export function StatusBadge({ status, size = 'sm' }: { status: string; size?: 'x
 }
 
 // ════════════════════════ PROGRESS BAR ════════════════════════
-export function ProgressBar({ used, total, label, colorClass = 'bg-brand-600' }: {
+export function ProgressBar({ used, total, label, colorClass = 'bg-accent-primary' }: {
   used: number; total: number; label?: string; colorClass?: string;
 }) {
   const pct = total > 0 ? Math.min((used / total) * 100, 100) : 0;
@@ -57,17 +57,17 @@ export function ProgressBar({ used, total, label, colorClass = 'bg-brand-600' }:
   return (
     <div className="space-y-1.5">
       {label && (
-        <div className="flex justify-between text-xs text-gray-500">
+        <div className="flex justify-between text-xs text-fg-tertiary">
           <span>{label}</span>
           <span className="font-mono">{used.toLocaleString()} / {total.toLocaleString()}</span>
         </div>
       )}
-      <div className="h-2 bg-gray-100 rounded-full overflow-hidden flex">
-        <div className={`h-full rounded-full transition-all duration-500 ${isOver ? 'bg-amber-400' : colorClass}`}
+      <div className="h-2 bg-bg-muted rounded-full overflow-hidden flex">
+        <div className={`h-full rounded-full transition-all duration-500 ${isOver ? 'bg-severity-warn' : colorClass}`}
           style={{ width: `${Math.min(pct, 100)}%` }} />
-        {isOver && <div className="h-full bg-red-400 rounded-r-full transition-all" style={{ width: `${Math.min(overPct, 100)}%` }} />}
+        {isOver && <div className="h-full bg-severity-alert rounded-r-full transition-all" style={{ width: `${Math.min(overPct, 100)}%` }} />}
       </div>
-      {isOver && <p className="text-[11px] text-red-500 font-medium">{Math.round(((used / total) - 1) * 100)}% over</p>}
+      {isOver && <p className="text-[11px] text-accent-danger font-medium">{Math.round(((used / total) - 1) * 100)}% over</p>}
     </div>
   );
 }
@@ -89,18 +89,18 @@ export function TimeRangeSelector({ value, onChange }: {
   return (
     <div className="relative">
       <button onClick={() => setOpen(!open)}
-        className="flex items-center gap-2 px-3 py-1.5 text-sm border border-gray-200 rounded-lg bg-white hover:border-gray-300 transition-colors font-medium text-gray-700">
-        <svg className="w-4 h-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+        className="flex items-center gap-2 px-3 py-1.5 text-sm border border-border rounded-lg bg-bg-elevated hover:border-border transition-colors font-medium text-fg-secondary">
+        <svg className="w-4 h-4 text-fg-tertiary" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
         {selected?.label || 'Custom'}
-        <svg className="w-3.5 h-3.5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
+        <svg className="w-3.5 h-3.5 text-fg-tertiary" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
       </button>
       {open && (
         <>
           <div className="fixed inset-0 z-40" onClick={() => setOpen(false)} />
-          <div className="absolute top-full mt-1 left-0 z-50 w-44 bg-white border border-gray-200 rounded-xl shadow-lg py-1.5 overflow-hidden">
+          <div className="absolute top-full mt-1 left-0 z-50 w-44 bg-bg-elevated border border-border rounded-xl shadow-lg py-1.5 overflow-hidden">
             {TIME_RANGES.map(t => (
               <button key={t.key} onClick={() => { onChange(t.key); setOpen(false); }}
-                className={`w-full text-left px-4 py-2 text-sm transition-colors ${value === t.key ? 'bg-brand-50 text-brand-700 font-medium' : 'text-gray-600 hover:bg-gray-50'}`}>
+                className={`w-full text-left px-4 py-2 text-sm transition-colors ${value === t.key ? 'bg-accent-primary/10 text-accent-primary font-medium' : 'text-fg-secondary hover:bg-bg-subtle'}`}>
                 {t.label}
               </button>
             ))}
@@ -116,10 +116,10 @@ export function EmptyState({ icon, title, description, action }: {
   icon?: string; title: string; description?: string; action?: ReactNode;
 }) {
   return (
-    <div className="bg-white border border-gray-200 rounded-xl p-16 text-center">
-      {icon && <div className="text-4xl mb-4 text-gray-200">{icon}</div>}
-      <h3 className="text-base font-semibold text-gray-700 mb-2">{title}</h3>
-      {description && <p className="text-sm text-gray-400 max-w-md mx-auto leading-relaxed">{description}</p>}
+    <div className="bg-bg-elevated border border-border rounded-xl p-16 text-center">
+      {icon && <div className="text-4xl mb-4 text-fg-disabled">{icon}</div>}
+      <h3 className="text-base font-semibold text-fg-secondary mb-2">{title}</h3>
+      {description && <p className="text-sm text-fg-tertiary max-w-md mx-auto leading-relaxed">{description}</p>}
       {action && <div className="mt-4">{action}</div>}
     </div>
   );
@@ -130,7 +130,7 @@ export function Spinner({ size = 'md' }: { size?: 'sm' | 'md' | 'lg' }) {
   const sizes = { sm: 'h-4 w-4', md: 'h-8 w-8', lg: 'h-12 w-12' };
   return (
     <div className="flex justify-center py-20">
-      <div className={`animate-spin ${sizes[size]} border-2 border-brand-600 border-t-transparent rounded-full`} />
+      <div className={`animate-spin ${sizes[size]} border-2 border-accent-primary border-t-transparent rounded-full`} />
     </div>
   );
 }
@@ -153,7 +153,7 @@ export function DataTable<T extends { id?: number | string }>({
     <div className="overflow-x-auto">
       <table className="w-full text-sm">
         <thead>
-          <tr className="border-b border-gray-200 text-left text-[11px] font-semibold text-gray-400 uppercase tracking-wider">
+          <tr className="border-b border-border text-left text-[11px] font-semibold text-fg-tertiary uppercase tracking-wider">
             {columns.map(col => (
               <th key={col.key} className={`py-2 px-4 ${col.align === 'right' ? 'text-right' : col.align === 'center' ? 'text-center' : 'text-left'}`}
                 style={col.width ? { width: col.width } : {}}>
@@ -164,11 +164,11 @@ export function DataTable<T extends { id?: number | string }>({
         </thead>
         <tbody>
           {rows.length === 0 ? (
-            <tr><td colSpan={columns.length} className="py-16 text-center text-gray-300 text-sm">{emptyMessage}</td></tr>
+            <tr><td colSpan={columns.length} className="py-16 text-center text-fg-disabled text-sm">{emptyMessage}</td></tr>
           ) : (
             rows.map((row, i) => (
               <tr key={row.id ?? i} onClick={() => onRowClick?.(row)}
-                className={`border-b border-gray-50 ${onRowClick ? 'cursor-pointer hover:bg-gray-50/50 transition-colors' : ''}`}>
+                className={`border-b border-border-subtle ${onRowClick ? 'cursor-pointer hover:bg-bg-subtle/50 transition-colors' : ''}`}>
                 {columns.map(col => (
                   <td key={col.key} className={`py-2.5 px-4 ${col.align === 'right' ? 'text-right' : col.align === 'center' ? 'text-center' : ''}`}>
                     {col.render(row)}
@@ -190,15 +190,15 @@ export function Modal({ open, onClose, title, children, footer }: {
   if (!open) return null;
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm" onClick={onClose}>
-      <div className="bg-white rounded-2xl shadow-xl w-full max-w-md overflow-hidden" onClick={e => e.stopPropagation()}>
-        <div className="px-6 py-5 border-b border-gray-100 flex items-center justify-between">
-          <h3 className="text-lg font-semibold text-gray-900">{title}</h3>
-          <button onClick={onClose} className="text-gray-400 hover:text-gray-600 transition-colors">
+      <div className="bg-bg-elevated rounded-2xl shadow-xl w-full max-w-md overflow-hidden" onClick={e => e.stopPropagation()}>
+        <div className="px-6 py-5 border-b border-border-subtle flex items-center justify-between">
+          <h3 className="text-lg font-semibold text-fg-primary">{title}</h3>
+          <button onClick={onClose} className="text-fg-tertiary hover:text-fg-secondary transition-colors">
             <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
           </button>
         </div>
         <div className="px-6 py-4">{children}</div>
-        {footer && <div className="px-6 py-4 border-t border-gray-100 bg-gray-50/50">{footer}</div>}
+        {footer && <div className="px-6 py-4 border-t border-border-subtle bg-bg-subtle/50">{footer}</div>}
       </div>
     </div>
   );
@@ -211,16 +211,16 @@ export function Tabs<T extends string>({ tabs, active, onChange }: {
   onChange: (key: T) => void;
 }) {
   return (
-    <div className="flex gap-1 border-b border-gray-200">
+    <div className="flex gap-1 border-b border-border">
       {tabs.map(t => (
         <button key={t.key} onClick={() => onChange(t.key)}
           className={`px-5 py-3 text-sm font-medium border-b-[2px] -mb-[2px] transition-colors ${
-            active === t.key ? 'text-brand-600 border-brand-600' : 'text-gray-500 border-transparent hover:text-gray-700 hover:border-gray-300'
+            active === t.key ? 'text-accent-primary border-accent-primary' : 'text-fg-tertiary border-transparent hover:text-fg-secondary hover:border-border'
           }`}>
           {t.label}
           {t.count != null && (
             <span className={`ml-1.5 px-1.5 py-0.5 rounded-full text-[10px] font-bold ${
-              active === t.key ? 'bg-brand-100 text-brand-600' : 'bg-gray-100 text-gray-500'
+              active === t.key ? 'bg-accent-primary/10 text-accent-primary' : 'bg-bg-muted text-fg-tertiary'
             }`}>{t.count}</span>
           )}
         </button>

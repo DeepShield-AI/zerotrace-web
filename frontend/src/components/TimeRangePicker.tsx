@@ -32,13 +32,13 @@ export function parseRange(val: string): { start: number; end: number } {
 /* ── Inline presets (horizontal pill buttons) ── */
 export function TimeRangePresets({ value, onChange }: { value: string; onChange: (v: string) => void }) {
   return (
-    <div className="inline-flex rounded-lg border border-gray-200 bg-white p-0.5 gap-0.5">
+    <div className="inline-flex rounded-lg border border-border bg-bg-elevated p-0.5 gap-0.5">
       {OPTIONS.filter(o => o.value !== 'custom').map(o => (
         <button key={o.value} onClick={() => onChange(o.value)}
           className={`px-2.5 py-1 text-[11px] font-semibold rounded-md transition-all ${
             value === o.value
-              ? 'bg-brand-600 text-white shadow-sm'
-              : 'text-gray-500 hover:text-gray-700 hover:bg-gray-100'
+              ? 'bg-accent-primary text-fg-inverse shadow-sm'
+              : 'text-fg-tertiary hover:text-fg-secondary hover:bg-bg-muted'
           }`}>
           {o.shortLabel}
         </button>
@@ -61,22 +61,22 @@ export default function TimeRangePicker({ value, onChange }: { value: string; on
   return (
     <div ref={ref} className="relative inline-block">
       <button onClick={() => setOpen(!open)}
-        className="flex items-center gap-2 h-8 px-3 text-[12px] font-medium text-gray-600 bg-white border border-gray-200 rounded-lg hover:border-gray-300 hover:bg-gray-50 transition-colors focus:outline-none focus:border-brand-500 focus:ring-1 focus:ring-brand-200">
-        <svg className="w-4 h-4 text-gray-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round">
+        className="flex items-center gap-2 h-8 px-3 text-[12px] font-medium text-fg-secondary bg-bg-elevated border border-border rounded-lg hover:border-border hover:bg-bg-subtle transition-colors focus:outline-none focus:border-accent-primary focus:ring-1 focus:ring-accent-primary">
+        <svg className="w-4 h-4 text-fg-tertiary" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round">
           <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
         </svg>
         <span>{selected.label}</span>
-        <svg className={`w-3 h-3 text-gray-400 transition-transform duration-150 ${open ? 'rotate-180' : ''}`} viewBox="0 0 12 12" fill="currentColor">
+        <svg className={`w-3 h-3 text-fg-tertiary transition-transform duration-150 ${open ? 'rotate-180' : ''}`} viewBox="0 0 12 12" fill="currentColor">
           <path d="M6 8L2 4h8z"/>
         </svg>
       </button>
 
       {open && (
-        <div className="absolute right-0 top-full mt-1 bg-white border border-gray-200 rounded-xl shadow-lg z-50 py-1.5 min-w-[190px]">
+        <div className="absolute right-0 top-full mt-1 bg-bg-elevated border border-border rounded-xl shadow-lg z-50 py-1.5 min-w-[190px]">
           {OPTIONS.map(o => (
             <button key={o.value} onClick={() => { onChange(o.value); setOpen(false); }}
               className={`w-full text-left px-4 py-2.5 text-[13px] transition-colors flex items-center justify-between ${
-                value === o.value ? 'bg-brand-50 text-brand-700 font-semibold' : 'text-gray-600 hover:bg-gray-50'
+                value === o.value ? 'bg-accent-primary/10 text-accent-primary font-semibold' : 'text-fg-secondary hover:bg-bg-subtle'
               }`}>
               <span>{o.label}</span>
               {value === o.value && (
