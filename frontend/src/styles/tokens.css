@@ -28,7 +28,7 @@
   --color-neutral-900: #17191f;
   --color-neutral-950: #091222;
 
-  /* Chromatic (Datadog 真实提取)  */
+  /* Chromatic */
   --color-purple-300: #b48fe1;
   --color-purple-500: #8c4fff;   /* JS 频次 39, primary */
   --color-purple-700: #632ca6;   /* brand deep */
@@ -45,7 +45,7 @@
   --color-pink-500:   #ed1978;
   --color-pink-300:   #ff529c;
 
-  /* Chart series (Datadog SPA JS bundle 提取) */
+  /* Chart series */
   --chart-1: #8c4fff;
   --chart-2: #128fea;
   --chart-3: #01a88d;
@@ -57,7 +57,7 @@
   --chart-9: #c925d1;
   --chart-10: #7aa116;
 
-  /* Spacing (4pt grid, Datadog usage: 8=208次 4=157次 16=64次) */
+  /* Spacing (4pt grid) */
   --size-0:   0px;
   --size-px:  1px;
   --size-0-5: 2px;
@@ -173,14 +173,14 @@
 /* ═══════════════════════════════════════════════════════════════════ */
 
 .dark {
-  /* Backgrounds — Datadog 真实产品 UI 值 */
+  /* Backgrounds */
   --bg-base:     var(--color-neutral-900);     /* #17191f */
   --bg-subtle:   #202f38;
   --bg-muted:    #1d1c1f;
   --bg-elevated: var(--color-neutral-700);     /* #373b46 */
   --bg-inverse:  var(--color-neutral-50);
 
-  /* Foregrounds — Datadog 真实值 */
+  /* Foregrounds */
   --fg-primary:   var(--color-neutral-50);     /* #f3f9fc */
   --fg-secondary: #d4d1d6;
   --fg-tertiary:  #8f969a;
