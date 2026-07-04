@@ -6,12 +6,12 @@
 # the Dockerfile can COPY them without internet access.
 #
 # Usage:
-#   ./prepare-docker-build.sh
+#   ./scripts/prepare-docker-build.sh
 #   docker build -t zerotrace-web:latest .
 # =============================================================================
 set -euo pipefail
 
-SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+SCRIPT_DIR="$(cd "$(dirname "$0")/.." && pwd)"
 BUILD_DIR="$SCRIPT_DIR/build"
 
 echo "==> Cleaning build/ directory..."
