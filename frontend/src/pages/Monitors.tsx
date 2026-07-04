@@ -29,8 +29,8 @@ const MOCK_MONITORS: Monitor[] = [
 ];
 
 const priorityColor = (p: string) => {
-  const m: Record<string, string> = { P1: 'text-red-600', P2: 'text-amber-600', P3: 'text-yellow-600', P4: 'text-blue-600', P5: 'text-gray-500' };
-  return m[p] || 'text-gray-500';
+  const m: Record<string, string> = { P1: 'text-accent-danger', P2: 'text-accent-warning', P3: 'text-yellow-600', P4: 'text-accent-info', P5: 'text-fg-tertiary' };
+  return m[p] || 'text-fg-tertiary';
 };
 
 export default function Monitors() {
@@ -73,12 +73,12 @@ export default function Monitors() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-xl font-bold text-gray-900">Monitors</h2>
-          <p className="text-sm text-gray-400 mt-0.5">Manage and configure monitoring alerts</p>
+          <h2 className="text-xl font-bold text-fg-primary">Monitors</h2>
+          <p className="text-sm text-fg-tertiary mt-0.5">Manage and configure monitoring alerts</p>
         </div>
         <div className="flex items-center gap-3">
           <TimeRangeSelector value={timeRange} onChange={setTimeRange} />
-          <Link to="/monitors/create" className="inline-flex items-center px-4 py-2.5 bg-brand-600 text-white text-sm font-semibold rounded-md hover:bg-brand-700 transition-colors">
+          <Link to="/monitors/create" className="inline-flex items-center px-4 py-2.5 bg-accent-primary text-fg-inverse text-sm font-semibold rounded-md hover:opacity-90 transition-colors">
             + New Monitor
           </Link>
         </div>
@@ -86,47 +86,47 @@ export default function Monitors() {
 
       {/* KPI row */}
       <div className="grid grid-cols-4 gap-3">
-        <div className="bg-white border border-gray-200 rounded-lg p-4">
-          <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-1">Total</p>
-          <p className="text-xl font-bold text-gray-900">{stats.total}</p>
+        <div className="bg-bg-elevated border border-border rounded-lg p-4">
+          <p className="text-[11px] font-semibold text-fg-tertiary uppercase tracking-wider mb-1">Total</p>
+          <p className="text-xl font-bold text-fg-primary">{stats.total}</p>
         </div>
-        <div className="bg-white border border-gray-200 rounded-lg p-4 border-l-4 border-l-red-400">
-          <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-1">Alerting</p>
-          <p className="text-xl font-bold text-red-600">{stats.alerting}</p>
+        <div className="bg-bg-elevated border border-border rounded-lg p-4 border-l-4 border-l-red-400">
+          <p className="text-[11px] font-semibold text-fg-tertiary uppercase tracking-wider mb-1">Alerting</p>
+          <p className="text-xl font-bold text-accent-danger">{stats.alerting}</p>
         </div>
-        <div className="bg-white border border-gray-200 rounded-lg p-4 border-l-4 border-l-amber-400">
-          <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-1">Warning</p>
-          <p className="text-xl font-bold text-amber-600">{stats.warning}</p>
+        <div className="bg-bg-elevated border border-border rounded-lg p-4 border-l-4 border-l-amber-400">
+          <p className="text-[11px] font-semibold text-fg-tertiary uppercase tracking-wider mb-1">Warning</p>
+          <p className="text-xl font-bold text-accent-warning">{stats.warning}</p>
         </div>
-        <div className="bg-white border border-gray-200 rounded-lg p-4">
-          <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-1">Muted</p>
-          <p className="text-xl font-bold text-gray-400">{stats.muted}</p>
+        <div className="bg-bg-elevated border border-border rounded-lg p-4">
+          <p className="text-[11px] font-semibold text-fg-tertiary uppercase tracking-wider mb-1">Muted</p>
+          <p className="text-xl font-bold text-fg-tertiary">{stats.muted}</p>
         </div>
       </div>
 
       {/* Filters */}
       <div className="flex items-center gap-3">
         <div className="relative flex-1 max-w-sm">
-          <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+          <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-fg-tertiary" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
           <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Filter monitors..."
-            className="w-full pl-9 pr-4 py-2 text-sm border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-brand-200" />
+            className="w-full pl-9 pr-4 py-2 text-sm border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-brand-200" />
         </div>
-        <div className="flex gap-1 bg-gray-100 rounded-md p-0.5">
+        <div className="flex gap-1 bg-bg-muted rounded-md p-0.5">
           {statusOptions.map(s => (
             <button key={s} onClick={() => setStatusFilter(s)}
               className={`px-3 py-1.5 text-xs font-medium rounded transition-all capitalize ${
-                statusFilter === s ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'
+                statusFilter === s ? 'bg-bg-elevated text-fg-primary shadow-sm' : 'text-fg-tertiary hover:text-fg-secondary'
               }`}>{s === 'all' ? 'All' : s.replace('_', ' ')}</button>
           ))}
         </div>
         <div className="flex items-center gap-1 ml-auto">
-          <button className="px-3 py-1.5 text-xs font-medium text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded transition-colors">Export</button>
-          <Link to="/monitors/downtimes" className="px-3 py-1.5 text-xs font-medium text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded transition-colors">Downtimes</Link>
+          <button className="px-3 py-1.5 text-xs font-medium text-fg-tertiary hover:text-fg-secondary hover:bg-bg-muted rounded transition-colors">Export</button>
+          <Link to="/monitors/downtimes" className="px-3 py-1.5 text-xs font-medium text-fg-tertiary hover:text-fg-secondary hover:bg-bg-muted rounded transition-colors">Downtimes</Link>
         </div>
       </div>
 
       {/* Monitor table */}
-      <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
+      <div className="bg-bg-elevated border border-border rounded-lg overflow-hidden">
         <DataTable
           columns={[
             {
@@ -139,14 +139,14 @@ export default function Monitors() {
             },
             {
               key: 'muted', header: 'Muted', width: '70px', align: 'center',
-              render: (m: Monitor) => m.muted ? <span className="text-amber-500 text-xs font-medium">Muted</span> : <span className="text-gray-300">—</span>,
+              render: (m: Monitor) => m.muted ? <span className="text-accent-warning text-xs font-medium">Muted</span> : <span className="text-fg-disabled">—</span>,
             },
             {
               key: 'name', header: 'Name',
               render: (m: Monitor) => (
                 <div>
-                  <Link to={`/monitors/${m.id}`} className="text-sm font-medium text-gray-900 hover:text-brand-600 transition-colors">{m.name}</Link>
-                  <p className="text-[11px] text-gray-400">{m.type}</p>
+                  <Link to={`/monitors/${m.id}`} className="text-sm font-medium text-fg-primary hover:text-accent-primary transition-colors">{m.name}</Link>
+                  <p className="text-[11px] text-fg-tertiary">{m.type}</p>
                 </div>
               ),
             },
@@ -155,7 +155,7 @@ export default function Monitors() {
               render: (m: Monitor) => (
                 <div className="flex flex-wrap gap-1">
                   {m.tags.map(tag => (
-                    <span key={tag} className="text-[10px] px-1.5 py-0.5 bg-gray-100 text-gray-500 rounded">{tag}</span>
+                    <span key={tag} className="text-[10px] px-1.5 py-0.5 bg-bg-muted text-fg-tertiary rounded">{tag}</span>
                   ))}
                 </div>
               ),
@@ -166,7 +166,7 @@ export default function Monitors() {
         />
       </div>
 
-      <div className="flex items-center justify-between text-xs text-gray-400">
+      <div className="flex items-center justify-between text-xs text-fg-tertiary">
         <span>{filtered.length} of {MOCK_MONITORS.length} monitors</span>
         <span>Auto-refresh: 30s</span>
       </div>

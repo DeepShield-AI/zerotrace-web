@@ -62,17 +62,17 @@ function StatCard({ label, value, sub, color = '#632CA6', sparkline }: {
   label: string; value: string; sub?: string; color?: string; sparkline?: number[];
 }) {
   return (
-    <div className="bg-white border border-zinc-200 rounded-lg p-4 hover:shadow-sm transition-shadow group cursor-pointer">
-      <p className="text-[11px] text-zinc-500 font-medium uppercase tracking-wider mb-2">{label}</p>
+    <div className="bg-bg-elevated border border-border rounded-lg p-4 hover:shadow-sm transition-shadow group cursor-pointer">
+      <p className="text-[11px] text-fg-tertiary font-medium uppercase tracking-wider mb-2">{label}</p>
       <div className="flex items-end justify-between gap-2">
-        <p className="text-2xl font-bold text-zinc-900 font-mono tracking-tight" style={{ color }}>
+        <p className="text-2xl font-bold text-fg-primary font-mono tracking-tight" style={{ color }}>
           {value}
         </p>
         {sparkline && sparkline.length >= 2 && (
           <MiniSparkline data={sparkline} color={color} />
         )}
       </div>
-      {sub && <p className="text-[11px] text-zinc-400 mt-1">{sub}</p>}
+      {sub && <p className="text-[11px] text-fg-tertiary mt-1">{sub}</p>}
     </div>
   );
 }
@@ -268,8 +268,8 @@ export default function MetricsPage() {
       {/* ── Header ── */}
       <div className="flex items-center justify-between mb-2">
         <div>
-          <h1 className="text-[22px] font-bold text-zinc-900">{t('metricsPage.title', { defaultValue: 'Metrics Explorer' })}</h1>
-          <p className="text-xs text-zinc-400 mt-0.5">
+          <h1 className="text-[22px] font-bold text-fg-primary">{t('metricsPage.title', { defaultValue: 'Metrics Explorer' })}</h1>
+          <p className="text-xs text-fg-tertiary mt-0.5">
             {loading ? 'Loading...' : `${filteredCount} of ${totalCount} metrics`}
           </p>
         </div>
@@ -286,7 +286,7 @@ export default function MetricsPage() {
               }
             }}
             size="small"
-            className="border-zinc-200"
+            className="border-border"
           />
         </div>
       </div>
@@ -296,31 +296,31 @@ export default function MetricsPage() {
         <div className="flex items-center justify-center py-24"><Spin size="large" /></div>
       ) : loadError ? (
         <div className="flex flex-col items-center justify-center py-24 text-center">
-          <div className="w-12 h-12 rounded-2xl bg-red-50 flex items-center justify-center mb-4">
+          <div className="w-12 h-12 rounded-2xl bg-accent-danger-bg flex items-center justify-center mb-4">
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#ef4444" strokeWidth="1.5">
               <circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/>
             </svg>
           </div>
-          <p className="text-sm font-medium text-zinc-600 mb-1">Failed to load metrics</p>
-          <p className="text-xs text-zinc-400 max-w-md">{loadError}</p>
-          <button onClick={() => window.location.reload()} className="mt-4 px-4 py-2 text-xs font-medium bg-zinc-100 hover:bg-zinc-200 rounded-lg transition-colors">
+          <p className="text-sm font-medium text-fg-secondary mb-1">Failed to load metrics</p>
+          <p className="text-xs text-fg-tertiary max-w-md">{loadError}</p>
+          <button onClick={() => window.location.reload()} className="mt-4 px-4 py-2 text-xs font-medium bg-bg-muted hover:bg-bg-muted rounded-lg transition-colors">
             Retry
           </button>
         </div>
       ) : (
         <div className="flex gap-5">
           {/* ── Left sidebar: metric list ── */}
-          <div className="w-[260px] shrink-0 bg-white border border-zinc-200 rounded-lg overflow-hidden flex flex-col" style={{ maxHeight: 'calc(100vh - 200px)' }}>
+          <div className="w-[260px] shrink-0 bg-bg-elevated border border-border rounded-lg overflow-hidden flex flex-col" style={{ maxHeight: 'calc(100vh - 200px)' }}>
             {/* Search */}
-            <div className="p-3 border-b border-zinc-100">
+            <div className="p-3 border-b border-border-subtle">
               <div className="relative mb-3">
-                <SearchOutlined className="absolute left-2.5 top-1/2 -translate-y-1/2 text-zinc-400 text-[12px]" />
+                <SearchOutlined className="absolute left-2.5 top-1/2 -translate-y-1/2 text-fg-tertiary text-[12px]" />
                 <input
                   value={search}
                   onChange={e => setSearch(e.target.value)}
                   placeholder="Filter metrics..."
-                  className="w-full h-8 pl-8 pr-2 text-[12px] border border-zinc-200 rounded bg-white
-                    placeholder:text-zinc-400 focus:outline-none focus:border-[#632CA6] focus:ring-1 focus:ring-[#632CA6]/10 transition-all"
+                  className="w-full h-8 pl-8 pr-2 text-[12px] border border-border rounded bg-bg-elevated
+                    placeholder:text-fg-tertiary focus:outline-none focus:border-accent-primary focus:ring-1 focus:ring-accent-primary/10 transition-all"
                 />
               </div>
               <div className="flex items-center gap-1 flex-wrap">
@@ -330,8 +330,8 @@ export default function MetricsPage() {
                     onClick={() => setExpandedCats(prev => ({ ...prev, [cat]: !prev[cat] }))}
                     className={`flex items-center gap-1.5 px-2 py-0.5 text-[10px] font-medium rounded-full transition-all ${
                       expandedCats[cat]
-                        ? 'bg-zinc-800 text-white'
-                        : 'bg-zinc-100 text-zinc-500 hover:bg-zinc-200'
+                        ? 'bg-bg-elevated text-fg-inverse'
+                        : 'bg-bg-muted text-fg-tertiary hover:bg-bg-muted'
                     }`}
                   >
                     <CategoryIcon category={cat} />
@@ -344,17 +344,17 @@ export default function MetricsPage() {
             {/* Metric list */}
             <div className="flex-1 overflow-y-auto">
               {filteredGroups.size === 0 ? (
-                <p className="text-xs text-zinc-400 text-center py-12">No metrics match your search</p>
+                <p className="text-xs text-fg-tertiary text-center py-12">No metrics match your search</p>
               ) : (
                 Array.from(filteredGroups.entries()).map(([cat, list]) => (
                   <div key={cat}>
                     <button
                       onClick={() => setExpandedCats(prev => ({ ...prev, [cat]: !prev[cat] }))}
-                      className="w-full flex items-center gap-2 px-3 py-2 text-[11px] font-semibold text-zinc-500 uppercase tracking-wider hover:bg-zinc-50 transition-colors sticky top-0 bg-white border-b border-zinc-100"
+                      className="w-full flex items-center gap-2 px-3 py-2 text-[11px] font-semibold text-fg-tertiary uppercase tracking-wider hover:bg-bg-subtle transition-colors sticky top-0 bg-bg-elevated border-b border-border-subtle"
                     >
                       <CategoryIcon category={cat} />
                       <span className="flex-1 text-left">{cat}</span>
-                      <span className="text-[10px] text-zinc-400 font-mono">{list.length}</span>
+                      <span className="text-[10px] text-fg-tertiary font-mono">{list.length}</span>
                       <svg className={`w-3 h-3 transition-transform ${expandedCats[cat] ? 'rotate-180' : ''}`} viewBox="0 0 12 12" fill="currentColor">
                         <path d="M6 8L2 4h8z" />
                       </svg>
@@ -363,21 +363,21 @@ export default function MetricsPage() {
                       <button
                         key={m.name}
                         onClick={() => setSelected(m.name)}
-                        className={`w-full text-left px-3 py-2.5 transition-colors border-b border-zinc-50 ${
+                        className={`w-full text-left px-3 py-2.5 transition-colors border-b border-border-subtle ${
                           selected === m.name
-                            ? 'bg-[#F3F0FA] border-l-[3px] border-l-[#632CA6]'
-                            : 'hover:bg-zinc-50 border-l-[3px] border-l-transparent'
+                            ? 'bg-accent-primary/10 border-l-[3px] border-l-accent-primary'
+                            : 'hover:bg-bg-subtle border-l-[3px] border-l-transparent'
                         }`}
                       >
                         <div className="flex items-center gap-2">
-                          <span className="text-[12px] font-medium text-zinc-800 truncate flex-1">
+                          <span className="text-[12px] font-medium text-fg-primary truncate flex-1">
                             {m.display_name}
                           </span>
-                          <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-zinc-100 text-zinc-500 font-mono">
+                          <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-bg-muted text-fg-tertiary font-mono">
                             {m.type}
                           </span>
                         </div>
-                        <p className="text-[10px] text-zinc-400 font-mono mt-0.5 truncate">{m.name}</p>
+                        <p className="text-[10px] text-fg-tertiary font-mono mt-0.5 truncate">{m.name}</p>
                       </button>
                     ))}
                   </div>
@@ -393,14 +393,14 @@ export default function MetricsPage() {
                 {/* Metric header + actions */}
                 <div className="flex items-start justify-between">
                   <div>
-                    <h3 className="text-lg font-bold text-zinc-900">{selectedDef.display_name}</h3>
+                    <h3 className="text-lg font-bold text-fg-primary">{selectedDef.display_name}</h3>
                     <div className="flex items-center gap-2 mt-0.5">
-                      <code className="text-xs text-zinc-500 font-mono">{selectedDef.name}</code>
-                      <span className="text-[10px] px-1.5 py-0.5 rounded bg-zinc-100 text-zinc-500 font-medium uppercase">
+                      <code className="text-xs text-fg-tertiary font-mono">{selectedDef.name}</code>
+                      <span className="text-[10px] px-1.5 py-0.5 rounded bg-bg-muted text-fg-tertiary font-medium uppercase">
                         {selectedDef.type}
                       </span>
                       {selectedDef.description && (
-                        <span className="text-xs text-zinc-400">{selectedDef.description}</span>
+                        <span className="text-xs text-fg-tertiary">{selectedDef.description}</span>
                       )}
                     </div>
                   </div>
@@ -408,14 +408,14 @@ export default function MetricsPage() {
                   {/* Action buttons */}
                   <div className="flex items-center gap-2">
                     <Tooltip title="Copy query">
-                      <Button size="small" icon={<CopyOutlined />} onClick={() => handleCopy(selectedDef.name)} className="border-zinc-200 text-xs" />
+                      <Button size="small" icon={<CopyOutlined />} onClick={() => handleCopy(selectedDef.name)} className="border-border text-xs" />
                     </Tooltip>
                     <Button size="small" icon={<PlusOutlined />} onClick={() => navigate('/dashboards')}
-                      className="border-zinc-200 text-xs">
+                      className="border-border text-xs">
                       Dashboard
                     </Button>
                     <Button size="small" icon={<LinkOutlined />} onClick={() => navigate('/monitors')}
-                      className="border-zinc-200 text-xs">
+                      className="border-border text-xs">
                       Monitor
                     </Button>
                   </div>
@@ -449,26 +449,26 @@ export default function MetricsPage() {
                 )}
 
                 {/* Chart */}
-                <div className="bg-white border border-zinc-200 rounded-lg overflow-hidden">
-                  <div className="px-4 py-3 border-b border-zinc-100 flex items-center justify-between bg-zinc-50/50">
-                    <h4 className="text-[11px] font-bold text-zinc-500 uppercase tracking-wider">Time Series</h4>
+                <div className="bg-bg-elevated border border-border rounded-lg overflow-hidden">
+                  <div className="px-4 py-3 border-b border-border-subtle flex items-center justify-between bg-bg-subtle/50">
+                    <h4 className="text-[11px] font-bold text-fg-tertiary uppercase tracking-wider">Time Series</h4>
                     <div className="flex items-center gap-3">
-                      <span className="text-[10px] text-zinc-400 font-mono">{points.length} points</span>
-                      <span className="text-[10px] text-zinc-400">
-                        Agg: <span className="font-semibold text-zinc-600">avg</span>
+                      <span className="text-[10px] text-fg-tertiary font-mono">{points.length} points</span>
+                      <span className="text-[10px] text-fg-tertiary">
+                        Agg: <span className="font-semibold text-fg-secondary">avg</span>
                       </span>
                     </div>
                   </div>
                   {chartLoading ? (
                     <div className="flex items-center justify-center py-20"><Spin /></div>
                   ) : chartError ? (
-                    <div className="flex items-center justify-center py-20 text-sm text-red-500">{chartError}</div>
+                    <div className="flex items-center justify-center py-20 text-sm text-accent-danger">{chartError}</div>
                   ) : points.length === 0 ? (
                     <div className="flex flex-col items-center justify-center py-20 text-center">
-                      <svg className="w-12 h-12 text-zinc-200 mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <svg className="w-12 h-12 text-fg-disabled mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
                       </svg>
-                      <p className="text-sm text-zinc-400">No data for this time range</p>
+                      <p className="text-sm text-fg-tertiary">No data for this time range</p>
                     </div>
                   ) : (
                     <div className="p-4">

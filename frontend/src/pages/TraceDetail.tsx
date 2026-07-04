@@ -129,16 +129,16 @@ function TraceHeader({ trace, services }: { trace: TraceData; services: string[]
     <div className="mb-4">
       {/* Breadcrumb */}
       <div className="flex items-center gap-2.5 mb-3">
-        <button onClick={() => window.history.back()} className="text-zinc-400 hover:text-zinc-500"><ArrowLeftOutlined className="text-xs" /></button>
-        <span className="text-zinc-300 text-xs">/</span>
-        <Link to="/apm?view=traces" className="text-xs text-zinc-500 hover:text-zinc-700">Traces</Link>
-        <span className="text-zinc-300 text-xs">/</span>
-        <span className="text-xs font-mono font-semibold text-zinc-800 truncate max-w-[280px]">
+        <button onClick={() => window.history.back()} className="text-fg-tertiary hover:text-fg-secondary"><ArrowLeftOutlined className="text-xs" /></button>
+        <span className="text-fg-disabled text-xs">/</span>
+        <Link to="/apm?view=traces" className="text-xs text-fg-secondary hover:text-fg-secondary">Traces</Link>
+        <span className="text-fg-disabled text-xs">/</span>
+        <span className="text-xs font-mono font-semibold text-fg-primary truncate max-w-[280px]">
           {trace.trace_id.length > 28 ? trace.trace_id.slice(0, 28) + '…' : trace.trace_id}
         </span>
         <button
           onClick={() => { navigator.clipboard.writeText(trace.trace_id); }}
-          className="text-[10px] text-zinc-400 hover:text-zinc-600 bg-zinc-100 hover:bg-zinc-200 px-2 py-0.5 rounded border border-zinc-200 transition-colors"
+          className="text-[10px] text-fg-tertiary hover:text-fg-secondary bg-bg-muted hover:bg-bg-muted px-2 py-0.5 rounded border border-border transition-colors"
           title="Copy trace ID"
         >
           Copy ID
@@ -149,39 +149,39 @@ function TraceHeader({ trace, services }: { trace: TraceData; services: string[]
       <div className="flex flex-wrap items-center gap-3">
         {/* Status badge */}
         <span className={`inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1 rounded-full ${
-          trace.status === 'ok' ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-red-50 text-red-700 border border-red-200'
+          trace.status === 'ok' ? 'bg-accent-success-bg text-accent-success border border-emerald-200' : 'bg-accent-danger-bg text-accent-danger border border-red-200'
         }`}>
-          <span className={`w-2 h-2 rounded-full ${trace.status === 'ok' ? 'bg-emerald-500' : 'bg-red-500'}`} />
+          <span className={`w-2 h-2 rounded-full ${trace.status === 'ok' ? 'bg-severity-ok' : 'bg-severity-alert'}`} />
           {trace.status === 'ok' ? 'OK' : `${trace.error_count} error${trace.error_count !== 1 ? 's' : ''}`}
         </span>
 
         {/* Duration */}
-        <span className="text-xs text-zinc-600 font-mono bg-zinc-100 border border-zinc-200 px-2.5 py-1 rounded-full">
+        <span className="text-xs text-fg-secondary font-mono bg-bg-muted border border-border px-2.5 py-1 rounded-full">
           {fmtDurationExact(trace.duration_us)}
         </span>
 
         {/* Spans */}
-        <span className="text-xs text-zinc-500">
-          <strong className="text-zinc-700">{trace.span_count}</strong> spans
-          {services.length > 0 && <> across <strong className="text-zinc-700">{services.length}</strong> service{services.length !== 1 ? 's' : ''}</>}
+        <span className="text-xs text-fg-secondary">
+          <strong className="text-fg-secondary">{trace.span_count}</strong> spans
+          {services.length > 0 && <> across <strong className="text-fg-secondary">{services.length}</strong> service{services.length !== 1 ? 's' : ''}</>}
         </span>
 
         {/* Root service */}
         {trace.root_service && (
-          <span className="text-xs text-zinc-500">
-            Root: <span className="font-medium text-zinc-700">{trace.root_service}</span>
+          <span className="text-xs text-fg-secondary">
+            Root: <span className="font-medium text-fg-secondary">{trace.root_service}</span>
           </span>
         )}
 
         {/* Timestamp */}
-        <span className="text-[11px] text-zinc-400 font-mono ml-auto">{trace.start_time}</span>
+        <span className="text-[11px] text-fg-tertiary font-mono ml-auto">{trace.start_time}</span>
       </div>
 
       {/* Service legend */}
       {services.filter(Boolean).length > 0 && (
-        <div className="flex flex-wrap gap-1.5 mt-3 pt-3 border-t border-zinc-100">
+        <div className="flex flex-wrap gap-1.5 mt-3 pt-3 border-t border-border-subtle">
           {services.filter(Boolean).map(svc => (
-            <span key={svc} className="inline-flex items-center gap-1.5 text-[11px] text-zinc-600 bg-white border border-zinc-200 rounded-full px-2.5 py-0.5">
+            <span key={svc} className="inline-flex items-center gap-1.5 text-[11px] text-fg-secondary bg-bg-elevated border border-border rounded-full px-2.5 py-0.5">
               <span className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: colorForService(svc) }} />
               {svc}
             </span>
@@ -251,16 +251,16 @@ function WaterfallView({ spanNodes, selectedId, onSelect }: {
   }, [timeline.totalUs]);
 
   return (
-    <div className="bg-white border border-zinc-200 rounded-lg overflow-hidden">
+    <div className="bg-bg-elevated border border-border rounded-lg overflow-hidden">
       {/* Header with timeline ruler */}
-      <div className="flex items-center h-9 border-b border-zinc-200 bg-zinc-50 text-[10.5px] font-semibold text-zinc-500 uppercase tracking-wider">
+      <div className="flex items-center h-9 border-b border-border bg-bg-subtle text-[10.5px] font-semibold text-fg-secondary uppercase tracking-wider">
         <div className="shrink-0 px-4 w-[400px]">Service &amp; Operation</div>
         <div className="flex-1 px-4 relative h-full flex items-center">
           Duration
           {markers.map((m, i) => (
             <span
               key={i}
-              className="absolute top-6 text-[9px] text-zinc-400 font-mono leading-none"
+              className="absolute top-6 text-[9px] text-fg-tertiary font-mono leading-none"
               style={{ left: `${m.pct}%`, transform: 'translateX(-50%)' }}
             >
               {m.label}
@@ -272,7 +272,7 @@ function WaterfallView({ spanNodes, selectedId, onSelect }: {
       {/* Span rows */}
       <div>
         {spanNodes.length === 0 ? (
-          <div className="py-20 text-center text-sm text-zinc-400">No spans found</div>
+          <div className="py-20 text-center text-sm text-fg-tertiary">No spans found</div>
         ) : (
           timeline.spans.map(({ node, offsetUs, widthUs }, idx) => {
             const isSelected = selectedId === node.span_id;
@@ -285,8 +285,8 @@ function WaterfallView({ spanNodes, selectedId, onSelect }: {
             return (
               <div
                 key={`${node.span_id}-${idx}`}
-                className={`flex items-center cursor-pointer transition-colors group border-b border-zinc-100 last:border-b-0 ${
-                  isSelected ? 'bg-purple-50/70' : isError ? 'bg-red-50/30 hover:bg-red-50/50' : idx % 2 === 0 ? 'bg-white hover:bg-zinc-50' : 'bg-zinc-50/50 hover:bg-zinc-50'
+                className={`flex items-center cursor-pointer transition-colors group border-b border-border-subtle last:border-b-0 ${
+                  isSelected ? 'bg-purple-50/70' : isError ? 'bg-accent-danger-bg/30 hover:bg-accent-danger-bg/50' : idx % 2 === 0 ? 'bg-bg-elevated hover:bg-bg-subtle' : 'bg-bg-subtle/50 hover:bg-bg-subtle'
                 }`}
                 style={{ height: ROW_H, minHeight: ROW_H }}
                 onClick={() => onSelect(isSelected ? null : node.span_id)}
@@ -298,20 +298,20 @@ function WaterfallView({ spanNodes, selectedId, onSelect }: {
                       <span className="block" style={{ width: DEPTH_LINE_W, height: ROW_H, background: i === node.depth - 1 ? '#d4d4d8' : 'transparent' }} />
                     </span>
                   ))}
-                  {hasChildren ? <span className="shrink-0 text-zinc-400" style={{ fontSize: 8 }}>▼</span> : <span className="shrink-0" style={{ width: 8 }} />}
+                  {hasChildren ? <span className="shrink-0 text-fg-tertiary" style={{ fontSize: 8 }}>▼</span> : <span className="shrink-0" style={{ width: 8 }} />}
                   <span className="shrink-0 rounded-full" style={{ width: 8, height: 8, backgroundColor: color, opacity: isSelected ? 1 : 0.85 }} />
-                  <span className="text-xs font-semibold text-zinc-800 truncate max-w-[130px]">
-                    {node.service_name || <span className="text-zinc-400 italic">unknown</span>}
+                  <span className="text-xs font-semibold text-fg-primary truncate max-w-[130px]">
+                    {node.service_name || <span className="text-fg-tertiary italic">unknown</span>}
                   </span>
-                  <span className="text-zinc-300 text-xs shrink-0">·</span>
-                  <span className="text-xs text-zinc-500 font-mono truncate flex-1 min-w-0">
-                    {node.operation_name || <span className="text-zinc-400 italic">—</span>}
+                  <span className="text-fg-disabled text-xs shrink-0">·</span>
+                  <span className="text-xs text-fg-secondary font-mono truncate flex-1 min-w-0">
+                    {node.operation_name || <span className="text-fg-tertiary italic">—</span>}
                   </span>
-                  {isError && <span className="shrink-0 text-red-500" title={node.error_message || 'Error'}><WarningOutlined className="text-[11px]" /></span>}
+                  {isError && <span className="shrink-0 text-accent-danger" title={node.error_message || 'Error'}><WarningOutlined className="text-[11px]" /></span>}
                   {node.status_code != null && node.status_code !== '' && node.status_code !== 0 && (
                     <span className={`shrink-0 text-[10px] font-mono font-medium px-1.5 py-0.5 rounded ${
-                      num(node.status_code) >= 500 ? 'bg-red-100 text-red-600' :
-                      num(node.status_code) >= 400 ? 'bg-amber-100 text-amber-600' : 'bg-emerald-100 text-emerald-600'
+                      num(node.status_code) >= 500 ? 'bg-accent-danger-bg text-accent-danger' :
+                      num(node.status_code) >= 400 ? 'bg-accent-warning-bg text-accent-warning' : 'bg-accent-success-bg text-accent-success'
                     }`}>{node.status_code}</span>
                   )}
                 </div>
@@ -320,7 +320,7 @@ function WaterfallView({ spanNodes, selectedId, onSelect }: {
                 <div className="flex-1 flex items-center gap-2 px-4 relative">
                   {/* Gridlines from markers */}
                   {markers.map((m, i) => (
-                    <div key={i} className="absolute top-0 bottom-0 border-l border-zinc-100" style={{ left: `${m.pct}%` }} />
+                    <div key={i} className="absolute top-0 bottom-0 border-l border-border-subtle" style={{ left: `${m.pct}%` }} />
                   ))}
                   {/* Bar — positioned by offsetPct, sized by widthPct */}
                   <div className="flex-1 h-4 relative">
@@ -334,7 +334,7 @@ function WaterfallView({ spanNodes, selectedId, onSelect }: {
                       }}
                     />
                   </div>
-                  <span className="shrink-0 text-[11px] font-mono text-zinc-500 w-14 text-right">
+                  <span className="shrink-0 text-[11px] font-mono text-fg-secondary w-14 text-right">
                     {fmtDuration(node.duration_us)}
                   </span>
                 </div>
@@ -345,13 +345,13 @@ function WaterfallView({ spanNodes, selectedId, onSelect }: {
       </div>
 
       {/* Footer */}
-      <div className="border-t border-zinc-200 bg-zinc-50 px-4 py-2 flex items-center gap-4 text-[10px] text-zinc-400">
+      <div className="border-t border-border bg-bg-subtle px-4 py-2 flex items-center gap-4 text-[10px] text-fg-tertiary">
         <span>{spanNodes.length} spans</span>
         <span>&middot;</span>
         <span>Max depth: {maxDepth}</span>
         <span>&middot;</span>
-        <span className="flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-red-400" /> Error</span>
-        <span className="flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-emerald-400" /> OK</span>
+        <span className="flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-severity-alert" /> Error</span>
+        <span className="flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-severity-ok" /> OK</span>
       </div>
     </div>
   );
@@ -365,10 +365,10 @@ function SpanListView({ spanNodes, selectedId, onSelect }: {
   spanNodes: SpanNode[]; selectedId: string | null; onSelect: (id: string | null) => void;
 }) {
   return (
-    <div className="bg-white border border-zinc-200 rounded-lg overflow-hidden">
+    <div className="bg-bg-elevated border border-border rounded-lg overflow-hidden">
       <div className="divide-y divide-zinc-50">
         {spanNodes.length === 0 ? (
-          <div className="py-20 text-center text-sm text-zinc-400">No spans found</div>
+          <div className="py-20 text-center text-sm text-fg-tertiary">No spans found</div>
         ) : (
           spanNodes.map((node) => {
             const isSelected = selectedId === node.span_id;
@@ -379,7 +379,7 @@ function SpanListView({ spanNodes, selectedId, onSelect }: {
               <button
                 key={node.span_id}
                 className={`w-full text-left px-4 py-3 flex items-center gap-3 transition-colors ${
-                  isSelected ? 'bg-purple-50/80' : isError ? 'bg-red-50/30 hover:bg-red-50/60' : 'hover:bg-zinc-50'
+                  isSelected ? 'bg-purple-50/80' : isError ? 'bg-accent-danger-bg/30 hover:bg-accent-danger-bg/60' : 'hover:bg-bg-subtle'
                 }`}
                 onClick={() => onSelect(isSelected ? null : node.span_id)}
               >
@@ -391,20 +391,20 @@ function SpanListView({ spanNodes, selectedId, onSelect }: {
 
                 {/* Info */}
                 <div className="flex-1 min-w-0 flex items-center gap-2">
-                  <span className="text-sm font-semibold text-zinc-700">{node.service_name || 'unknown'}</span>
-                  <span className="text-zinc-400 text-xs">·</span>
-                  <span className="text-xs text-zinc-500 font-mono truncate">{node.operation_name || '—'}</span>
-                  {isError && <span className="shrink-0 text-red-500"><WarningOutlined className="text-[11px]" /></span>}
+                  <span className="text-sm font-semibold text-fg-secondary">{node.service_name || 'unknown'}</span>
+                  <span className="text-fg-tertiary text-xs">·</span>
+                  <span className="text-xs text-fg-secondary font-mono truncate">{node.operation_name || '—'}</span>
+                  {isError && <span className="shrink-0 text-accent-danger"><WarningOutlined className="text-[11px]" /></span>}
                 </div>
 
                 {/* Duration bar + time — DD style */}
                 <div className="flex items-center gap-2 shrink-0">
-                  <div className="w-24 h-1.5 bg-zinc-100 rounded-full overflow-hidden">
+                  <div className="w-24 h-1.5 bg-bg-muted rounded-full overflow-hidden">
                     <div className="h-full rounded-full" style={{ width: `${Math.min((num(node.duration_us) / Math.max(...spanNodes.map(s => num(s.duration_us)), 1)) * 100, 100)}%`, backgroundColor: color }} />
                   </div>
                   <div className="text-right w-20">
-                    <p className="text-xs font-mono text-zinc-800 font-semibold">{fmtDurationExact(node.duration_us)}</p>
-                    <p className="text-[10px] text-zinc-400">{(node.start_time || '').slice(11, 19) || '—'}</p>
+                    <p className="text-xs font-mono text-fg-primary font-semibold">{fmtDurationExact(node.duration_us)}</p>
+                    <p className="text-[10px] text-fg-tertiary">{(node.start_time || '').slice(11, 19) || '—'}</p>
                   </div>
                 </div>
               </button>
@@ -456,28 +456,28 @@ function SpanDetailSidebar({ span, onClose }: { span: SpanNode; onClose: () => v
   ];
 
   return (
-    <div className="bg-white border-l border-zinc-200 w-[340px] shrink-0 overflow-y-auto max-h-[calc(100vh-180px)]">
+    <div className="bg-bg-elevated border-l border-border w-[340px] shrink-0 overflow-y-auto max-h-[calc(100vh-180px)]">
       {/* Header */}
-      <div className="sticky top-0 bg-white border-b border-zinc-100 px-5 py-3.5 flex items-center justify-between z-10">
+      <div className="sticky top-0 bg-bg-elevated border-b border-border-subtle px-5 py-3.5 flex items-center justify-between z-10">
         <div className="flex items-center gap-2.5 min-w-0">
           <span className="w-3 h-3 rounded-full shrink-0 ring-2 ring-offset-1" style={{ backgroundColor: color, boxShadow: `0 0 0 2px ${color}22` }} />
           <div className="min-w-0">
-            <h3 className="text-sm font-semibold text-zinc-800 truncate">{span.service_name || 'Unknown Service'}</h3>
-            <p className="text-[11px] text-zinc-400 font-mono truncate">{span.operation_name || '—'}</p>
+            <h3 className="text-sm font-semibold text-fg-primary truncate">{span.service_name || 'Unknown Service'}</h3>
+            <p className="text-[11px] text-fg-tertiary font-mono truncate">{span.operation_name || '—'}</p>
           </div>
         </div>
-        <button onClick={onClose} className="text-zinc-400 hover:text-zinc-600 transition-colors p-1 rounded hover:bg-zinc-100">
+        <button onClick={onClose} className="text-fg-tertiary hover:text-fg-secondary transition-colors p-1 rounded hover:bg-bg-muted">
           <CloseOutlined className="text-xs" />
         </button>
       </div>
 
       {/* Error banner */}
       {span.span_status === 'error' && span.error_message && (
-        <div className="mx-4 mt-4 bg-red-50 border border-red-200 rounded-lg p-3">
-          <p className="text-xs font-semibold text-red-700 mb-1 flex items-center gap-1.5">
+        <div className="mx-4 mt-4 bg-accent-danger-bg border border-red-200 rounded-lg p-3">
+          <p className="text-xs font-semibold text-accent-danger mb-1 flex items-center gap-1.5">
             <WarningOutlined /> Error
           </p>
-          <p className="text-[11px] text-red-600 font-mono break-all leading-relaxed">{span.error_message}</p>
+          <p className="text-[11px] text-accent-danger font-mono break-all leading-relaxed">{span.error_message}</p>
         </div>
       )}
 
@@ -485,17 +485,17 @@ function SpanDetailSidebar({ span, onClose }: { span: SpanNode; onClose: () => v
       <div className="p-4 space-y-5">
         {infoGroups.map(group => (
           <div key={group.label}>
-            <p className="text-[10px] font-semibold text-zinc-400 uppercase tracking-wider mb-2.5">{group.label}</p>
+            <p className="text-[10px] font-semibold text-fg-tertiary uppercase tracking-wider mb-2.5">{group.label}</p>
             <div className="space-y-2">
               {group.items.filter(([, v]) => v != null && v !== '').map(([label, value]) => (
                 <div key={label} className="flex justify-between items-start gap-2">
-                  <span className="text-[11px] text-zinc-500 shrink-0">{label}</span>
+                  <span className="text-[11px] text-fg-secondary shrink-0">{label}</span>
                   {label === 'Status' ? (
                     <span className={`text-[11px] font-medium px-2 py-0.5 rounded-full ${
-                      span.span_status === 'ok' ? 'bg-emerald-50 text-emerald-700' : 'bg-red-50 text-red-700'
+                      span.span_status === 'ok' ? 'bg-accent-success-bg text-accent-success' : 'bg-accent-danger-bg text-accent-danger'
                     }`}>{value}</span>
                   ) : (
-                    <span className="text-[11px] text-zinc-700 font-mono text-right break-all">{value}</span>
+                    <span className="text-[11px] text-fg-secondary font-mono text-right break-all">{value}</span>
                   )}
                 </div>
               ))}
@@ -506,15 +506,15 @@ function SpanDetailSidebar({ span, onClose }: { span: SpanNode; onClose: () => v
         {/* Attributes / Tags */}
         {attrs.length > 0 && (
           <div>
-            <p className="text-[10px] font-semibold text-zinc-400 uppercase tracking-wider mb-2.5">
+            <p className="text-[10px] font-semibold text-fg-tertiary uppercase tracking-wider mb-2.5">
               Attributes ({attrs.length})
             </p>
             <div className="space-y-1.5">
               {attrs.map(([k, v]) => (
-                <div key={k} className="bg-zinc-50 rounded-lg px-3 py-2 flex items-start gap-2">
-                  <span className="text-[11px] text-zinc-500 font-mono shrink-0">{k}</span>
-                  <span className="text-[11px] text-zinc-300">=</span>
-                  <span className="text-[11px] text-zinc-800 font-mono break-all">{v || '(empty)'}</span>
+                <div key={k} className="bg-bg-subtle rounded-lg px-3 py-2 flex items-start gap-2">
+                  <span className="text-[11px] text-fg-secondary font-mono shrink-0">{k}</span>
+                  <span className="text-[11px] text-fg-disabled">=</span>
+                  <span className="text-[11px] text-fg-primary font-mono break-all">{v || '(empty)'}</span>
                 </div>
               ))}
             </div>
@@ -575,12 +575,12 @@ export default function TraceDetailPage() {
   if (error || !trace) {
     return (
       <div className="flex flex-col items-center justify-center py-32 text-center">
-        <div className="w-16 h-16 rounded-2xl bg-red-50 flex items-center justify-center mb-4">
-          <WarningOutlined className="text-red-400 text-2xl" />
+        <div className="w-16 h-16 rounded-2xl bg-accent-danger-bg flex items-center justify-center mb-4">
+          <WarningOutlined className="text-accent-danger text-2xl" />
         </div>
-        <h3 className="text-lg font-semibold text-zinc-800 mb-1">Failed to load trace</h3>
-        <p className="text-sm text-zinc-500 mb-4">{error || 'Trace not found'}</p>
-        <Link to="/apm" className="text-purple-600 hover:underline text-sm">&larr; Back to APM</Link>
+        <h3 className="text-lg font-semibold text-fg-primary mb-1">Failed to load trace</h3>
+        <p className="text-sm text-fg-secondary mb-4">{error || 'Trace not found'}</p>
+        <Link to="/apm" className="text-accent-primary hover:underline text-sm">&larr; Back to APM</Link>
       </div>
     );
   }
