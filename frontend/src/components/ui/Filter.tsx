@@ -2,7 +2,7 @@ export function FilterPill({ label, active, count, onClick }: { label: string; a
   return (
     <button onClick={onClick}
       className={`inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium rounded-full border transition-colors ${
-        active ? 'bg-brand-600 text-white border-brand-600' : 'bg-white text-ink-secondary border-edge hover:border-edge-strong'
+        active ? 'bg-accent-primary text-fg-inverse border-accent-primary' : 'bg-bg-elevated text-fg-secondary border-border hover:border-border-strong'
       }`}>
       {label}
       {count != null && <span className="text-2xs opacity-70">{count}</span>}

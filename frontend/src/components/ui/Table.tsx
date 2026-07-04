@@ -16,17 +16,17 @@ export function Table<T>({ columns, data, loading, emptyTitle, emptyDesc, onRowC
   if (data.length === 0) return <EmptyState icon="search" title={emptyTitle || 'No data'} description={emptyDesc || ''} />;
 
   return (
-    <div className="bg-white rounded-lg border border-edge overflow-hidden">
+    <div className="bg-bg-elevated rounded-lg border border-border overflow-hidden">
       <table className="w-full font-sans">
         <thead>
-          <tr className="text-left border-b border-edge-light bg-surface-zebra">
+          <tr className="text-left border-b border-border-subtle bg-bg-subtle">
             {columns.map(col => (
               <th key={col.key}
                 onClick={() => col.sortable && onSort?.(col.key)}
-                className={`text-2xs font-semibold uppercase tracking-wider text-ink-muted px-4 py-2.5 select-none ${col.className || ''} ${col.sortable ? 'cursor-pointer hover:text-ink-secondary' : ''}`}>
+                className={`text-2xs font-semibold uppercase tracking-wider text-fg-tertiary px-4 py-2.5 select-none ${col.className || ''} ${col.sortable ? 'cursor-pointer hover:text-fg-secondary' : ''}`}>
                 {col.label}
                 {col.sortable && sortKey === col.key && (
-                  <span className="ml-1 text-ink-secondary">{sortDir === 'asc' ? '↑' : '↓'}</span>
+                  <span className="ml-1 text-fg-secondary">{sortDir === 'asc' ? '↑' : '↓'}</span>
                 )}
               </th>
             ))}
@@ -36,9 +36,9 @@ export function Table<T>({ columns, data, loading, emptyTitle, emptyDesc, onRowC
           {data.map((row, i) => (
             <tr key={rowKey(row, i)}
               onClick={() => onRowClick?.(row)}
-              className={`border-b border-edge-lighter transition-colors cursor-pointer ${
-                i % 2 === 0 ? 'bg-white' : 'bg-surface-zebra'
-              } hover:bg-surface-selected/50`}>
+              className={`border-b border-border-subtle transition-colors cursor-pointer ${
+                i % 2 === 0 ? 'bg-bg-elevated' : 'bg-bg-subtle'
+              } hover:bg-accent-primary/5`}>
               {columns.map(col => (
                 <td key={col.key} className={`px-4 py-2.5 text-sm ${col.className || ''}`}>
                   {col.render(row, i)}
@@ -54,13 +54,13 @@ export function Table<T>({ columns, data, loading, emptyTitle, emptyDesc, onRowC
 
 export function TableSkeleton({ cols, rows }: { cols: number; rows: number }) {
   return (
-    <div className="bg-white rounded-lg border border-edge overflow-hidden">
-      <div className="divide-y divide-edge-lighter">
+    <div className="bg-bg-elevated rounded-lg border border-border overflow-hidden">
+      <div className="divide-y divide-border-subtle">
         {Array.from({ length: rows }).map((_, i) => (
           <div key={i} className="flex items-center gap-4 px-4 py-3">
             {Array.from({ length: cols }).map((_, j) => (
-              <div key={j} className="h-4 rounded animate-pulse"
-                style={{ width: j === 0 ? 24 : 60 + Math.random() * 80, background: '#F1F3F5', flexShrink: 0 }} />
+              <div key={j} className="h-4 rounded animate-pulse bg-bg-muted"
+                style={{ width: j === 0 ? 24 : 60 + Math.random() * 80, flexShrink: 0 }} />
             ))}
           </div>
         ))}
@@ -73,21 +73,21 @@ export function MetricCard({ label, value, sub, color = '#632CA6', className = '
   label: string; value: string | number; sub?: string; color?: string; className?: string;
 }) {
   return (
-    <div className={`bg-white border border-edge rounded-lg p-4 hover:border-edge transition-colors shadow-card ${className}`}>
-      <p className="text-xs font-semibold text-ink-muted">{label}</p>
+    <div className={`bg-bg-elevated border border-border rounded-lg p-4 hover:border-border transition-colors shadow-card ${className}`}>
+      <p className="text-xs font-semibold text-fg-tertiary">{label}</p>
       <p className="text-[18px] font-bold font-mono leading-none mt-1 tracking-tight" style={{ color }}>{value}</p>
-      {sub && <p className="text-2xs text-ink-muted mt-0.5">{sub}</p>}
+      {sub && <p className="text-2xs text-fg-tertiary mt-0.5">{sub}</p>}
     </div>
   );
 }
 
 export function Badge({ label, variant = 'default' }: { label: string; variant?: 'success' | 'warning' | 'error' | 'default' | 'purple' }) {
   const styles = {
-    success: 'bg-emerald-50 text-emerald-700 border-emerald-100',
-    warning: 'bg-orange-50 text-orange-700 border-orange-100',
-    error: 'bg-red-50 text-red-700 border-red-100',
-    purple: 'bg-purple-50 text-purple-700 border-purple-100',
-    default: 'bg-surface text-ink-secondary border-edge-light',
+    success: 'bg-accent-success-bg text-accent-success border-accent-success/20',
+    warning: 'bg-accent-warning-bg text-accent-warning border-accent-warning/20',
+    error: 'bg-accent-danger-bg text-accent-danger border-accent-danger/20',
+    purple: 'bg-accent-primary/10 text-accent-primary border-accent-primary/20',
+    default: 'bg-bg-muted text-fg-secondary border-border-subtle',
   };
   return (
     <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-2xs font-medium border ${styles[variant]}`}>
@@ -98,15 +98,15 @@ export function Badge({ label, variant = 'default' }: { label: string; variant?:
 
 export function EmptyState({ icon = 'search', title, description }: { icon?: 'search' | 'box' | 'check'; title: string; description: string }) {
   const icons = {
-    search: <svg className="w-10 h-10" viewBox="0 0 24 24" fill="none" stroke="#DEE2E6" strokeWidth="1"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>,
-    box: <svg className="w-10 h-10" viewBox="0 0 24 24" fill="none" stroke="#DEE2E6" strokeWidth="1"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8m-4-4v4"/></svg>,
-    check: <svg className="w-10 h-10" viewBox="0 0 24 24" fill="none" stroke="#DEE2E6" strokeWidth="1"><path d="M5 13l4 4L19 7"/></svg>,
+    search: <svg className="w-10 h-10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" opacity={0.3}><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>,
+    box: <svg className="w-10 h-10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" opacity={0.3}><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8m-4-4v4"/></svg>,
+    check: <svg className="w-10 h-10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" opacity={0.3}><path d="M5 13l4 4L19 7"/></svg>,
   };
   return (
-    <div className="flex flex-col items-center justify-center py-16 text-center bg-white rounded-lg border border-edge">
-      <div className="w-16 h-16 rounded-full bg-surface flex items-center justify-center mb-4">{icons[icon]}</div>
-      <p className="text-sm font-semibold text-ink">{title}</p>
-      <p className="text-xs text-ink-muted mt-1 max-w-sm">{description}</p>
+    <div className="flex flex-col items-center justify-center py-16 text-center bg-bg-elevated rounded-lg border border-border">
+      <div className="w-16 h-16 rounded-full bg-bg-muted flex items-center justify-center mb-4 text-fg-disabled">{icons[icon]}</div>
+      <p className="text-sm font-semibold text-fg-primary">{title}</p>
+      <p className="text-xs text-fg-tertiary mt-1 max-w-sm">{description}</p>
     </div>
   );
 }
@@ -116,10 +116,10 @@ export function SearchInput({ value, onChange, placeholder, className = '' }: {
 }) {
   return (
     <div className={`relative ${className}`}>
-      <svg className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-ink-placeholder" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+      <svg className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-fg-disabled" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
       <input type="text" value={value} onChange={e => onChange(e.target.value)}
         placeholder={placeholder || 'Search...'}
-        className="w-full h-9 pl-8 pr-3 text-sm border border-edge rounded bg-white placeholder:text-ink-placeholder focus:outline-none focus:border-edge-focus focus:ring-1 focus:ring-edge-focus/10" />
+        className="w-full h-9 pl-8 pr-3 text-sm border border-border rounded bg-bg-elevated placeholder:text-fg-disabled focus:outline-none focus:border-border-focus focus:ring-1 focus:ring-accent-primary/10" />
     </div>
   );
 }
@@ -130,9 +130,9 @@ export function Button({ label, onClick, variant = 'primary', size = 'md', class
   const base = 'inline-flex items-center font-medium rounded transition-colors';
   const sizes = { sm: 'px-2.5 py-1 text-xs', md: 'px-4 py-1.5 text-sm' };
   const variants = {
-    primary: 'bg-brand-600 text-white hover:bg-brand-700',
-    default: 'bg-white text-ink-secondary border border-edge hover:border-edge hover:text-ink',
-    ghost: 'text-ink-secondary hover:text-ink hover:bg-surface-hover',
+    primary: 'bg-accent-primary text-fg-inverse hover:opacity-90',
+    default: 'bg-bg-elevated text-fg-secondary border border-border hover:border-border hover:text-fg-primary',
+    ghost: 'text-fg-secondary hover:text-fg-primary hover:bg-bg-subtle',
   };
   return (
     <button onClick={onClick} className={`${base} ${sizes[size]} ${variants[variant]} ${className}`}>

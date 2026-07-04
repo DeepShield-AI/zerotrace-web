@@ -7,17 +7,17 @@ export function CodeBlock({ code, language = 'bash', maxHeight }: { code: string
   }, [code]);
 
   return (
-    <div className="bg-[#1A1D24] rounded-lg overflow-hidden border border-[#2D313A]">
-      <div className="flex items-center justify-between px-4 py-2 border-b border-[#2D313A]">
-        <span className="text-2xs font-mono uppercase tracking-wider text-[#8B9BB4]">{language}</span>
+    <div className="bg-code-bg rounded-lg overflow-hidden border border-code-border">
+      <div className="flex items-center justify-between px-4 py-2 border-b border-code-border">
+        <span className="text-2xs font-mono uppercase tracking-wider text-fg-tertiary">{language}</span>
         <button onClick={handleCopy}
           className={`text-2xs font-medium px-2 py-0.5 rounded transition-colors ${
-            copied ? 'bg-green-600/20 text-green-400' : 'text-[#8B9BB4] hover:text-white hover:bg-[#2D313A]'
+            copied ? 'bg-accent-success/20 text-accent-success' : 'text-fg-tertiary hover:text-fg-inverse hover:bg-code-border'
           }`}>
           {copied ? '✓ Copied' : 'Copy'}
         </button>
       </div>
-      <pre className="p-4 overflow-x-auto text-code-sm font-mono text-[#C8CDD0] leading-relaxed whitespace-pre-wrap" style={maxHeight ? { maxHeight } : {}}>
+      <pre className="p-4 overflow-x-auto text-code-sm font-mono text-code-fg leading-relaxed whitespace-pre-wrap" style={maxHeight ? { maxHeight } : {}}>
         <code>{code}</code>
       </pre>
     </div>
@@ -26,7 +26,7 @@ export function CodeBlock({ code, language = 'bash', maxHeight }: { code: string
 
 export function InlineCode({ children }: { children: string }) {
   return (
-    <code className="inline px-1.5 py-0.5 rounded text-code-xs font-mono bg-[#F1F3F5] text-[#632CA6] border border-[#E9ECEF]">
+    <code className="inline px-1.5 py-0.5 rounded text-code-xs font-mono bg-bg-muted text-accent-primary border-border-subtle border">
       {children}
     </code>
   );
