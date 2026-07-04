@@ -8,7 +8,7 @@
     "dev:mock": "VITE_USE_MOCKS=true vite",
     "build": "tsc && vite build",
     "preview": "vite preview",
-    "story": "ladle serve",
+    "story": "LADLE=true ladle serve",
     "story:build": "ladle build"
   },
   "dependencies": {
