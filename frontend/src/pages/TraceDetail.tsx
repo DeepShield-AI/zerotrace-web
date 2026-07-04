@@ -254,7 +254,7 @@ function WaterfallView({ spanNodes, selectedId, onSelect }: {
     <div className="bg-white border border-zinc-200 rounded-lg overflow-hidden">
       {/* Header with timeline ruler */}
       <div className="flex items-center h-9 border-b border-zinc-200 bg-zinc-50 text-[10.5px] font-semibold text-zinc-500 uppercase tracking-wider">
-        <div className="shrink-0 px-4" style={{ width: 400 }}>Service &amp; Operation</div>
+        <div className="shrink-0 px-4 w-[400px]">Service &amp; Operation</div>
         <div className="flex-1 px-4 relative h-full flex items-center">
           Duration
           {markers.map((m, i) => (
@@ -456,7 +456,7 @@ function SpanDetailSidebar({ span, onClose }: { span: SpanNode; onClose: () => v
   ];
 
   return (
-    <div className="bg-white border-l border-zinc-200 w-[340px] shrink-0 overflow-y-auto" style={{ maxHeight: 'calc(100vh - 180px)' }}>
+    <div className="bg-white border-l border-zinc-200 w-[340px] shrink-0 overflow-y-auto max-h-[calc(100vh-180px)]">
       {/* Header */}
       <div className="sticky top-0 bg-white border-b border-zinc-100 px-5 py-3.5 flex items-center justify-between z-10">
         <div className="flex items-center gap-2.5 min-w-0">
@@ -594,7 +594,7 @@ export default function TraceDetailPage() {
   );
 
   return (
-    <div className="animate-fade-in" style={{ maxWidth: 1480 }}>
+    <div className="animate-fade-in max-w-[1480px]">
       <TraceHeader trace={trace} services={services} />
 
       {/* View switch */}
