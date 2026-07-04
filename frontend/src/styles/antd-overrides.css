@@ -1,0 +1,61 @@
+@import "tailwindcss";
+
+/* ═══════════════════════════════════════════════════════════════
+   antd-overrides.css — Ant Design component style overrides
+
+   Has its own @import "tailwindcss" + minimal @theme so @apply
+   works. Color values reference tokens.css CSS variables (loaded
+   globally via main.tsx), so dark mode still works automatically.
+
+   This is the Tailwind v4 way to split CSS with @apply — each file
+   is a standalone Tailwind entry point.
+   ═══════════════════════════════════════════════════════════════ */
+
+@theme {
+  --color-bg-subtle: var(--bg-subtle);
+  --color-bg-elevated: var(--bg-elevated);
+  --color-bg-muted: var(--bg-muted);
+  --color-fg-primary: var(--fg-primary);
+  --color-fg-secondary: var(--fg-secondary);
+  --color-fg-tertiary: var(--fg-tertiary);
+  --color-border: var(--border-default);
+  --color-border-strong: var(--border-strong);
+  --color-accent-primary: var(--accent-primary);
+}
+
+/* ── Table ── */
+.api-keys-table .ant-table { font-size: 13px; }
+.api-keys-table .ant-table-thead > tr > th {
+  @apply bg-bg-subtle text-xs font-medium text-fg-tertiary uppercase tracking-wider border-b border-border;
+  padding: 12px 16px;
+}
+.api-keys-table .ant-table-tbody > tr > td {
+  padding: 12px 16px; border-color: #f4f4f5;
+}
+.api-keys-table .ant-table-tbody > tr:hover > td { @apply bg-bg-subtle/80; }
+.api-keys-table .ant-table-tbody > tr { transition: background 0.15s ease; }
+
+.apm-table .ant-table { font-size: 13px; }
+.apm-table .ant-table-thead > tr > th {
+  @apply bg-bg-subtle text-xs font-medium text-fg-tertiary uppercase tracking-wider border-b border-border;
+  padding: 10px 16px;
+}
+.apm-table .ant-table-tbody > tr > td {
+  padding: 10px 16px; border-color: #f4f4f5;
+}
+.apm-table .ant-table-tbody > tr:hover > td { @apply bg-bg-subtle/80; }
+.apm-table .ant-table-tbody > tr { transition: background 0.15s ease; }
+
+/* ── Dark mode ── */
+.dark .ant-select .ant-select-selector { @apply bg-bg-elevated border-border text-fg-primary; }
+.dark .ant-select-dropdown { @apply bg-bg-elevated border-border; }
+.dark .ant-select-item { @apply text-fg-secondary; }
+.dark .ant-select-item:hover, .dark .ant-select-item-option-active { @apply bg-bg-muted; }
+.dark .ant-btn { @apply border-border text-fg-secondary bg-bg-elevated; }
+.dark .ant-btn:hover { @apply border-border-strong text-fg-primary; }
+.dark .ant-message .ant-message-notice-content { @apply bg-bg-elevated text-fg-primary border-border; }
+.dark .ant-modal-content { @apply bg-bg-elevated border-border; }
+.dark .ant-modal-header { @apply bg-bg-elevated border-border; }
+.dark .ant-modal-title { @apply text-fg-primary; }
+.dark .ant-input { @apply bg-bg-elevated border-border text-fg-primary; }
+.dark .ant-input:focus { @apply border-accent-primary; }
