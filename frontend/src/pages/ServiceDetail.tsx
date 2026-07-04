@@ -2,15 +2,10 @@ import { useEffect, useState, useCallback } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { Spin, Tooltip } from 'antd';
 import { ArrowLeftOutlined, WarningOutlined, ReloadOutlined } from '@ant-design/icons';
-import ReactEChartsCore from 'echarts-for-react/lib/core';
-import * as echarts from 'echarts/core';
-import { LineChart, BarChart } from 'echarts/charts';
-import { GridComponent, TooltipComponent, LegendComponent } from 'echarts/components';
-import { CanvasRenderer } from 'echarts/renderers';
+import ReactECharts from 'echarts-for-react';
+import * as echarts from 'echarts';
 import { api } from '../api/client';
 import TopologyMap, { TopologyNode, TopologyEdge } from '../components/TopologyMap';
-
-echarts.use([LineChart, BarChart, GridComponent, TooltipComponent, LegendComponent, CanvasRenderer]);
 
 // ════════════════════════ HELPERS ════════════════════════
 const num = (v: number | string | undefined): number => {
@@ -298,7 +293,7 @@ function ChartCard({ title, data, series, areaStyle, fmt }: {
       areaStyle: areaStyle ? { color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [{ offset: 0, color: (s.color || '#632CA6') + '20' }, { offset: 1, color: (s.color || '#632CA6') + '02' }]) } : undefined,
     })),
   };
-  return <div className="bg-bg-elevated border border-border rounded-lg p-4"><h4 className="text-xs font-semibold text-fg-secondary uppercase tracking-wider mb-3">{title}</h4><ReactEChartsCore echarts={echarts} option={option} style={{ height: h }} notMerge lazyUpdate /></div>;
+  return <div className="bg-bg-elevated border border-border rounded-lg p-4"><h4 className="text-xs font-semibold text-fg-secondary uppercase tracking-wider mb-3">{title}</h4><ReactECharts option={option} style={{ height: h }} notMerge lazyUpdate /></div>;
 }
 
 function DepList({ title, color, items, emptyMsg }: { title: string; color: string; items: { name?: string; calls: number | string; latency: number | string; errors: number | string }[]; emptyMsg: string }) {

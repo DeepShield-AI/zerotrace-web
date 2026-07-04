@@ -1,15 +1,10 @@
 import { useState, useMemo, useCallback, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { SearchOutlined, DownOutlined, RightOutlined } from '@ant-design/icons';
-import ReactEChartsCore from 'echarts-for-react/lib/core';
-import * as echarts from 'echarts/core';
-import { BarChart } from 'echarts/charts';
-import { GridComponent, TooltipComponent } from 'echarts/components';
-import { CanvasRenderer } from 'echarts/renderers';
+import ReactECharts from 'echarts-for-react';
 import type { ApmServiceItem, ApmTraceItem, ApmHistBucket } from '../api/types';
 import TimeRangePicker from '../components/TimeRangePicker';
 import { StatusDot } from './ui';
-echarts.use([BarChart, GridComponent, TooltipComponent, CanvasRenderer]);
 
 const num = (v: any) => { if (v == null) return 0; const n = typeof v === 'string' ? parseFloat(v) : v; return isNaN(n) ? 0 : n; };
 function fmtDurationUs(us?: number | string): string { const v = num(us) / 1000; if (v >= 1000) return (v / 1000).toFixed(2) + 's'; if (v >= 1) return Math.round(v) + 'ms'; return Math.round(v * 1000) + 'μs'; }
@@ -142,7 +137,7 @@ export default function TracesExplorer(props: Props) {
           {latencyHistogram && latencyHistogram.length > 0 && (
             <div className="bg-bg-elevated rounded-lg border border-border p-4 mb-3">
               <h4 className="text-xs font-semibold uppercase tracking-wider text-fg-secondary mb-3">Duration Distribution</h4>
-              <ReactEChartsCore echarts={echarts} option={{
+              <ReactECharts option={{
                 grid: { left: 0, right: 8, top: 4, bottom: 14 }, xAxis: { type: 'category', data: latencyHistogram.map(b => b.bucket), axisLabel: { fontSize: 9, color: '#ADB5BD' }, axisTick: { show: false } },
                 yAxis: { show: false }, series: [{ type: 'bar', data: latencyHistogram.map(b => num(b.cnt)), itemStyle: { color: '#632CA6', borderRadius: [2, 2, 0, 0] }, barMaxWidth: 20 }], tooltip: { trigger: 'axis' as const },
               }} style={{ height: 100 }} notMerge />

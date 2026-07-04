@@ -1,10 +1,6 @@
 import { useEffect, useState, useCallback, useMemo } from 'react';
 import { Link, useNavigate, useSearchParams, useLocation } from 'react-router-dom';
-import ReactEChartsCore from 'echarts-for-react/lib/core';
-import * as echarts from 'echarts/core';
-import { LineChart, BarChart } from 'echarts/charts';
-import { GridComponent, TooltipComponent } from 'echarts/components';
-import { CanvasRenderer } from 'echarts/renderers';
+import ReactECharts from 'echarts-for-react';
 import { api } from '../api/client';
 import TopologyMap, { TopologyNode, TopologyEdge } from '../components/TopologyMap';
 import TopologySidebar from '../components/TopologySidebar';
@@ -14,8 +10,6 @@ import type { ApmServiceItem, ApmTraceItem, ApmTsRow, ApmHistBucket, ApmStats } 
 import { SlowRequestsPanel, ErrorAnalysisPanel } from '../components/ApmDemos';
 import ApmServicesView from '../components/ApmServicesView';
 import { TableSkeleton, Badge, EmptyState, SearchInput, FilterBar, StatusDot } from '../components/ui';
-
-echarts.use([LineChart, BarChart, GridComponent, TooltipComponent, CanvasRenderer]);
 
 // Helpers
 const num = (v: number | string | undefined): number => { if (v === undefined || v === null) return 0; const n = typeof v === 'string' ? parseFloat(v) : v; return isNaN(n) ? 0 : n; };
