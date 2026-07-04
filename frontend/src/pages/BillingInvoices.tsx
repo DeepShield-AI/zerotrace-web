@@ -20,10 +20,10 @@ function formatCurrency(val: string | number): string {
 
 const statusBadge = (status: string) => {
   const map: Record<string, string> = {
-    paid: 'bg-[#c8e6c9] text-emerald-700',
-    open: 'bg-blue-100 text-blue-700',
-    draft: 'bg-[#f1f3f5] text-[#495057]',
-    void: 'bg-[#ffcdd2] text-[#dc3545]',
+    paid: 'bg-accent-success-bg text-accent-success',
+    open: 'bg-accent-info-bg text-accent-info',
+    draft: 'bg-bg-muted text-fg-secondary',
+    void: 'bg-accent-danger-bg text-accent-danger',
   };
   return `px-2.5 py-0.5 rounded-full text-[11px] font-semibold ${map[status] || map.draft}`;
 };
@@ -62,11 +62,11 @@ export default function BillingInvoices() {
 
   return (
     <div className="animate-fade-in">
-      <h2 className="text-xl font-bold text-[#212529] mb-1">Invoices</h2>
-      <p className="text-sm text-[#6c757d] mb-6">View and download your billing invoices</p>
+      <h2 className="text-xl font-bold text-fg-primary mb-1">Invoices</h2>
+      <p className="text-sm text-fg-tertiary mb-6">View and download your billing invoices</p>
 
       {invoices.length === 0 ? (
-        <div className="text-center py-16 text-[#6c757d]">No invoices yet</div>
+        <div className="text-center py-16 text-fg-tertiary">No invoices yet</div>
       ) : (
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Invoice List */}
@@ -75,15 +75,15 @@ export default function BillingInvoices() {
               <button key={inv.id} onClick={() => loadDetail(inv)}
                 className={`w-full text-left p-4 rounded-lg border transition-all ${
                   selectedInvoice?.id === inv.id
-                    ? 'border-[#007bff] ring-2 ring-[#cce5ff] bg-[#f0f7ff]/30'
-                    : 'border-[#dee2e6] bg-white hover:border-gray-300'
+                    ? 'border-accent-info ring-2 ring-accent-info-bg bg-accent-info-bg/30'
+                    : 'border-border bg-bg-elevated hover:border-border-strong'
                 }`}>
                 <div className="flex items-center justify-between mb-1.5">
-                  <span className="text-xs text-[#6c757d] font-mono">{inv.period_start} – {inv.period_end}</span>
+                  <span className="text-xs text-fg-tertiary font-mono">{inv.period_start} – {inv.period_end}</span>
                   <span className={statusBadge(inv.status)}>{inv.status.toUpperCase()}</span>
                 </div>
-                <p className="text-lg font-bold text-[#212529]">{formatCurrency(inv.total)}</p>
-                <p className="text-[11px] text-[#6c757d] mt-1">
+                <p className="text-lg font-bold text-fg-primary">{formatCurrency(inv.total)}</p>
+                <p className="text-[11px] text-fg-tertiary mt-1">
                   {inv.issued_at ? `Issued ${new Date(inv.issued_at).toLocaleDateString()}` : 'Draft — not yet issued'}
                 </p>
               </button>
@@ -93,29 +93,29 @@ export default function BillingInvoices() {
           {/* Invoice Detail */}
           <div className="lg:col-span-2 min-h-[400px]">
             {!selectedInvoice ? (
-              <div className="flex items-center justify-center h-full bg-white border border-[#dee2e6] rounded-lg">
-                <p className="text-[#dee2e6] text-sm">Select an invoice to view details</p>
+              <div className="flex items-center justify-center h-full bg-bg-elevated border border-border rounded-lg">
+                <p className="text-border text-sm">Select an invoice to view details</p>
               </div>
             ) : detailLoading ? (
               <div className="flex justify-center py-20">
                 <div className="animate-spin h-6 w-6 border-2 border-[#007bff] border-t-transparent rounded-full" />
               </div>
             ) : (
-              <div className="bg-white border border-[#dee2e6] rounded-lg p-6">
+              <div className="bg-bg-elevated border border-border rounded-lg p-6">
                 <div className="flex items-start justify-between mb-6">
                   <div>
-                    <h3 className="text-lg font-semibold text-[#212529]">Invoice #{selectedInvoice.id}</h3>
-                    <p className="text-xs text-[#6c757d] mt-0.5">{selectedInvoice.period_start} – {selectedInvoice.period_end}</p>
+                    <h3 className="text-lg font-semibold text-fg-primary">Invoice #{selectedInvoice.id}</h3>
+                    <p className="text-xs text-fg-tertiary mt-0.5">{selectedInvoice.period_start} – {selectedInvoice.period_end}</p>
                   </div>
                   <div className="text-right">
-                    <p className="text-2xl font-bold text-[#212529]">{formatCurrency(selectedInvoice.total)}</p>
+                    <p className="text-2xl font-bold text-fg-primary">{formatCurrency(selectedInvoice.total)}</p>
                     <span className={statusBadge(selectedInvoice.status)}>{selectedInvoice.status.toUpperCase()}</span>
                   </div>
                 </div>
 
                 <table className="w-full text-sm">
                   <thead>
-                    <tr className="border-b border-[#dee2e6] text-left text-[11px] font-semibold text-[#6c757d] uppercase tracking-wider">
+                    <tr className="border-b border-border text-left text-[11px] font-semibold text-fg-tertiary uppercase tracking-wider">
                       <th className="pb-3 font-medium">Product</th>
                       <th className="pb-3 font-medium text-right">Commitment</th>
                       <th className="pb-3 font-medium text-right">Overage</th>
@@ -127,46 +127,46 @@ export default function BillingInvoices() {
                       const commitQty = parseFloat(item.commitment_quantity);
                       const overQty = parseFloat(item.overage_quantity);
                       return (
-                        <tr key={item.id} className="border-b border-[#f1f3f5]">
+                        <tr key={item.id} className="border-b border-border-subtle">
                           <td className="py-3">
-                            <p className="font-medium text-[#212529] capitalize">{item.product_key.replace(/_/g, ' ')}</p>
-                            <p className="text-[11px] text-[#6c757d]">{item.description}</p>
+                            <p className="font-medium text-fg-primary capitalize">{item.product_key.replace(/_/g, ' ')}</p>
+                            <p className="text-[11px] text-fg-tertiary">{item.description}</p>
                           </td>
                           <td className="py-3 text-right">
                             {commitQty > 0 ? (
                               <>
-                                <p className="font-medium text-[#495057]">{formatCurrency(item.commitment_total)}</p>
-                                <p className="text-[11px] text-[#6c757d]">{commitQty.toLocaleString()} × {formatCurrency(item.commitment_unit_price)}</p>
+                                <p className="font-medium text-fg-secondary">{formatCurrency(item.commitment_total)}</p>
+                                <p className="text-[11px] text-fg-tertiary">{commitQty.toLocaleString()} × {formatCurrency(item.commitment_unit_price)}</p>
                               </>
                             ) : <span className="text-[#dee2e6]">—</span>}
                           </td>
                           <td className="py-3 text-right">
                             {overQty > 0 ? (
                               <>
-                                <p className="font-medium text-[#e67e22]">{formatCurrency(item.overage_total)}</p>
-                                <p className="text-[11px] text-[#6c757d]">{overQty.toLocaleString()} × {formatCurrency(item.overage_unit_price)}</p>
+                                <p className="font-medium text-accent-warning">{formatCurrency(item.overage_total)}</p>
+                                <p className="text-[11px] text-fg-tertiary">{overQty.toLocaleString()} × {formatCurrency(item.overage_unit_price)}</p>
                               </>
                             ) : <span className="text-[#dee2e6]">—</span>}
                           </td>
-                          <td className="py-3 text-right font-semibold text-[#212529]">{formatCurrency(item.line_total)}</td>
+                          <td className="py-3 text-right font-semibold text-fg-primary">{formatCurrency(item.line_total)}</td>
                         </tr>
                       );
                     })}
                   </tbody>
                   <tfoot>
-                    <tr className="border-t-2 border-[#dee2e6]">
-                      <td colSpan={3} className="pt-3 text-right text-sm text-[#6c757d]">Subtotal</td>
-                      <td className="pt-3 text-right text-sm font-bold text-[#212529]">{formatCurrency(selectedInvoice.subtotal)}</td>
+                    <tr className="border-t-2 border-border">
+                      <td colSpan={3} className="pt-3 text-right text-sm text-fg-tertiary">Subtotal</td>
+                      <td className="pt-3 text-right text-sm font-bold text-fg-primary">{formatCurrency(selectedInvoice.subtotal)}</td>
                     </tr>
                     {parseFloat(selectedInvoice.discount) > 0 && (
                       <tr>
-                        <td colSpan={3} className="text-right text-sm text-[#28a745]">Discount</td>
-                        <td className="text-right text-sm font-medium text-[#28a745]">-{formatCurrency(selectedInvoice.discount)}</td>
+                        <td colSpan={3} className="text-right text-sm text-accent-success">Discount</td>
+                        <td className="text-right text-sm font-medium text-accent-success">-{formatCurrency(selectedInvoice.discount)}</td>
                       </tr>
                     )}
                     <tr>
-                      <td colSpan={3} className="pt-2 text-right text-base font-semibold text-[#212529]">Total</td>
-                      <td className="pt-2 text-right text-base font-bold text-[#212529]">{formatCurrency(selectedInvoice.total)}</td>
+                      <td colSpan={3} className="pt-2 text-right text-base font-semibold text-fg-primary">Total</td>
+                      <td className="pt-2 text-right text-base font-bold text-fg-primary">{formatCurrency(selectedInvoice.total)}</td>
                     </tr>
                   </tfoot>
                 </table>

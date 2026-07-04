@@ -62,8 +62,8 @@ export default function BillingUsage() {
   return (
     <div className="animate-fade-in space-y-6">
       <div>
-        <h2 className="text-xl font-bold text-[#212529]">Hourly Usage</h2>
-        <p className="text-sm text-[#6c757d] mt-1">Monitor per-hour usage by product — identify peaks and track consumption patterns</p>
+        <h2 className="text-xl font-bold text-fg-primary">Hourly Usage</h2>
+        <p className="text-sm text-fg-tertiary mt-1">Monitor per-hour usage by product — identify peaks and track consumption patterns</p>
       </div>
 
       {/* Product pills */}
@@ -74,11 +74,11 @@ export default function BillingUsage() {
             <button key={p.product_key} onClick={() => setSelectedProduct(p.product_key)}
               className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
                 selectedProduct === p.product_key
-                  ? 'bg-[#007bff] text-white shadow-md'
-                  : 'bg-white border border-[#dee2e6] text-[#495057] hover:border-gray-300 hover:bg-[#f8f9fa]'
+                  ? 'bg-accent-info text-fg-inverse shadow-md'
+                  : 'bg-bg-elevated border border-border text-fg-secondary hover:border-border-strong hover:bg-bg-subtle'
               }`}>
               {p.product_key}
-              <span className={`ml-1.5 text-xs ${selectedProduct === p.product_key ? 'text-white/70' : 'text-[#6c757d]'}`}>
+              <span className={`ml-1.5 text-xs ${selectedProduct === p.product_key ? 'text-white/70' : 'text-fg-tertiary'}`}>
                 {fmtShort(total)}
               </span>
             </button>
@@ -89,25 +89,25 @@ export default function BillingUsage() {
       {/* Stats grid */}
       <div className="grid grid-cols-5 gap-3">
         {[
-          { label: 'Total Usage', value: fmtShort(stats.total), color: 'text-[#007bff]' },
-          { label: 'Peak', value: fmtShort(stats.max), color: 'text-[#e67e22]' },
-          { label: '99th %ile', value: fmtShort(stats.p99), color: 'text-[#6f42c1]' },
-          { label: 'Average', value: fmtShort(stats.avg), color: 'text-blue-600' },
-          { label: 'Data Points', value: String(stats.count), color: 'text-[#495057]' },
+          { label: 'Total Usage', value: fmtShort(stats.total), color: 'text-accent-info' },
+          { label: 'Peak', value: fmtShort(stats.max), color: 'text-accent-warning' },
+          { label: '99th %ile', value: fmtShort(stats.p99), color: 'text-accent-primary' },
+          { label: 'Average', value: fmtShort(stats.avg), color: 'text-accent-info' },
+          { label: 'Data Points', value: String(stats.count), color: 'text-fg-secondary' },
         ].map(s => (
-          <div key={s.label} className="bg-white border border-[#dee2e6] rounded-lg p-4">
-            <p className="text-[11px] font-semibold text-[#6c757d] uppercase tracking-wider">{s.label}</p>
+          <div key={s.label} className="bg-bg-elevated border border-border rounded-lg p-4">
+            <p className="text-[11px] font-semibold text-fg-tertiary uppercase tracking-wider">{s.label}</p>
             <p className={`text-xl font-bold ${s.color}`}>{s.value}</p>
           </div>
         ))}
       </div>
 
       {/* Bar chart */}
-      <div className="bg-white border border-[#dee2e6] rounded-lg p-6">
+      <div className="bg-bg-elevated border border-border rounded-lg p-6">
         <div className="flex items-center justify-between mb-6">
-          <h3 className="text-sm font-semibold text-[#495057]">{selectedProduct} — Hourly Usage Chart</h3>
+          <h3 className="text-sm font-semibold text-fg-secondary">{selectedProduct} — Hourly Usage Chart</h3>
           <button onClick={() => setShowAll(!showAll)}
-            className="text-xs text-[#007bff] hover:text-[#0056b3] font-medium">
+            className="text-xs text-accent-info hover:text-accent-info font-medium">
             {showAll ? 'Show last 48 hours' : 'Show all'}
           </button>
         </div>
@@ -117,7 +117,7 @@ export default function BillingUsage() {
             <div className="animate-spin h-6 w-6 border-2 border-[#007bff] border-t-transparent rounded-full" />
           </div>
         ) : displayData.length === 0 ? (
-          <div className="text-center py-16 text-[#dee2e6]">No hourly usage data available for {selectedProduct}</div>
+          <div className="text-center py-16 text-border">No hourly usage data available for {selectedProduct}</div>
         ) : (
           <>
             <div className="flex items-end gap-[2px] h-48 overflow-x-auto pb-6">
@@ -128,13 +128,13 @@ export default function BillingUsage() {
                 return (
                   <div key={i} className="flex-1 flex flex-col items-center justify-end min-w-[8px] relative group"
                     title={`${d.hour}: ${qty.toLocaleString()}`}>
-                    <div className={`absolute -top-5 text-[9px] font-mono text-[#6c757d] opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap`}>
+                    <div className={`absolute -top-5 text-[9px] font-mono text-fg-tertiary opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap`}>
                       {qty.toLocaleString()}
                     </div>
-                    <div className={`w-full rounded-t-sm transition-all hover:opacity-80 flex-shrink-0 ${isPeak ? 'bg-amber-400' : 'bg-[#f0f7ff]0'}`}
+                    <div className={`w-full rounded-t-sm transition-all hover:opacity-80 flex-shrink-0 ${isPeak ? 'bg-severity-warn' : 'bg-[#f0f7ff]0'}`}
                       style={{ height: `${h}%` }} />
                     {(i % 6 === 0 || i === displayData.length - 1) && (
-                      <span className="text-[9px] text-[#6c757d] mt-1.5 whitespace-nowrap tabular-nums">
+                      <span className="text-[9px] text-fg-tertiary mt-1.5 whitespace-nowrap tabular-nums">
                         {new Date(d.hour + 'Z').getUTCHours().toString().padStart(2, '0')}:00
                       </span>
                     )}
@@ -143,9 +143,9 @@ export default function BillingUsage() {
               })}
             </div>
 
-            <div className="flex items-center gap-6 text-xs text-[#6c757d] pt-4 border-t border-[#dee2e6]">
+            <div className="flex items-center gap-6 text-xs text-fg-tertiary pt-4 border-t border-border">
               <div className="flex items-center gap-1.5"><div className="w-3 h-3 rounded-sm bg-[#f0f7ff]0" /> Normal</div>
-              <div className="flex items-center gap-1.5"><div className="w-3 h-3 rounded-sm bg-amber-400" /> Peak ({fmtShort(stats.max)})</div>
+              <div className="flex items-center gap-1.5"><div className="w-3 h-3 rounded-sm bg-severity-warn" /> Peak ({fmtShort(stats.max)})</div>
               <span className="ml-auto">Showing {displayData.length} of {hourlyData.length} data points</span>
             </div>
           </>

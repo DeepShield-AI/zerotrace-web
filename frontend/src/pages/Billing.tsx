@@ -87,43 +87,43 @@ function PlanCard({
   const monthly = parseFloat(plan.unit_price_monthly);
 
   return (
-    <Card className={`rounded-lg border ${isActive ? 'border-emerald-400 bg-[#e8f5e9]/20' : 'border-[#dee2e6]/60'} hover:shadow-md transition-shadow`}
+    <Card className={`rounded-lg border ${isActive ? 'border-accent-success bg-accent-success-bg/20' : 'border-border/60'} hover:shadow-md transition-shadow`}
       title={<div className="flex items-center justify-between">
-        <span className="text-base font-semibold text-[#212529]">{plan.name}</span>
+        <span className="text-base font-semibold text-fg-primary">{plan.name}</span>
         <span className="flex gap-1">{plan.is_addon && <Tag color="blue">{t('billing.addon')}</Tag>}
           <Tag color="default"><code>{plan.product_key}</code></Tag>
         </span>
       </div>}
     >
-      <p className="text-sm text-[#6c757d] mb-4">{plan.description}</p>
+      <p className="text-sm text-fg-tertiary mb-4">{plan.description}</p>
       <div className="flex gap-4 mb-4">
-        <div className="flex-1 text-center p-3 bg-[#f8f9fa] rounded-lg">
-          <p className="text-xs text-[#6c757d]">{t('billing.annual')}</p>
-          <p className="text-lg font-bold text-[#212529]">{formatCurrency(annual)}</p>
-          <p className="text-xs text-[#6c757d]">/{plan.billing_dimension.replace('per_', '')}/mo</p>
+        <div className="flex-1 text-center p-3 bg-bg-subtle rounded-lg">
+          <p className="text-xs text-fg-tertiary">{t('billing.annual')}</p>
+          <p className="text-lg font-bold text-fg-primary">{formatCurrency(annual)}</p>
+          <p className="text-xs text-fg-tertiary">/{plan.billing_dimension.replace('per_', '')}/mo</p>
         </div>
-        <div className="flex-1 text-center p-3 bg-[#f8f9fa] rounded-lg">
-          <p className="text-xs text-[#6c757d]">{t('billing.monthly')}</p>
-          <p className="text-lg font-bold text-[#212529]">{formatCurrency(monthly)}</p>
-          <p className="text-xs text-[#6c757d]">/{plan.billing_dimension.replace('per_', '')}/mo</p>
+        <div className="flex-1 text-center p-3 bg-bg-subtle rounded-lg">
+          <p className="text-xs text-fg-tertiary">{t('billing.monthly')}</p>
+          <p className="text-lg font-bold text-fg-primary">{formatCurrency(monthly)}</p>
+          <p className="text-xs text-fg-tertiary">/{plan.billing_dimension.replace('per_', '')}/mo</p>
         </div>
       </div>
-      <div className="text-xs text-[#6c757d] mb-4 space-y-1">
-        <p>{t('billing.aggregation')}: <code className="text-[#495057]">{plan.aggregation_method}</code></p>
-        {plan.parent_product_key && <p>{t('billing.requires')}: <code className="text-[#495057]">{plan.parent_product_key}</code></p>}
+      <div className="text-xs text-fg-tertiary mb-4 space-y-1">
+        <p>{t('billing.aggregation')}: <code className="text-fg-secondary">{plan.aggregation_method}</code></p>
+        {plan.parent_product_key && <p>{t('billing.requires')}: <code className="text-fg-secondary">{plan.parent_product_key}</code></p>}
       </div>
       {plan.allotments.length > 0 && (
-        <div className="mb-4 p-3 bg-[#fff3e0] rounded-lg border border-[#ffe0b2]">
-          <p className="text-xs font-medium text-[#e67e22] mb-1">{t('billing.includes')}:</p>
+        <div className="mb-4 p-3 bg-accent-warning-bg rounded-lg border border-accent-warning">
+          <p className="text-xs font-medium text-accent-warning mb-1">{t('billing.includes')}:</p>
           {plan.allotments.map((a) => (
-            <p key={a.id} className="text-xs text-[#e67e22]">{a.allotted_quantity} {a.allotted_product_key} ({a.per_unit})</p>
+            <p key={a.id} className="text-xs text-accent-warning">{a.allotted_quantity} {a.allotted_product_key} ({a.per_unit})</p>
           ))}
         </div>
       )}
       {isActive ? (
         <div className="space-y-2">
           <Tag color="green">{t('billing.active')} — {subscribed!.commitment_type}</Tag>
-          <p className="text-xs text-[#6c757d]">{parseFloat(subscribed!.committed_quantity).toLocaleString()} {plan.billing_dimension.replace('per_', '')}s @ {formatCurrency(subscribed!.unit_price)} each/mo</p>
+          <p className="text-xs text-fg-tertiary">{parseFloat(subscribed!.committed_quantity).toLocaleString()} {plan.billing_dimension.replace('per_', '')}s @ {formatCurrency(subscribed!.unit_price)} each/mo</p>
           <div className="flex gap-2">
             <Button size="small" onClick={() => onSubscribe(plan)}>{t('billing.changeQuantity')}</Button>
             <Button danger size="small" onClick={() => onCancel(subscribed!)}>{t('billing.cancelSubscription')}</Button>
@@ -133,7 +133,7 @@ function PlanCard({
         <Button type="primary" block onClick={() => onSubscribe(plan)}>{t('billing.subscribe')}</Button>
       )}
       {isAdmin && (
-        <div className="flex gap-2 mt-3 pt-3 border-t border-[#dee2e6]">
+        <div className="flex gap-2 mt-3 pt-3 border-t border-border">
           <Button size="small" onClick={() => onEdit(plan)}>{t('common.edit')}</Button>
           <Button size="small" danger onClick={() => onDelete(plan)}>{t('common.delete')}</Button>
         </div>
@@ -299,16 +299,16 @@ export default function Billing() {
       {/* Usage & Estimated Cost */}
       {estimatedCost && (
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-          <div className="bento-card bg-[#e8f5e9]/30 border border-emerald-100">
-            <p className="text-xs text-[#28a745] font-medium">{t('billing.estimatedCost')}</p>
-            <p className="text-2xl font-bold text-emerald-700 mt-1">{formatCurrency(estimatedCost.estimated_total)}</p>
-            <p className="text-xs text-emerald-500 mt-1">{t('billing.currentMonth')}</p>
+          <div className="bento-card bg-accent-success-bg/30 border border-accent-success-bg">
+            <p className="text-xs text-accent-success font-medium">{t('billing.estimatedCost')}</p>
+            <p className="text-2xl font-bold text-accent-success mt-1">{formatCurrency(estimatedCost.estimated_total)}</p>
+            <p className="text-xs text-accent-success mt-1">{t('billing.currentMonth')}</p>
           </div>
           {estimatedCost.breakdown.slice(0, 4).map(b => (
             <div key={b.product_key} className="bento-card">
-              <p className="text-xs text-[#6c757d] font-medium uppercase">{b.product_key.replace(/_/g, ' ')}</p>
-              <p className="text-xl font-bold text-[#212529] mt-1">{formatCurrency(b.estimated_cost)}</p>
-              <p className="text-xs text-[#6c757d] mt-1">{parseFloat(b.usage_total).toLocaleString()} billable used</p>
+              <p className="text-xs text-fg-tertiary font-medium uppercase">{b.product_key.replace(/_/g, ' ')}</p>
+              <p className="text-xl font-bold text-fg-primary mt-1">{formatCurrency(b.estimated_cost)}</p>
+              <p className="text-xs text-fg-tertiary mt-1">{parseFloat(b.usage_total).toLocaleString()} billable used</p>
             </div>
           ))}
         </div>
@@ -317,13 +317,13 @@ export default function Billing() {
       {/* Current Usage */}
       {usage.length > 0 && (
         <div className="mb-8">
-          <h3 className="text-lg font-semibold text-[#212529] mb-4">{t('billing.currentUsage')}</h3>
+          <h3 className="text-lg font-semibold text-fg-primary mb-4">{t('billing.currentUsage')}</h3>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
             {usage.map(u => (
               <div key={u.product_key} className="bento-card">
-                <p className="text-xs text-[#6c757d]">{u.product_key.replace(/_/g, ' ')}</p>
-                <p className="text-lg font-bold text-[#212529] mt-1">{parseFloat(u.total_quantity).toLocaleString()}</p>
-                <p className="text-xs text-[#6c757d]">{u.hourly_count} {t('billing.hoursTracked')}</p>
+                <p className="text-xs text-fg-tertiary">{u.product_key.replace(/_/g, ' ')}</p>
+                <p className="text-lg font-bold text-fg-primary mt-1">{parseFloat(u.total_quantity).toLocaleString()}</p>
+                <p className="text-xs text-fg-tertiary">{u.hourly_count} {t('billing.hoursTracked')}</p>
               </div>
             ))}
           </div>
@@ -332,11 +332,11 @@ export default function Billing() {
 
       {/* Plans */}
       <div className="flex items-center justify-between mb-4">
-        <h3 className="text-lg font-semibold text-[#212529]">{t('billing.plans')}</h3>
+        <h3 className="text-lg font-semibold text-fg-primary">{t('billing.plans')}</h3>
         {isAdmin && <Button onClick={() => setCreateModal(true)}>{t('billing.createPlan')}</Button>}
       </div>
 
-      <h4 className="text-sm font-medium text-[#495057] mb-3">{t('billing.baseProducts')}</h4>
+      <h4 className="text-sm font-medium text-fg-secondary mb-3">{t('billing.baseProducts')}</h4>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
         {basePlans.map(plan => (
           <PlanCard key={plan.id} plan={plan} subscribed={subscriptions.find(s => s.plan_id === plan.id)}
@@ -346,7 +346,7 @@ export default function Billing() {
       </div>
 
       {addonPlans.length > 0 && (<>
-        <h4 className="text-sm font-medium text-[#495057] mb-3">{t('billing.addonProducts')}</h4>
+        <h4 className="text-sm font-medium text-fg-secondary mb-3">{t('billing.addonProducts')}</h4>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
           {addonPlans.map(plan => (
             <PlanCard key={plan.id} plan={plan} subscribed={subscriptions.find(s => s.plan_id === plan.id)}
@@ -359,18 +359,18 @@ export default function Billing() {
       {/* Usage Alerts */}
       <div className="mb-8">
         <div className="flex items-center justify-between mb-4">
-          <h3 className="text-lg font-semibold text-[#212529]">{t('billing.usageAlerts')}</h3>
+          <h3 className="text-lg font-semibold text-fg-primary">{t('billing.usageAlerts')}</h3>
           <Button size="small" onClick={() => setAlertModal(true)}>{t('billing.createAlert')}</Button>
         </div>
         {alerts.length === 0 ? (
-          <p className="text-sm text-[#6c757d]">{t('billing.noAlerts')}</p>
+          <p className="text-sm text-fg-tertiary">{t('billing.noAlerts')}</p>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             {alerts.map(a => (
               <div key={a.id} className="bento-card flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-[#212529]">{a.product_key === '*' ? t('billing.allProducts') : a.product_key}</p>
-                  <p className="text-xs text-[#6c757d]">{t('billing.alertAt')} {a.threshold_pct}% · {a.channel}</p>
+                  <p className="text-sm font-medium text-fg-primary">{a.product_key === '*' ? t('billing.allProducts') : a.product_key}</p>
+                  <p className="text-xs text-fg-tertiary">{t('billing.alertAt')} {a.threshold_pct}% · {a.channel}</p>
                 </div>
                 <Button size="small" danger onClick={() => handleDeleteAlert(a)}>{t('common.delete')}</Button>
               </div>
@@ -388,7 +388,7 @@ export default function Billing() {
         {subscribeModal && (
           <div className="space-y-4 py-4">
             {!isUpgrade && (<div>
-              <label className="text-sm font-medium text-[#495057] block mb-1">{t('billing.commitmentType')}</label>
+              <label className="text-sm font-medium text-fg-secondary block mb-1">{t('billing.commitmentType')}</label>
               <Select value={commitType} onChange={setCommitType} className="w-full" size="large"
                 options={[
                   { value: 'annual', label: `${t('billing.annual')} — ${formatCurrency(subscribeModal.unit_price_annual)}/${subscribeModal.billing_dimension.replace('per_', '')}/mo` },
@@ -397,12 +397,12 @@ export default function Billing() {
                 ]} />
             </div>)}
             <div>
-              <label className="text-sm font-medium text-[#495057] block mb-1">{t('billing.quantity')}</label>
+              <label className="text-sm font-medium text-fg-secondary block mb-1">{t('billing.quantity')}</label>
               <InputNumber value={quantity} onChange={v => setQuantity(v || 1)} min={1} max={100000} className="w-full" size="large" />
             </div>
-            <div className="p-3 bg-[#f8f9fa] rounded-lg">
-              <p className="text-xs text-[#6c757d]">{t('billing.estimatedMonthly')}:</p>
-              <p className="text-lg font-bold text-[#212529]">{formatCurrency(parseFloat(subscribeModal.unit_price_annual) * quantity)}/mo</p>
+            <div className="p-3 bg-bg-subtle rounded-lg">
+              <p className="text-xs text-fg-tertiary">{t('billing.estimatedMonthly')}:</p>
+              <p className="text-lg font-bold text-fg-primary">{formatCurrency(parseFloat(subscribeModal.unit_price_annual) * quantity)}/mo</p>
             </div>
           </div>
         )}
@@ -412,17 +412,17 @@ export default function Billing() {
       <Modal title={t('billing.editPlan')} open={!!editModal} onCancel={() => setEditModal(null)} onOk={doEdit}
         confirmLoading={editSaving} okText={t('common.save')}>
         {editModal && (<div className="space-y-3 py-4">
-          <div><label className="text-sm text-[#495057] block mb-1">{t('common.name')}</label>
+          <div><label className="text-sm text-fg-secondary block mb-1">{t('common.name')}</label>
             <Input value={editName} onChange={e => setEditName(e.target.value)} /></div>
-          <div><label className="text-sm text-[#495057] block mb-1">{t('billing.description')}</label>
+          <div><label className="text-sm text-fg-secondary block mb-1">{t('billing.description')}</label>
             <Input.TextArea value={editDesc} onChange={e => setEditDesc(e.target.value)} rows={2} /></div>
           <div className="grid grid-cols-2 gap-3">
-            <div><label className="text-sm text-[#495057] block mb-1">{t('billing.annualPrice')}</label>
+            <div><label className="text-sm text-fg-secondary block mb-1">{t('billing.annualPrice')}</label>
               <InputNumber value={editAnnual} onChange={v => setEditAnnual(v || 0)} className="w-full" min={0} step={0.01} /></div>
-            <div><label className="text-sm text-[#495057] block mb-1">{t('billing.monthlyPrice')}</label>
+            <div><label className="text-sm text-fg-secondary block mb-1">{t('billing.monthlyPrice')}</label>
               <InputNumber value={editMonthly} onChange={v => setEditMonthly(v || 0)} className="w-full" min={0} step={0.01} /></div>
           </div>
-          <div><label className="text-sm text-[#495057] block mb-1">{t('billing.aggregation')}</label>
+          <div><label className="text-sm text-fg-secondary block mb-1">{t('billing.aggregation')}</label>
             <Select value={editAgg} onChange={setEditAgg} className="w-full"
               options={[{ value: 'hwmp_99p', label: 'HWMP 99th percentile' }, { value: 'sum', label: 'Sum' }, { value: 'average', label: 'Average' }]} /></div>
         </div>)}
@@ -433,27 +433,27 @@ export default function Billing() {
         confirmLoading={editSaving} okText={t('common.create')}>
         <div className="space-y-3 py-4">
           <div className="grid grid-cols-2 gap-3">
-            <div><label className="text-sm text-[#495057] block mb-1">Product Key</label>
+            <div><label className="text-sm text-fg-secondary block mb-1">Product Key</label>
               <Input value={createKey} onChange={e => setCreateKey(e.target.value)} placeholder="infra_pro" /></div>
-            <div><label className="text-sm text-[#495057] block mb-1">{t('common.name')}</label>
+            <div><label className="text-sm text-fg-secondary block mb-1">{t('common.name')}</label>
               <Input value={createName} onChange={e => setCreateName(e.target.value)} placeholder="Infrastructure Pro" /></div>
           </div>
           <div className="grid grid-cols-2 gap-3">
-            <div><label className="text-sm text-[#495057] block mb-1">{t('billing.dimension')}</label>
+            <div><label className="text-sm text-fg-secondary block mb-1">{t('billing.dimension')}</label>
               <Select value={createDim} onChange={setCreateDim} className="w-full"
                 options={[{ value: 'per_host', label: 'Per Host' }, { value: 'per_gb', label: 'Per GB' }, { value: 'per_million_events', label: 'Per Million Events' }, { value: 'per_metric', label: 'Per Metric' }, { value: 'per_container', label: 'Per Container' }]} /></div>
-            <div><label className="text-sm text-[#495057] block mb-1">{t('billing.aggregation')}</label>
+            <div><label className="text-sm text-fg-secondary block mb-1">{t('billing.aggregation')}</label>
               <Select value={createAgg} onChange={setCreateAgg} className="w-full"
                 options={[{ value: 'hwmp_99p', label: 'HWMP 99p' }, { value: 'sum', label: 'Sum' }, { value: 'average', label: 'Average' }]} /></div>
           </div>
           <div className="grid grid-cols-2 gap-3">
-            <div><label className="text-sm text-[#495057] block mb-1">{t('billing.annualPrice')}</label>
+            <div><label className="text-sm text-fg-secondary block mb-1">{t('billing.annualPrice')}</label>
               <InputNumber value={createAnnual} onChange={v => setCreateAnnual(v || 0)} className="w-full" min={0} step={0.01} /></div>
-            <div><label className="text-sm text-[#495057] block mb-1">{t('billing.monthlyPrice')}</label>
+            <div><label className="text-sm text-fg-secondary block mb-1">{t('billing.monthlyPrice')}</label>
               <InputNumber value={createMonthly} onChange={v => setCreateMonthly(v || 0)} className="w-full" min={0} step={0.01} /></div>
           </div>
           <div className="flex items-center gap-4">
-            <label className="text-sm text-[#495057]">{t('billing.addon')}</label>
+            <label className="text-sm text-fg-secondary">{t('billing.addon')}</label>
             <Switch checked={createAddon} onChange={setCreateAddon} />
           </div>
         </div>
@@ -463,12 +463,12 @@ export default function Billing() {
       <Modal title={t('billing.createAlert')} open={alertModal} onCancel={() => setAlertModal(false)} onOk={doCreateAlert}
         okText={t('common.create')}>
         <div className="space-y-4 py-4">
-          <div><label className="text-sm text-[#495057] block mb-1">{t('billing.product')}</label>
+          <div><label className="text-sm text-fg-secondary block mb-1">{t('billing.product')}</label>
             <Select value={alertProduct} onChange={setAlertProduct} className="w-full"
               options={[{ value: '*', label: t('billing.allProducts') + ' (*)' },
                 ...plans.map(p => ({ value: p.product_key, label: `${p.name} (${p.product_key})` })),
               ]} /></div>
-          <div><label className="text-sm text-[#495057] block mb-1">{t('billing.thresholdPercent')}: {alertPct}%</label>
+          <div><label className="text-sm text-fg-secondary block mb-1">{t('billing.thresholdPercent')}: {alertPct}%</label>
             <Slider value={alertPct} onChange={setAlertPct} min={10} max={200} step={5}
               marks={{ 50: '50%', 80: '80%', 100: '100%', 150: '150%' }} /></div>
         </div>

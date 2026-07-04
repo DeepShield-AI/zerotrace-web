@@ -119,14 +119,14 @@ export default function BillingDashboard() {
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h2 className="text-2xl font-bold tracking-tight text-zinc-900">{t('billing.title')}</h2>
-          <p className="text-sm text-zinc-500 mt-1">
+          <h2 className="text-2xl font-bold tracking-tight text-fg-primary">{t('billing.title')}</h2>
+          <p className="text-sm text-fg-tertiary mt-1">
             {summary?.period_start} — {summary?.period_end}
           </p>
         </div>
         <div className="flex items-center gap-3">
           {summary?.subscriptions.length === 0 && (
-            <a href="/org/billing/plans" className="text-sm text-violet-600 hover:text-violet-700 font-medium">
+            <a href="/org/billing/plans" className="text-sm text-accent-primary hover:text-accent-primary font-medium">
               {t('billing.addSubscription')} →
             </a>
           )}
@@ -136,15 +136,15 @@ export default function BillingDashboard() {
       {/* No subscriptions state */}
       {summary && summary.subscriptions.length === 0 ? (
         <div className="bento-card text-center py-16">
-          <div className="w-16 h-16 rounded-lg bg-violet-50 flex items-center justify-center mx-auto mb-4">
-            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" className="text-violet-500" strokeWidth="1.5">
+          <div className="w-16 h-16 rounded-lg bg-accent-primary/10 flex items-center justify-center mx-auto mb-4">
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" className="text-accent-primary" strokeWidth="1.5">
               <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" />
             </svg>
           </div>
-          <h3 className="text-lg font-semibold text-zinc-800 mb-2">{t('billing.noActiveSubscriptions')}</h3>
-          <p className="text-sm text-zinc-500 mb-6 max-w-md mx-auto">{t('billing.noSubscriptionsDesc')}</p>
+          <h3 className="text-lg font-semibold text-fg-primary mb-2">{t('billing.noActiveSubscriptions')}</h3>
+          <p className="text-sm text-fg-tertiary mb-6 max-w-md mx-auto">{t('billing.noSubscriptionsDesc')}</p>
           <a href="/org/billing/plans"
-            className="inline-flex items-center gap-2 px-5 py-2.5 bg-violet-600 text-white rounded-lg text-sm font-medium hover:bg-violet-700 transition-colors">
+            className="inline-flex items-center gap-2 px-5 py-2.5 bg-accent-primary text-fg-inverse rounded-lg text-sm font-medium hover:bg-violet-700 transition-colors">
             {t('billing.browsePlans')}
           </a>
         </div>
@@ -169,25 +169,25 @@ export default function BillingDashboard() {
           {committed + onDemand > 0 && (
             <div className="bento-card mb-8">
               <div className="flex items-center justify-between mb-2">
-                <span className="text-sm font-medium text-zinc-700">{t('billing.commitmentBreakdown')}</span>
-                <span className="text-xs text-zinc-400">
+                <span className="text-sm font-medium text-fg-secondary">{t('billing.commitmentBreakdown')}</span>
+                <span className="text-xs text-fg-tertiary">
                   {fmtShort(committed)} {t('billing.committed')} · {fmtShort(onDemand)} {t('billing.onDemand')}
                 </span>
               </div>
-              <div className="h-3 bg-zinc-100 rounded-full overflow-hidden flex">
-                <div className="h-full bg-violet-500 rounded-l-full transition-all" style={{ width: `${100 - totalUsed}%` }} />
-                <div className="h-full bg-amber-400 rounded-r-full transition-all" style={{ width: `${totalUsed}%` }} />
+              <div className="h-3 bg-bg-muted rounded-full overflow-hidden flex">
+                <div className="h-full bg-accent-primary rounded-l-full transition-all" style={{ width: `${100 - totalUsed}%` }} />
+                <div className="h-full bg-severity-warn rounded-r-full transition-all" style={{ width: `${totalUsed}%` }} />
               </div>
               <div className="flex justify-between mt-2">
-                <span className="text-xs text-violet-600 font-medium">{Math.round(100 - totalUsed)}% {t('billing.committed')}</span>
-                <span className="text-xs text-[#e67e22] font-medium">{Math.round(totalUsed)}% {t('billing.onDemand')}</span>
+                <span className="text-xs text-accent-primary font-medium">{Math.round(100 - totalUsed)}% {t('billing.committed')}</span>
+                <span className="text-xs text-accent-warning font-medium">{Math.round(totalUsed)}% {t('billing.onDemand')}</span>
               </div>
             </div>
           )}
 
           {/* Product Usage by Family */}
           <div className="mb-8">
-            <h3 className="text-base font-semibold text-zinc-900 mb-4">{t('billing.usageByProduct')}</h3>
+            <h3 className="text-base font-semibold text-fg-primary mb-4">{t('billing.usageByProduct')}</h3>
             {Object.entries(families).map(([family, rows]) => (
               <ProductFamilySection key={family} title={family} defaultOpen={true}>
                 {rows.map((row) => (
@@ -200,32 +200,32 @@ export default function BillingDashboard() {
           {/* Billing History */}
           {summary && summary.invoices.length > 0 && (
             <div className="mb-8">
-              <h3 className="text-base font-semibold text-zinc-900 mb-4">{t('billing.invoicesTitle')}</h3>
+              <h3 className="text-base font-semibold text-fg-primary mb-4">{t('billing.invoicesTitle')}</h3>
               <div className="space-y-2">
                 {summary.invoices.map((inv) => (
                   <div key={inv.id} className="bento-card">
                     <div className="flex items-center justify-between cursor-pointer" onClick={() => toggleInvoice(inv.id)}>
                       <div className="flex items-center gap-4">
-                        <svg className={`w-4 h-4 text-zinc-400 transition-transform ${expandedInvoice === inv.id ? 'rotate-90' : ''}`}
+                        <svg className={`w-4 h-4 text-fg-tertiary transition-transform ${expandedInvoice === inv.id ? 'rotate-90' : ''}`}
                           viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                           <polyline points="9 18 15 12 9 6" />
                         </svg>
                         <div>
-                          <p className="text-sm font-medium text-zinc-800">{inv.period_start} — {inv.period_end}</p>
-                          <p className="text-xs text-zinc-400">{inv.issued_at ? new Date(inv.issued_at).toLocaleDateString() : t('billing.draft')}</p>
+                          <p className="text-sm font-medium text-fg-primary">{inv.period_start} — {inv.period_end}</p>
+                          <p className="text-xs text-fg-tertiary">{inv.issued_at ? new Date(inv.issued_at).toLocaleDateString() : t('billing.draft')}</p>
                         </div>
                       </div>
                       <div className="flex items-center gap-4">
                         <Tag color={inv.status === 'paid' ? 'green' : inv.status === 'open' ? 'blue' : 'default'}>{inv.status}</Tag>
-                        <span className="text-sm font-bold text-zinc-900">{formatCurrency(inv.total)}</span>
+                        <span className="text-sm font-bold text-fg-primary">{formatCurrency(inv.total)}</span>
                       </div>
                     </div>
                     {expandedInvoice === inv.id && (
-                      <div className="mt-4 pt-4 border-t border-zinc-100">
+                      <div className="mt-4 pt-4 border-t border-border-subtle">
                         {detailLoading ? <Spin size="small" /> : (
                           <table className="w-full text-sm">
                             <thead>
-                              <tr className="text-xs text-zinc-400 uppercase border-b border-zinc-100">
+                              <tr className="text-xs text-fg-tertiary uppercase border-b border-border-subtle">
                                 <th className="text-left pb-2 font-medium">{t('billing.product')}</th>
                                 <th className="text-right pb-2 font-medium">{t('billing.commitment')}</th>
                                 <th className="text-right pb-2 font-medium">{t('billing.overage')}</th>
@@ -234,31 +234,31 @@ export default function BillingDashboard() {
                             </thead>
                             <tbody>
                               {invoiceLines.map((li) => (
-                                <tr key={li.id} className="border-b border-zinc-50">
+                                <tr key={li.id} className="border-b border-border-subtle">
                                   <td className="py-2">
-                                    <p className="text-zinc-800 font-medium text-xs">{li.product_key.replace(/_/g, ' ')}</p>
-                                    <p className="text-zinc-400 text-xs">{li.description}</p>
+                                    <p className="text-fg-primary font-medium text-xs">{li.product_key.replace(/_/g, ' ')}</p>
+                                    <p className="text-fg-tertiary text-xs">{li.description}</p>
                                   </td>
-                                  <td className="py-2 text-right text-xs text-zinc-600">{formatCurrency(li.commitment_total)}</td>
-                                  <td className="py-2 text-right text-xs text-[#e67e22]">{formatCurrency(li.overage_total)}</td>
-                                  <td className="py-2 text-right text-xs font-semibold text-zinc-800">{formatCurrency(li.line_total)}</td>
+                                  <td className="py-2 text-right text-xs text-fg-secondary">{formatCurrency(li.commitment_total)}</td>
+                                  <td className="py-2 text-right text-xs text-accent-warning">{formatCurrency(li.overage_total)}</td>
+                                  <td className="py-2 text-right text-xs font-semibold text-fg-primary">{formatCurrency(li.line_total)}</td>
                                 </tr>
                               ))}
                             </tbody>
                             <tfoot>
                               <tr>
-                                <td colSpan={3} className="pt-3 text-right text-xs font-medium text-zinc-600">{t('billing.subtotal')}</td>
-                                <td className="pt-3 text-right text-xs font-bold text-zinc-900">{formatCurrency(inv.subtotal)}</td>
+                                <td colSpan={3} className="pt-3 text-right text-xs font-medium text-fg-secondary">{t('billing.subtotal')}</td>
+                                <td className="pt-3 text-right text-xs font-bold text-fg-primary">{formatCurrency(inv.subtotal)}</td>
                               </tr>
                               {parseFloat(inv.discount) > 0 && (
                                 <tr>
-                                  <td colSpan={3} className="text-right text-xs text-zinc-500">{t('billing.discount')}</td>
-                                  <td className="text-right text-xs text-[#28a745]">-{formatCurrency(inv.discount)}</td>
+                                  <td colSpan={3} className="text-right text-xs text-fg-tertiary">{t('billing.discount')}</td>
+                                  <td className="text-right text-xs text-accent-success">-{formatCurrency(inv.discount)}</td>
                                 </tr>
                               )}
                               <tr>
-                                <td colSpan={3} className="pt-1 text-right text-sm font-semibold text-zinc-900">{t('billing.total')}</td>
-                                <td className="pt-1 text-right text-sm font-bold text-zinc-900">{formatCurrency(inv.total)}</td>
+                                <td colSpan={3} className="pt-1 text-right text-sm font-semibold text-fg-primary">{t('billing.total')}</td>
+                                <td className="pt-1 text-right text-sm font-bold text-fg-primary">{formatCurrency(inv.total)}</td>
                               </tr>
                             </tfoot>
                           </table>

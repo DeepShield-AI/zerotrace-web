@@ -17,15 +17,15 @@ export function BillingKPI({ label, value, sub, accent }: {
   const colors: Record<string, string> = {
     green: 'border-emerald-200 bg-[#e8f5e9]/50',
     amber: 'border-[#ffcc80] bg-[#fff3e0]/50',
-    default: 'border-[#dee2e6] bg-white',
+    default: 'border-border bg-bg-elevated',
   };
   return (
     <div className={`rounded-lg border p-5 ${colors[accent || 'default']}`}>
-      <p className="text-xs text-zinc-500 font-medium uppercase tracking-wide">{label}</p>
-      <p className={`text-2xl font-bold mt-1 ${accent === 'green' ? 'text-emerald-700' : accent === 'amber' ? 'text-[#e67e22]' : 'text-zinc-900'}`}>
+      <p className="text-xs text-fg-tertiary font-medium uppercase tracking-wide">{label}</p>
+      <p className={`text-2xl font-bold mt-1 ${accent === 'green' ? 'text-accent-success' : accent === 'amber' ? 'text-accent-warning' : 'text-fg-primary'}`}>
         {value}
       </p>
-      {sub && <p className="text-xs text-zinc-400 mt-1">{sub}</p>}
+      {sub && <p className="text-xs text-fg-tertiary mt-1">{sub}</p>}
     </div>
   );
 }
@@ -36,11 +36,11 @@ export function UsageBar({ used, total, overage }: { used: number; total: number
   const over = overage && overage > 0;
   return (
     <div className="flex items-center gap-3">
-      <div className="flex-1 h-2 bg-zinc-100 rounded-full overflow-hidden">
-        <div className={`h-full rounded-full transition-all duration-500 ${over ? 'bg-[#fff3e0]0' : pct > 90 ? 'bg-amber-400' : 'bg-violet-500'}`}
+      <div className="flex-1 h-2 bg-bg-muted rounded-full overflow-hidden">
+        <div className={`h-full rounded-full transition-all duration-500 ${over ? 'bg-accent-warning-bg/0' : pct > 90 ? 'bg-severity-warn' : 'bg-accent-primary'}`}
           style={{ width: `${Math.min(pct, 100)}%` }} />
       </div>
-      <span className={`text-xs font-mono font-medium shrink-0 ${over ? 'text-[#e67e22]' : 'text-zinc-500'}`}>
+      <span className={`text-xs font-mono font-medium shrink-0 ${over ? 'text-accent-warning' : 'text-fg-tertiary'}`}>
         {over ? `${Math.round(pct)}%` : `${fmtNum(used)}/${fmtNum(total)}`}
       </span>
     </div>
@@ -80,53 +80,53 @@ export function ProductUsageRow({ row }: { row: ProductUsageRowData }) {
   const total = parseFloat(row.committed_quantity);
 
   return (
-    <div className="rounded-lg border border-[#dee2e6]/60 bg-white p-5 hover:border-zinc-300 transition-colors">
+    <div className="rounded-lg border border-border/60 bg-bg-elevated p-5 hover:border-border transition-colors">
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-3">
-          <span className="font-semibold text-zinc-900 text-sm">{row.product_name}</span>
-          <span className="text-xs text-zinc-400 bg-zinc-100 rounded-lg px-2 py-0.5 font-mono">{row.product_key}</span>
-          {row.is_addon && <span className="text-xs text-blue-600 bg-blue-50 rounded-lg px-2 py-0.5">{t('billing.addon')}</span>}
-          {row.parent_product_key && <span className="text-xs text-zinc-400">· requires {row.parent_product_key}</span>}
+          <span className="font-semibold text-fg-primary text-sm">{row.product_name}</span>
+          <span className="text-xs text-fg-tertiary bg-bg-muted rounded-lg px-2 py-0.5 font-mono">{row.product_key}</span>
+          {row.is_addon && <span className="text-xs text-accent-info bg-accent-info-bg rounded-lg px-2 py-0.5">{t('billing.addon')}</span>}
+          {row.parent_product_key && <span className="text-xs text-fg-tertiary">· requires {row.parent_product_key}</span>}
         </div>
-        <span className="text-lg font-bold text-zinc-900">{formatCurrency(row.line_total)}</span>
+        <span className="text-lg font-bold text-fg-primary">{formatCurrency(row.line_total)}</span>
       </div>
 
       <div className="grid grid-cols-3 gap-4 mb-3">
         {/* Committed */}
-        <div className="bg-[#f8f9fa] rounded-lg p-3">
+        <div className="bg-bg-subtle rounded-lg p-3">
           <div className="flex items-center justify-between">
-            <span className="text-xs text-zinc-500">{t('billing.commitment')}</span>
-            <span className="text-sm font-semibold text-zinc-700">{formatCurrency(row.committed_total)}</span>
+            <span className="text-xs text-fg-tertiary">{t('billing.commitment')}</span>
+            <span className="text-sm font-semibold text-fg-secondary">{formatCurrency(row.committed_total)}</span>
           </div>
           {hasCommitment ? (
-            <p className="text-xs text-zinc-400 mt-1">
+            <p className="text-xs text-fg-tertiary mt-1">
               {fmtNum(row.committed_quantity)} {row.unit} @ {formatCurrency(row.committed_unit_price)}/{row.unit}
             </p>
           ) : (
-            <p className="text-xs text-zinc-400 mt-1">{t('billing.noCommitment')}</p>
+            <p className="text-xs text-fg-tertiary mt-1">{t('billing.noCommitment')}</p>
           )}
         </div>
         {/* On-Demand */}
-        <div className={`rounded-lg p-3 ${hasOverage ? 'bg-[#fff3e0]' : 'bg-[#f8f9fa]'}`}>
+        <div className={`rounded-lg p-3 ${hasOverage ? 'bg-accent-warning-bg' : 'bg-bg-subtle'}`}>
           <div className="flex items-center justify-between">
-            <span className="text-xs text-zinc-500">{t('billing.onDemand')}</span>
-            <span className={`text-sm font-semibold ${hasOverage ? 'text-[#e67e22]' : 'text-zinc-400'}`}>
+            <span className="text-xs text-fg-tertiary">{t('billing.onDemand')}</span>
+            <span className={`text-sm font-semibold ${hasOverage ? 'text-accent-warning' : 'text-fg-tertiary'}`}>
               {formatCurrency(row.on_demand_total)}
             </span>
           </div>
           {hasOverage ? (
-            <p className="text-xs text-[#e67e22] mt-1">
+            <p className="text-xs text-accent-warning mt-1">
               +{fmtNum(row.on_demand_quantity)} {row.unit} @ {formatCurrency(row.on_demand_unit_price)}/{row.unit}
             </p>
           ) : (
-            <p className="text-xs text-zinc-400 mt-1">{t('billing.withinCommitment')}</p>
+            <p className="text-xs text-fg-tertiary mt-1">{t('billing.withinCommitment')}</p>
           )}
         </div>
         {/* Usage */}
-        <div className="bg-[#f8f9fa] rounded-lg p-3">
+        <div className="bg-bg-subtle rounded-lg p-3">
           <div className="flex items-center justify-between">
-            <span className="text-xs text-zinc-500">{t('billing.usage')}</span>
-            <span className="text-sm font-semibold text-zinc-700">{fmtNum(row.usage_total)} {row.unit}</span>
+            <span className="text-xs text-fg-tertiary">{t('billing.usage')}</span>
+            <span className="text-sm font-semibold text-fg-secondary">{fmtNum(row.usage_total)} {row.unit}</span>
           </div>
           <div className="mt-2">
             <UsageBar used={used} total={total} overage={hasOverage ? 1 : 0} />
@@ -136,8 +136,8 @@ export function ProductUsageRow({ row }: { row: ProductUsageRowData }) {
 
       {/* Allotments */}
       {row.allotments.length > 0 && (
-        <div className="border-t border-zinc-100 pt-3 mt-2">
-          <p className="text-xs font-medium text-zinc-500 mb-2">{t('billing.includedAllotments')}</p>
+        <div className="border-t border-border-subtle pt-3 mt-2">
+          <p className="text-xs font-medium text-fg-tertiary mb-2">{t('billing.includedAllotments')}</p>
           <div className="grid grid-cols-2 gap-2">
             {row.allotments.map((a) => {
               const freeNum = parseFloat(a.free_quantity);
@@ -146,7 +146,7 @@ export function ProductUsageRow({ row }: { row: ProductUsageRowData }) {
               return (
                 <div key={a.product_key} className={`rounded-lg p-2 ${over ? 'bg-[#fff3e0] border border-[#ffe0b2]' : 'bg-[#e8f5e9]/30'}`}>
                   <div className="flex items-center justify-between">
-                    <span className="text-xs text-zinc-600">{a.product_key.replace(/_/g, ' ')}</span>
+                    <span className="text-xs text-fg-secondary">{a.product_key.replace(/_/g, ' ')}</span>
                     <span className={`text-xs font-medium ${over ? 'text-[#e67e22]' : 'text-[#28a745]'}`}>
                       {over ? `${fmtNum(usedNum - freeNum)} ${t('billing.over')}` : t('billing.free')}
                     </span>
@@ -154,7 +154,7 @@ export function ProductUsageRow({ row }: { row: ProductUsageRowData }) {
                   <div className="mt-1">
                     <UsageBar used={usedNum} total={freeNum} overage={over ? 1 : 0} />
                   </div>
-                  <p className="text-xs text-zinc-400 mt-1">{fmtNum(freeNum)} {t('billing.included')} · {fmtNum(usedNum)} {t('billing.used')}</p>
+                  <p className="text-xs text-fg-tertiary mt-1">{fmtNum(freeNum)} {t('billing.included')} · {fmtNum(usedNum)} {t('billing.used')}</p>
                 </div>
               );
             })}
@@ -174,11 +174,11 @@ export function ProductFamilySection({ title, children, defaultOpen }: {
     <div className="mb-2">
       <button onClick={() => setOpen(!open)}
         className="flex items-center gap-2 w-full text-left py-2 group">
-        <svg className={`w-4 h-4 text-zinc-400 transition-transform ${open ? 'rotate-90' : ''}`}
+        <svg className={`w-4 h-4 text-fg-tertiary transition-transform ${open ? 'rotate-90' : ''}`}
           viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
           <polyline points="9 18 15 12 9 6" />
         </svg>
-        <span className="text-sm font-semibold text-zinc-700 group-hover:text-zinc-900">{title}</span>
+        <span className="text-sm font-semibold text-fg-secondary group-hover:text-fg-primary">{title}</span>
       </button>
       {open && <div className="space-y-2 ml-6">{children}</div>}
     </div>
