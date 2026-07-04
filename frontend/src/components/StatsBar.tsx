@@ -75,19 +75,19 @@ function StatCard({
   color?: string;
 }) {
   return (
-    <div className="relative bg-white rounded-lg border border-zinc-200 p-4 hover:shadow-sm transition-shadow cursor-pointer group">
+    <div className="relative bg-bg-elevated rounded-lg border border-border p-4 hover:shadow-sm transition-shadow cursor-pointer group">
       {/* Top label */}
       <div className="flex items-center justify-between mb-2">
-        <span className="text-[11px] font-semibold text-zinc-500 uppercase tracking-wider">{label}</span>
+        <span className="text-[11px] font-semibold text-fg-tertiary uppercase tracking-wider">{label}</span>
       </div>
 
       {/* Value + sparkline row */}
       <div className="flex items-end justify-between gap-3">
         <div className="flex items-baseline gap-1.5">
-          <span className="text-[28px] font-bold text-zinc-900 tracking-tight font-mono leading-none">
+          <span className="text-[28px] font-bold text-fg-primary tracking-tight font-mono leading-none">
             {value}
           </span>
-          {unit && <span className="text-[11px] font-semibold text-zinc-400">{unit}</span>}
+          {unit && <span className="text-[11px] font-semibold text-fg-tertiary">{unit}</span>}
         </div>
 
         {sparklineData && sparklineData.length >= 2 && (
@@ -99,7 +99,7 @@ function StatCard({
 
       {/* Sub info */}
       {sub && (
-        <p className="text-[11px] text-zinc-400 mt-2 leading-tight">{sub}</p>
+        <p className="text-[11px] text-fg-tertiary mt-2 leading-tight">{sub}</p>
       )}
     </div>
   );
@@ -109,7 +109,7 @@ function StatCard({
 
 function SkeletonCard() {
   return (
-    <div className="bg-white rounded-lg border border-zinc-200 p-4">
+    <div className="bg-bg-elevated rounded-lg border border-border p-4">
       <div className="skeleton h-3 w-20 mb-3 rounded" />
       <div className="flex items-end justify-between">
         <div className="skeleton h-8 w-28 rounded" />

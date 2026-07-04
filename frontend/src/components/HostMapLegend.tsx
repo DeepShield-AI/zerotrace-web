@@ -9,16 +9,16 @@ interface HostMapLegendProps {
 export default function HostMapLegend({ onlineCount, staleCount, offlineCount }: HostMapLegendProps) {
   const { t } = useTranslation();
   return (
-    <div className="flex items-center gap-3 text-[11px] text-zinc-500">
+    <div className="flex items-center gap-3 text-[11px] text-fg-tertiary">
       <span className="flex items-center gap-1.5">
-        <span className="w-2.5 h-2.5 rounded-sm" style={{ backgroundColor: '#22c55e' }} />{onlineCount} {t('hostTable.on')}
+        <span className="w-2.5 h-2.5 rounded-sm bg-severity-ok" />{onlineCount} {t('hostTable.on')}
       </span>
       <span className="flex items-center gap-1.5">
-        <span className="w-2.5 h-2.5 rounded-sm" style={{ backgroundColor: '#f59e0b' }} />{staleCount} {t('hostTable.stale')}
+        <span className="w-2.5 h-2.5 rounded-sm bg-severity-warn" />{staleCount} {t('hostTable.stale')}
       </span>
       {offlineCount > 0 && (
         <span className="flex items-center gap-1.5">
-          <span className="w-2.5 h-2.5 rounded-sm" style={{ backgroundColor: '#ef4444' }} />{offlineCount} {t('hostTable.offline')}
+          <span className="w-2.5 h-2.5 rounded-sm bg-severity-alert" />{offlineCount} {t('hostTable.offline')}
         </span>
       )}
     </div>

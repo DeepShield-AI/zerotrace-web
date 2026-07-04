@@ -13,16 +13,14 @@ function ContextMenu({ x, y, onViewTraces, onClose }: {
   return (
     <>
       <div className="fixed inset-0 z-[60]" onClick={onClose} />
-      <div ref={ref} className="fixed z-[70] bg-white border border-[#DEE2E6] rounded-lg shadow-xl py-1 min-w-[180px]"
+      <div ref={ref} className="fixed z-[70] bg-bg-elevated border border-border rounded-lg shadow-xl py-1 min-w-[180px]"
         style={{ left: x, top: y }}>
-        <button onClick={onViewTraces} className="w-full text-left px-4 py-2 text-[13px] hover:bg-purple-50 flex items-center gap-2.5 transition-colors"
-          style={{ color: C.text }}>
+        <button onClick={onViewTraces} className="w-full text-left px-4 py-2 text-[13px] hover:bg-purple-50 flex items-center gap-2.5 transition-colors text-fg-primary">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={C.purple} strokeWidth="1.5"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
           View Traces
         </button>
         <button onClick={() => window.open('/apm?view=traces', '_self')}
-          className="w-full text-left px-4 py-2 text-[13px] hover:bg-purple-50 flex items-center gap-2.5 transition-colors"
-          style={{ color: C.text }}>
+          className="w-full text-left px-4 py-2 text-[13px] hover:bg-purple-50 flex items-center gap-2.5 transition-colors text-fg-primary">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={C.purple} strokeWidth="1.5"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
           View All Traces
         </button>
@@ -69,17 +67,16 @@ function ChartCard({ title, data, color, unit, height = 100, hoverIdx, crosshair
   const lineX = crosshairX; // already in SVG coords
 
   return (
-    <div className="bg-white border rounded-lg p-3.5"
-      style={{ borderColor: C.border }}
+    <div className="bg-bg-elevated border border-border rounded-lg p-3.5"
       onMouseLeave={() => onHover(null, null)}
       onContextMenu={onContextMenu}>
       <div className="flex items-center justify-between mb-1.5">
-        <span className="text-[10px] font-semibold uppercase tracking-wider" style={{ color: C.gray }}>{title}</span>
+        <span className="text-[10px] font-semibold uppercase tracking-wider text-fg-tertiary">{title}</span>
         {hoverPt && (
           <span className="text-[11px] font-mono font-semibold tabular-nums" style={{ color }}>
             {hoverPt.val >= 1000 ? (hoverPt.val / 1000).toFixed(1) + 'K' : hoverPt.val.toFixed(1)}
-            <span className="ml-0.5 font-normal" style={{ color: C.muted }}>{unit}</span>
-            <span className="ml-2 text-[10px]" style={{ color: C.muted }}>{hoverPt.ts?.slice(11, 19)}</span>
+            <span className="ml-0.5 font-normal text-fg-disabled">{unit}</span>
+            <span className="ml-2 text-[10px] text-fg-disabled">{hoverPt.ts?.slice(11, 19)}</span>
           </span>
         )}
       </div>
@@ -157,20 +154,20 @@ export default function ProcessDetailPanel({ process, open, onClose, tsData }: {
   return (
     <>
       <div className="fixed inset-0 bg-black/15 z-40 transition-opacity" onClick={onClose} />
-      <div className="fixed right-0 top-0 h-screen bg-white border-l shadow-2xl z-50 flex flex-col animate-slide-left" style={{ width: 500, borderColor: C.border }}>
+      <div className="fixed right-0 top-0 h-screen bg-bg-elevated border-l border-border shadow-2xl z-50 flex flex-col animate-slide-left" style={{ width: 500 }}>
         {/* Header */}
-        <div className="shrink-0 px-5 py-4" style={{ borderBottom: `1px solid ${C.border}` }}>
+        <div className="shrink-0 px-5 py-4 border-b border-border">
           <div className="flex items-start justify-between">
             <div className="min-w-0">
               <div className="flex items-center gap-2">
                 <div className="w-2.5 h-2.5 rounded-full shrink-0" style={{
                   backgroundColor: parseFloat(errRate) > 5 ? C.red : parseFloat(errRate) > 1 ? C.orange : C.green
                 }} />
-                <h3 className="text-[15px] font-bold font-mono truncate" style={{ color: C.text }}>{name}</h3>
+                <h3 className="text-[15px] font-bold font-mono truncate text-fg-primary">{name}</h3>
               </div>
-              <p className="text-[12px] mt-0.5" style={{ color: C.muted }}>Host ID: {process.host_id} · {reqData.length} points · Right-click chart → View Traces</p>
+              <p className="text-[12px] mt-0.5 text-fg-disabled">Host ID: {process.host_id} · {reqData.length} points · Right-click chart → View Traces</p>
             </div>
-            <button onClick={onClose} className="text-zinc-300 hover:text-zinc-600 p-1 rounded shrink-0">
+            <button onClick={onClose} className="text-fg-disabled hover:text-fg-secondary p-1 rounded shrink-0">
               <CloseOutlined style={{ fontSize: 14 }} />
             </button>
           </div>
@@ -178,9 +175,9 @@ export default function ProcessDetailPanel({ process, open, onClose, tsData }: {
 
         <div className="flex-1 overflow-y-auto p-4 space-y-3">
           <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-medium border ${
-            parseFloat(errRate) > 5 ? 'bg-red-50 text-red-700 border-red-100' :
+            parseFloat(errRate) > 5 ? 'bg-accent-danger-bg text-accent-danger border-red-100' :
             parseFloat(errRate) > 1 ? 'bg-orange-50 text-orange-700 border-orange-100' :
-            'bg-emerald-50 text-emerald-700 border-emerald-100'
+            'bg-accent-success-bg text-accent-success border-emerald-100'
           }`}>
             {parseFloat(errRate) > 5 ? '⚠ Unhealthy' : parseFloat(errRate) > 1 ? '● Degraded' : '✓ Healthy'}
             <span className="opacity-60">({errRate}% error rate)</span>
@@ -192,8 +189,8 @@ export default function ProcessDetailPanel({ process, open, onClose, tsData }: {
               { l: 'Avg Latency', v: `${latency.toFixed(1)}ms`, c: latency > 100 ? C.red : C.green },
               { l: 'Errors', v: String(errors), c: errors > 0 ? C.red : C.green },
             ].map(m => (
-              <div key={m.l} className="bg-white border rounded-lg p-3" style={{ borderColor: C.border }}>
-                <p className="text-[10px] font-semibold uppercase tracking-wider" style={{ color: C.muted }}>{m.l}</p>
+              <div key={m.l} className="bg-bg-elevated border border-border rounded-lg p-3">
+                <p className="text-[10px] font-semibold uppercase tracking-wider text-fg-disabled">{m.l}</p>
                 <p className="text-[16px] font-bold font-mono mt-0.5" style={{ color: m.c }}>{m.v}</p>
               </div>
             ))}
@@ -210,7 +207,7 @@ export default function ProcessDetailPanel({ process, open, onClose, tsData }: {
             </div>
           ) : (
             <div className="py-8 text-center">
-              <p className="text-[12px]" style={{ color: C.muted }}>No time-series data yet.</p>
+              <p className="text-[12px] text-fg-disabled">No time-series data yet.</p>
             </div>
           )}
         </div>

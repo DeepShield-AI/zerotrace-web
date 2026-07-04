@@ -76,12 +76,12 @@ function MetricCard({ label, value, sub, color = '#632CA6' }: {
   label: string; value: string; sub?: string; color?: string;
 }) {
   return (
-    <div className="bg-white border border-zinc-200 rounded-lg p-4 hover:shadow-sm transition-shadow group cursor-pointer">
-      <p className="text-[11px] text-zinc-500 font-medium uppercase tracking-wider mb-2">{label}</p>
-      <p className="text-2xl font-bold text-zinc-900 font-mono tracking-tight" style={{ color }}>
+    <div className="bg-bg-elevated border border-border rounded-lg p-4 hover:shadow-sm transition-shadow group cursor-pointer">
+      <p className="text-[11px] text-fg-tertiary font-medium uppercase tracking-wider mb-2">{label}</p>
+      <p className="text-2xl font-bold text-fg-primary font-mono tracking-tight" style={{ color }}>
         {value}
       </p>
-      {sub && <p className="text-[11px] text-zinc-400 mt-1">{sub}</p>}
+      {sub && <p className="text-[11px] text-fg-tertiary mt-1">{sub}</p>}
     </div>
   );
 }
@@ -92,11 +92,11 @@ function ChartCard({ title, value, unit, data, color }: {
   title: string; value: string | number; unit?: string; data: number[]; color: string;
 }) {
   return (
-    <div className="bg-white border border-zinc-200 rounded-lg p-4 hover:shadow-sm transition-shadow">
+    <div className="bg-bg-elevated border border-border rounded-lg p-4 hover:shadow-sm transition-shadow">
       <div className="flex items-center justify-between mb-3">
-        <p className="text-[11px] text-zinc-500 font-medium uppercase tracking-wider">{title}</p>
-        <span className="text-[11px] font-mono text-zinc-600">
-          {value}{unit && <span className="text-zinc-400 ml-0.5">{unit}</span>}
+        <p className="text-[11px] text-fg-tertiary font-medium uppercase tracking-wider">{title}</p>
+        <span className="text-[11px] font-mono text-fg-secondary">
+          {value}{unit && <span className="text-fg-tertiary ml-0.5">{unit}</span>}
         </span>
       </div>
       <Sparkline data={data} color={color} height={60} width={280} />
@@ -111,21 +111,21 @@ function ProcessRow({ name, pid, cpu, memory, user }: {
 }) {
   const cpuPct = Math.min(cpu, 100);
   return (
-    <div className="flex items-center gap-3 px-4 py-2.5 hover:bg-zinc-50 transition-colors border-b border-zinc-50 last:border-0 group cursor-pointer">
+    <div className="flex items-center gap-3 px-4 py-2.5 hover:bg-bg-subtle transition-colors border-b border-border-subtle last:border-0 group cursor-pointer">
       <div className="flex-1 min-w-0">
-        <p className="text-[13px] font-medium text-zinc-800 truncate group-hover:text-[#632CA6] transition-colors">{name}</p>
-        <p className="text-[11px] text-zinc-400 font-mono mt-0.5">PID: {pid} · {user}</p>
+        <p className="text-[13px] font-medium text-fg-primary truncate group-hover:text-accent-primary transition-colors">{name}</p>
+        <p className="text-[11px] text-fg-tertiary font-mono mt-0.5">PID: {pid} · {user}</p>
       </div>
       <div className="w-24 shrink-0">
         <div className="flex items-center gap-2">
-          <div className="flex-1 h-1.5 bg-zinc-100 rounded-full overflow-hidden">
-            <div className="h-full rounded-full bg-[#632CA6] transition-all" style={{ width: `${cpuPct}%` }} />
+          <div className="flex-1 h-1.5 bg-bg-muted rounded-full overflow-hidden">
+            <div className="h-full rounded-full bg-accent-primary transition-all" style={{ width: `${cpuPct}%` }} />
           </div>
-          <span className="text-[11px] font-mono text-zinc-600 w-10 text-right">{cpu.toFixed(1)}%</span>
+          <span className="text-[11px] font-mono text-fg-secondary w-10 text-right">{cpu.toFixed(1)}%</span>
         </div>
       </div>
       <div className="w-20 shrink-0 text-right">
-        <span className="text-[12px] font-mono text-zinc-700">{memory}</span>
+        <span className="text-[12px] font-mono text-fg-secondary">{memory}</span>
       </div>
     </div>
   );
@@ -136,9 +136,9 @@ function ProcessRow({ name, pid, cpu, memory, user }: {
 function TabEmpty({ icon, title, desc }: { icon: React.ReactNode; title: string; desc: string }) {
   return (
     <div className="flex flex-col items-center justify-center py-16 text-center">
-      <div className="text-zinc-300 mb-3">{icon}</div>
-      <p className="text-sm font-medium text-zinc-500 mb-1">{title}</p>
-      <p className="text-xs text-zinc-400 max-w-[260px]">{desc}</p>
+      <div className="text-fg-disabled mb-3">{icon}</div>
+      <p className="text-sm font-medium text-fg-tertiary mb-1">{title}</p>
+      <p className="text-xs text-fg-tertiary max-w-[260px]">{desc}</p>
     </div>
   );
 }
@@ -245,33 +245,33 @@ export default function HostDetailPanel({
 
       {/* Panel */}
       <div
-        className="fixed right-0 top-0 h-screen bg-white border-l border-zinc-200 shadow-2xl z-50 flex flex-col animate-slide-left"
+        className="fixed right-0 top-0 h-screen bg-bg-elevated border-l border-border shadow-2xl z-50 flex flex-col animate-slide-left"
         style={{ width: panelWidth }}
       >
         {/* Resize handle */}
         <div
           onMouseDown={handleResizeStart}
           className="absolute left-0 top-0 -ml-1 w-2 h-full cursor-ew-resize z-10
-            hover:bg-[#632CA6]/10 active:bg-[#632CA6]/20 transition-colors
+            hover:bg-accent-primary/10 active:bg-accent-primary/20 transition-colors
             before:content-[''] before:absolute before:left-1/2 before:top-[10%] before:-translate-x-px
-            before:w-px before:h-[80%] before:bg-zinc-200 before:rounded-full"
+            before:w-px before:h-[80%] before:bg-border before:rounded-full"
           title="Drag to resize"
         />
 
         {/* ── Header ── */}
-        <div className="shrink-0 px-5 py-4 border-b border-zinc-100">
+        <div className="shrink-0 px-5 py-4 border-b border-border-subtle">
           <div className="flex items-start justify-between mb-3">
             <div className="flex items-center gap-3 min-w-0">
               <span className="relative flex h-3 w-3 shrink-0">
-                {on && <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-40" />}
+                {on && <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-severity-ok opacity-40" />}
                 <span className="relative inline-flex rounded-full h-3 w-3" style={{ backgroundColor: statusColor }} />
               </span>
               <div className="min-w-0">
                 <div className="flex items-center gap-2">
-                  <h3 className="text-lg font-bold text-zinc-900 font-mono truncate">{host.NAME}</h3>
+                  <h3 className="text-lg font-bold text-fg-primary font-mono truncate">{host.NAME}</h3>
                   <button
                     onClick={() => handleCopy(host.NAME)}
-                    className="text-zinc-300 hover:text-[#632CA6] transition-colors p-0.5 rounded hover:bg-zinc-50 shrink-0"
+                    className="text-fg-disabled hover:text-accent-primary transition-colors p-0.5 rounded hover:bg-bg-subtle shrink-0"
                     title="Copy hostname"
                   >
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round">
@@ -280,10 +280,10 @@ export default function HostDetailPanel({
                     </svg>
                   </button>
                 </div>
-                <p className="text-xs text-zinc-500 font-mono mt-0.5">{host.CTRL_IP}</p>
+                <p className="text-xs text-fg-tertiary font-mono mt-0.5">{host.CTRL_IP}</p>
               </div>
             </div>
-            <button onClick={onClose} className="text-zinc-400 hover:text-zinc-600 transition-colors p-1 rounded hover:bg-zinc-50 shrink-0">
+            <button onClick={onClose} className="text-fg-tertiary hover:text-fg-secondary transition-colors p-1 rounded hover:bg-bg-subtle shrink-0">
               <CloseOutlined />
             </button>
           </div>
@@ -291,27 +291,27 @@ export default function HostDetailPanel({
           {/* Status + meta */}
           <div className="flex items-center gap-3 text-xs flex-wrap">
             <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full font-medium text-[11px] ${
-              on ? 'bg-emerald-50 text-emerald-700 border border-emerald-100' : 'bg-red-50 text-red-700 border border-red-100'
+              on ? 'bg-accent-success-bg text-accent-success border border-emerald-100' : 'bg-accent-danger-bg text-accent-danger border border-red-100'
             }`}>
               <span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: statusColor }} />
               {statusLabel}
             </span>
-            <span className="text-zinc-400">Last seen {ago(host.SYNCED_CONTROLLER_AT)}</span>
-            <span className="text-zinc-300">|</span>
-            <span className="text-zinc-400 font-mono text-[11px]">ID: #{host.ID}</span>
+            <span className="text-fg-tertiary">Last seen {ago(host.SYNCED_CONTROLLER_AT)}</span>
+            <span className="text-fg-disabled">|</span>
+            <span className="text-fg-tertiary font-mono text-[11px]">ID: #{host.ID}</span>
           </div>
         </div>
 
         {/* ── Tabs ── */}
-        <div className="shrink-0 flex border-b border-zinc-100 px-5">
+        <div className="shrink-0 flex border-b border-border-subtle px-5">
           {TABS.map(t => (
             <button
               key={t.key}
               onClick={() => setTab(t.key)}
               className={`px-4 py-2.5 text-[13px] font-medium border-b-2 transition-all -mb-[1px] ${
                 tab === t.key
-                  ? 'border-[#632CA6] text-[#632CA6]'
-                  : 'border-transparent text-zinc-500 hover:text-zinc-700'
+                  ? 'border-accent-primary text-accent-primary'
+                  : 'border-transparent text-fg-tertiary hover:text-fg-secondary'
               }`}
             >
               {t.label}
@@ -338,33 +338,33 @@ export default function HostDetailPanel({
 
               {/* Related links */}
               <div className="space-y-2">
-                <h4 className="text-[11px] font-semibold text-zinc-500 uppercase tracking-wider">Related</h4>
+                <h4 className="text-[11px] font-semibold text-fg-tertiary uppercase tracking-wider">Related</h4>
                 <Link
                   to={`/apm?view=traces`}
-                  className="flex items-center gap-3 p-3 rounded-lg border border-zinc-200 hover:border-[#632CA6]/20 hover:bg-[#F3F0FA]/30 transition-all text-sm text-zinc-700 group"
+                  className="flex items-center gap-3 p-3 rounded-lg border border-border hover:border-accent-primary/20 hover:bg-[#F3F0FA]/30 transition-all text-sm text-fg-secondary group"
                 >
-                  <span className="w-8 h-8 rounded-lg bg-[#632CA6]/5 flex items-center justify-center text-[#632CA6] group-hover:bg-[#632CA6]/10 transition-colors">
+                  <span className="w-8 h-8 rounded-lg bg-accent-primary/5 flex items-center justify-center text-accent-primary group-hover:bg-accent-primary/10 transition-colors">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round">
                       <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
                     </svg>
                   </span>
                   <span className="flex-1">View traces from this host in APM</span>
-                  <svg className="w-4 h-4 text-zinc-300 group-hover:text-[#632CA6] transition-colors" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+                  <svg className="w-4 h-4 text-fg-disabled group-hover:text-accent-primary transition-colors" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
                     <path d="M5 12h14M12 5l7 7-7 7" />
                   </svg>
                 </Link>
                 <Link
                   to="/logs"
-                  className="flex items-center gap-3 p-3 rounded-lg border border-zinc-200 hover:border-[#632CA6]/20 hover:bg-[#F3F0FA]/30 transition-all text-sm text-zinc-700 group"
+                  className="flex items-center gap-3 p-3 rounded-lg border border-border hover:border-accent-primary/20 hover:bg-[#F3F0FA]/30 transition-all text-sm text-fg-secondary group"
                 >
-                  <span className="w-8 h-8 rounded-lg bg-[#632CA6]/5 flex items-center justify-center text-[#632CA6] group-hover:bg-[#632CA6]/10 transition-colors">
+                  <span className="w-8 h-8 rounded-lg bg-accent-primary/5 flex items-center justify-center text-accent-primary group-hover:bg-accent-primary/10 transition-colors">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round">
                       <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" />
                       <polyline points="14 2 14 8 20 8" />
                     </svg>
                   </span>
                   <span className="flex-1">Search logs for {host.NAME}</span>
-                  <svg className="w-4 h-4 text-zinc-300 group-hover:text-[#632CA6] transition-colors" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+                  <svg className="w-4 h-4 text-fg-disabled group-hover:text-accent-primary transition-colors" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
                     <path d="M5 12h14M12 5l7 7-7 7" />
                   </svg>
                 </Link>
@@ -412,13 +412,13 @@ export default function HostDetailPanel({
           {/* ── Processes ── */}
           {tab === 'processes' && (
             <div>
-              <div className="flex items-center justify-between px-4 py-3 border-b border-zinc-100 bg-zinc-50/50">
+              <div className="flex items-center justify-between px-4 py-3 border-b border-border-subtle bg-bg-subtle/50">
                 <div className="flex items-center gap-2">
-                  <h4 className="text-[11px] font-bold text-zinc-500 uppercase tracking-wider">Processes</h4>
-                  <span className="text-[10px] font-mono font-semibold text-zinc-400 bg-zinc-200/60 px-1.5 py-0.5 rounded-full">{mockProcesses.length}</span>
+                  <h4 className="text-[11px] font-bold text-fg-tertiary uppercase tracking-wider">Processes</h4>
+                  <span className="text-[10px] font-mono font-semibold text-fg-tertiary bg-bg-muted/60 px-1.5 py-0.5 rounded-full">{mockProcesses.length}</span>
                 </div>
               </div>
-              <div className="flex items-center gap-3 px-4 py-2 border-b border-zinc-100 text-[11px] font-semibold text-zinc-500 uppercase tracking-wider">
+              <div className="flex items-center gap-3 px-4 py-2 border-b border-border-subtle text-[11px] font-semibold text-fg-tertiary uppercase tracking-wider">
                 <span className="flex-1">Name</span>
                 <span className="w-24 text-right">CPU</span>
                 <span className="w-20 text-right">Memory</span>
@@ -435,12 +435,12 @@ export default function HostDetailPanel({
               <div className="space-y-3">
                 <div className="flex items-center gap-2 flex-wrap">
                   {['env:production', 'team:platform', 'region:us-east', 'os:linux'].map(tag => (
-                    <span key={tag} className="inline-flex items-center gap-1 px-2.5 py-1 bg-zinc-100 text-zinc-700 text-[12px] font-mono rounded-full">
+                    <span key={tag} className="inline-flex items-center gap-1 px-2.5 py-1 bg-bg-muted text-fg-secondary text-[12px] font-mono rounded-full">
                       {tag}
                     </span>
                   ))}
                 </div>
-                <p className="text-[11px] text-zinc-400">Tags are used to filter and group hosts in dashboards and monitors.</p>
+                <p className="text-[11px] text-fg-tertiary">Tags are used to filter and group hosts in dashboards and monitors.</p>
               </div>
             </div>
           )}

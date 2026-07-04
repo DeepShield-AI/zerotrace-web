@@ -65,21 +65,21 @@ function HexTooltip({ host, x, y, containerWidth }: {
 
   return (
     <div
-      className="absolute z-30 bg-white border border-zinc-200 rounded-xl shadow-xl px-4 py-3 w-[220px] pointer-events-none animate-fade-in"
+      className="absolute z-30 bg-bg-elevated border border-border rounded-xl shadow-xl px-4 py-3 w-[220px] pointer-events-none animate-fade-in"
       style={style}
     >
-      <div className="flex items-center gap-2 mb-3 pb-2 border-b border-zinc-100">
+      <div className="flex items-center gap-2 mb-3 pb-2 border-b border-border-subtle">
         <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: statusColor }} />
-        <strong className="text-sm font-semibold text-zinc-800 truncate">{host.NAME}</strong>
+        <strong className="text-sm font-semibold text-fg-primary truncate">{host.NAME}</strong>
       </div>
       <div className="grid grid-cols-2 gap-x-3 gap-y-2 text-xs">
         <div>
-          <p className="text-[10px] text-zinc-400 uppercase tracking-wider">Status</p>
+          <p className="text-[10px] text-fg-tertiary uppercase tracking-wider">Status</p>
           <p className="font-semibold text-[11px] mt-0.5" style={{ color: statusColor }}>{statusLabel}</p>
         </div>
         <div>
-          <p className="text-[10px] text-zinc-400 uppercase tracking-wider">IP</p>
-          <p className="font-mono text-zinc-700 text-[11px] mt-0.5">{host.CTRL_IP}</p>
+          <p className="text-[10px] text-fg-tertiary uppercase tracking-wider">IP</p>
+          <p className="font-mono text-fg-secondary text-[11px] mt-0.5">{host.CTRL_IP}</p>
         </div>
       </div>
     </div>
@@ -121,11 +121,11 @@ export default function HostMap({ hosts, selectedHost, onSelectHost, loading }: 
 
   if (!loading && hosts.length === 0) {
     return (
-      <div className="bg-white border border-zinc-200 rounded-lg overflow-hidden">
-        <div className="px-5 py-3 border-b border-zinc-100">
-          <h4 className="text-xs font-semibold text-zinc-600 uppercase tracking-wider">Infrastructure Map</h4>
+      <div className="bg-bg-elevated border border-border rounded-lg overflow-hidden">
+        <div className="px-5 py-3 border-b border-border-subtle">
+          <h4 className="text-xs font-semibold text-fg-secondary uppercase tracking-wider">Infrastructure Map</h4>
         </div>
-        <div className="flex items-center justify-center py-20 text-sm text-zinc-400">
+        <div className="flex items-center justify-center py-20 text-sm text-fg-tertiary">
           No hosts found
         </div>
       </div>
@@ -133,20 +133,20 @@ export default function HostMap({ hosts, selectedHost, onSelectHost, loading }: 
   }
 
   return (
-    <div className="bg-white border border-zinc-200 rounded-lg overflow-hidden">
+    <div className="bg-bg-elevated border border-border rounded-lg overflow-hidden">
       {/* Header */}
-      <div className="px-5 py-3 border-b border-zinc-100 flex items-center justify-between">
+      <div className="px-5 py-3 border-b border-border-subtle flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="text-zinc-400">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="text-fg-tertiary">
             <circle cx="11" cy="11" r="8" /><path d="m21 21-4.3-4.3" />
           </svg>
-          <h4 className="text-xs font-semibold text-zinc-600 uppercase tracking-wider">Infrastructure Map</h4>
-          <span className="text-[11px] font-mono text-zinc-400 bg-zinc-100 px-1.5 py-0.5 rounded">{hosts.length}</span>
+          <h4 className="text-xs font-semibold text-fg-secondary uppercase tracking-wider">Infrastructure Map</h4>
+          <span className="text-[11px] font-mono text-fg-tertiary bg-bg-muted px-1.5 py-0.5 rounded">{hosts.length}</span>
         </div>
-        <div className="flex items-center gap-3 text-[11px] text-zinc-500">
-          <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-sm bg-emerald-400" />{onlineCount}</span>
-          <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-sm bg-amber-400" />{staleCount}</span>
-          {offlineCount > 0 && <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-sm bg-red-400" />{offlineCount}</span>}
+        <div className="flex items-center gap-3 text-[11px] text-fg-tertiary">
+          <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-sm bg-severity-ok" />{onlineCount}</span>
+          <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-sm bg-severity-warn" />{staleCount}</span>
+          {offlineCount > 0 && <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-sm bg-severity-alert" />{offlineCount}</span>}
         </div>
       </div>
 

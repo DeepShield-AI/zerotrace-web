@@ -1,6 +1,7 @@
 import { useState, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { SearchOutlined, DownOutlined, RightOutlined } from '@ant-design/icons';
+import clsx from 'clsx';
 
 interface ServiceItem {
   service_name: string;
@@ -54,12 +55,12 @@ function GroupSection({
     <div className="mb-1">
       <button
         onClick={() => setOpen(!open)}
-        className="w-full flex items-center gap-2 px-1 py-1.5 text-xs font-semibold text-zinc-500 uppercase tracking-wider hover:text-zinc-700 transition-colors"
+        className="w-full flex items-center gap-2 px-1 py-1.5 text-xs font-semibold text-fg-tertiary uppercase tracking-wider hover:text-fg-secondary transition-colors"
       >
         <span className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: color }} />
         {label}
-        <span className="text-zinc-400 font-mono text-[11px] ml-auto">{count}</span>
-        <span className="text-zinc-300">{open ? <DownOutlined style={{ fontSize: 10 }} /> : <RightOutlined style={{ fontSize: 10 }} />}</span>
+        <span className="text-fg-tertiary font-mono text-[11px] ml-auto">{count}</span>
+        <span className="text-fg-disabled">{open ? <DownOutlined style={{ fontSize: 10 }} /> : <RightOutlined style={{ fontSize: 10 }} />}</span>
       </button>
       {open && <div className="space-y-px">{children}</div>}
     </div>
@@ -72,10 +73,10 @@ function GroupSection({
 
 function MiniLatencyBar({ value, max }: { value: number; max: number }) {
   const pct = max > 0 ? Math.min((value / max) * 100, 100) : 0;
-  const color = value > 1000 ? '#E65C5C' : value > 100 ? '#E2903C' : '#2DB88D';
+  const barColor = value > 1000 ? 'bg-accent-danger' : value > 100 ? 'bg-accent-warning' : 'bg-accent-success';
   return (
-    <div className="w-10 h-1 bg-zinc-100 rounded-full overflow-hidden shrink-0">
-      <div className="h-full rounded-full transition-all" style={{ width: `${Math.max(pct, 1)}%`, backgroundColor: color }} />
+    <div className="w-10 h-1 bg-bg-muted rounded-full overflow-hidden shrink-0">
+      <div className={'h-full rounded-full transition-all ' + barColor} style={{ width: `${Math.max(pct, 1)}%` }} />
     </div>
   );
 }
@@ -133,21 +134,21 @@ export default function ServiceDirectory({
     <div className="w-60 shrink-0 space-y-3">
       {/* Header */}
       <div className="flex items-center justify-between px-1">
-        <h3 className="text-sm font-semibold text-zinc-800 tracking-tight">
+        <h3 className="text-sm font-semibold text-fg-primary tracking-tight">
           Service Directory
         </h3>
-        <span className="text-[11px] font-mono text-zinc-400">{totalCount}</span>
+        <span className="text-[11px] font-mono text-fg-tertiary">{totalCount}</span>
       </div>
 
       {/* Search */}
       <div className="relative">
-        <SearchOutlined className="absolute left-2.5 top-1/2 -translate-y-1/2 text-zinc-300 text-xs" />
+        <SearchOutlined className="absolute left-2.5 top-1/2 -translate-y-1/2 text-fg-disabled text-xs" />
         <input
           type="text"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           placeholder="Filter services…"
-          className="w-full pl-7 pr-2.5 py-1.5 text-xs border border-zinc-200 rounded-md bg-white placeholder:text-zinc-300 focus:outline-none focus:border-purple-300 focus:ring-1 focus:ring-purple-200 transition-all"
+          className="w-full pl-7 pr-2.5 py-1.5 text-xs border border-border rounded-md bg-bg-elevated placeholder:text-fg-disabled focus:outline-none focus:border-purple-300 focus:ring-1 focus:ring-purple-200 transition-all"
         />
       </div>
 
@@ -163,7 +164,7 @@ export default function ServiceDirectory({
       {/* Empty state */}
       {!loading && filtered.length === 0 && (
         <div className="py-8 text-center">
-          <p className="text-xs text-zinc-400">{search ? 'No services match' : 'No services found'}</p>
+          <p className="text-xs text-fg-tertiary">{search ? 'No services match' : 'No services found'}</p>
         </div>
       )}
 
@@ -212,7 +213,7 @@ export default function ServiceDirectory({
               />
             ))}
             {groups.healthy.length > 50 && (
-              <p className="text-[11px] text-zinc-400 px-3 py-1.5 italic">
+              <p className="text-[11px] text-fg-tertiary px-3 py-1.5 italic">
                 +{groups.healthy.length - 50} more — use search to narrow
               </p>
             )}
@@ -245,13 +246,12 @@ function ServiceRow({
       className={`w-full text-left px-2.5 py-2 rounded-md text-xs transition-colors flex items-center gap-2 group ${
         selected
           ? 'bg-purple-50 text-purple-700 font-medium border border-purple-100'
-          : 'text-zinc-600 hover:bg-zinc-50 border border-transparent'
+          : 'text-fg-secondary hover:bg-bg-subtle border border-transparent'
       }`}
     >
       {/* Health dot */}
       <span
-        className="w-2 h-2 rounded-full shrink-0"
-        style={{ backgroundColor: errPct > 5 ? '#E65C5C' : errPct > 1 ? '#E2903C' : '#2DB88D' }}
+        className={clsx('w-2 h-2 rounded-full shrink-0', errPct > 5 ? 'bg-accent-danger' : errPct > 1 ? 'bg-accent-warning' : 'bg-accent-success')}
       />
 
       {/* Service info */}
@@ -260,16 +260,16 @@ function ServiceRow({
           to={`/apm/services/${encodeURIComponent(service.service_name)}`}
           onClick={(e) => e.stopPropagation()}
           className={`text-xs font-medium truncate block hover:underline ${
-            selected ? 'text-purple-700' : 'text-zinc-700'
+            selected ? 'text-purple-700' : 'text-fg-secondary'
           }`}
         >
           {service.service_name}
         </Link>
         <div className="flex items-center gap-2 mt-0.5">
-          <span className="text-[10px] font-mono text-zinc-400">{fmtN(service.request_count)} req</span>
-          <span className="text-[10px] font-mono text-zinc-400">{fmtLatency(service.avg_latency_ms)}</span>
+          <span className="text-[10px] font-mono text-fg-tertiary">{fmtN(service.request_count)} req</span>
+          <span className="text-[10px] font-mono text-fg-tertiary">{fmtLatency(service.avg_latency_ms)}</span>
           {errPct > 0 && (
-            <span className={`text-[10px] font-mono font-medium ${errPct > 5 ? 'text-red-500' : 'text-amber-500'}`}>
+            <span className={`text-[10px] font-mono font-medium ${errPct > 5 ? 'text-accent-danger' : 'text-accent-warning'}`}>
               {errPct.toFixed(1)}% err
             </span>
           )}

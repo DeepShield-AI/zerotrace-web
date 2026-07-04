@@ -17,10 +17,10 @@ function RankBadge({ rank }: { rank: number }) {
   const isTop3 = rank <= 3;
   return (
     <span className={`w-6 h-6 rounded-md flex items-center justify-center shrink-0 text-[11px] font-bold ${
-      rank === 1 ? 'bg-amber-100 text-amber-700 border border-amber-200' :
-      rank === 2 ? 'bg-zinc-100 text-zinc-600 border border-zinc-200' :
+      rank === 1 ? 'bg-accent-warning-bg text-accent-warning border border-amber-200' :
+      rank === 2 ? 'bg-bg-muted text-fg-secondary border border-border' :
       rank === 3 ? 'bg-orange-50 text-orange-600 border border-orange-100' :
-      'text-zinc-400'
+      'text-fg-tertiary'
     }`}>
       {rank}
     </span>
@@ -44,12 +44,12 @@ function RowBar({ value, max, color }: { value: number; max: number; color: stri
 function EmptyState({ label }: { label: string }) {
   return (
     <div className="flex flex-col items-center justify-center py-12 text-center">
-      <div className="w-12 h-12 rounded-full bg-zinc-50 flex items-center justify-center mb-3 border border-zinc-100">
-        <svg className="w-6 h-6 text-zinc-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <div className="w-12 h-12 rounded-full bg-bg-subtle flex items-center justify-center mb-3 border border-border-subtle">
+        <svg className="w-6 h-6 text-fg-disabled" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 013 19.875v-6.75zM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V8.625zM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V4.125z" />
         </svg>
       </div>
-      <p className="text-sm text-zinc-400">{label}</p>
+      <p className="text-sm text-fg-tertiary">{label}</p>
     </div>
   );
 }
@@ -73,8 +73,8 @@ export default function TopEndpoints({ l7Endpoints, l4Talkers, loading }: TopEnd
     return (
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         {[0, 1].map(i => (
-          <div key={i} className="bg-white border border-zinc-200 rounded-lg overflow-hidden">
-            <div className="px-4 py-3 border-b border-zinc-100 bg-zinc-50/50">
+          <div key={i} className="bg-bg-elevated border border-border rounded-lg overflow-hidden">
+            <div className="px-4 py-3 border-b border-border-subtle bg-bg-subtle/50">
               <div className="skeleton h-4 w-32 rounded" />
             </div>
             <div className="p-3 space-y-2">
@@ -91,11 +91,11 @@ export default function TopEndpoints({ l7Endpoints, l4Talkers, loading }: TopEnd
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
       {/* ── Top L7 Endpoints ── */}
-      <div className="bg-white border border-zinc-200 rounded-lg overflow-hidden card-hover">
-        <div className="px-4 py-3 border-b border-zinc-100 bg-zinc-50/50 flex items-center justify-between">
+      <div className="bg-bg-elevated border border-border rounded-lg overflow-hidden card-hover">
+        <div className="px-4 py-3 border-b border-border-subtle bg-bg-subtle/50 flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <h4 className="text-[11px] font-bold text-zinc-500 uppercase tracking-wider">Top L7 Endpoints</h4>
-            <span className="text-[10px] font-mono font-semibold text-zinc-400 bg-zinc-200/60 px-1.5 py-0.5 rounded-full">{l7Endpoints.length}</span>
+            <h4 className="text-[11px] font-bold text-fg-tertiary uppercase tracking-wider">Top L7 Endpoints</h4>
+            <span className="text-[10px] font-mono font-semibold text-fg-tertiary bg-bg-muted/60 px-1.5 py-0.5 rounded-full">{l7Endpoints.length}</span>
           </div>
         </div>
 
@@ -103,7 +103,7 @@ export default function TopEndpoints({ l7Endpoints, l4Talkers, loading }: TopEnd
           <EmptyState label={t('common.noData')} />
         ) : (
           <div>
-            <div className="flex items-center gap-2 px-4 py-2 border-b border-zinc-100 text-[10px] font-semibold text-zinc-400 uppercase tracking-wider">
+            <div className="flex items-center gap-2 px-4 py-2 border-b border-border-subtle text-[10px] font-semibold text-fg-tertiary uppercase tracking-wider">
               <span className="w-6 shrink-0">#</span>
               <span className="flex-1">Endpoint</span>
               <span className="w-16 text-right">Latency</span>
@@ -113,20 +113,20 @@ export default function TopEndpoints({ l7Endpoints, l4Talkers, loading }: TopEnd
             {l7Visible.map((r, i) => (
               <div
                 key={i}
-                className="relative flex items-center gap-2 px-4 py-2.5 hover:bg-zinc-50 transition-colors cursor-default group border-b border-zinc-50 last:border-0"
+                className="relative flex items-center gap-2 px-4 py-2.5 hover:bg-bg-subtle transition-colors cursor-default group border-b border-border-subtle last:border-0"
               >
                 <RowBar value={r.cnt} max={maxL7} color="#632CA6" />
                 <RankBadge rank={i + 1} />
-                <code className="relative z-10 flex-1 text-[13px] text-zinc-700 truncate group-hover:text-zinc-900 transition-colors font-medium">
+                <code className="relative z-10 flex-1 text-[13px] text-fg-secondary truncate group-hover:text-fg-primary transition-colors font-medium">
                   {r.name || '(root)'}
                 </code>
-                <span className="relative z-10 w-16 text-right text-[11px] text-zinc-400 font-mono tabular-nums">
+                <span className="relative z-10 w-16 text-right text-[11px] text-fg-tertiary font-mono tabular-nums">
                   {r.avg_latency != null && r.avg_latency > 0 ? fmtLatency(r.avg_latency) : '--'}
                 </span>
-                <span className="relative z-10 w-16 text-right text-[13px] text-zinc-600 font-semibold font-mono tabular-nums">
+                <span className="relative z-10 w-16 text-right text-[13px] text-fg-secondary font-semibold font-mono tabular-nums">
                   {fmtN(r.cnt)}
                 </span>
-                <span className="relative z-10 w-10 text-right text-[10px] text-zinc-400 font-mono tabular-nums">
+                <span className="relative z-10 w-10 text-right text-[10px] text-fg-tertiary font-mono tabular-nums">
                   {maxL7 > 0 ? Math.round((r.cnt / maxL7) * 100) : 0}%
                 </span>
               </div>
@@ -135,7 +135,7 @@ export default function TopEndpoints({ l7Endpoints, l4Talkers, loading }: TopEnd
             {l7Endpoints.length > defaultLimit && (
               <button
                 onClick={() => setShowMoreL7(!showMoreL7)}
-                className="w-full px-4 py-2.5 text-[11px] text-[#632CA6] hover:text-[#4a1f8c] hover:bg-[#F3F0FA]/40 transition-colors text-center font-medium border-t border-zinc-100"
+                className="w-full px-4 py-2.5 text-[11px] text-accent-primary hover:text-[#4a1f8c] hover:bg-[#F3F0FA]/40 transition-colors text-center font-medium border-t border-border-subtle"
               >
                 {showMoreL7 ? t('common.collapse') : `Show all ${l7Endpoints.length}`}
               </button>
@@ -145,11 +145,11 @@ export default function TopEndpoints({ l7Endpoints, l4Talkers, loading }: TopEnd
       </div>
 
       {/* ── Top L4 Talkers ── */}
-      <div className="bg-white border border-zinc-200 rounded-lg overflow-hidden card-hover">
-        <div className="px-4 py-3 border-b border-zinc-100 bg-zinc-50/50 flex items-center justify-between">
+      <div className="bg-bg-elevated border border-border rounded-lg overflow-hidden card-hover">
+        <div className="px-4 py-3 border-b border-border-subtle bg-bg-subtle/50 flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <h4 className="text-[11px] font-bold text-zinc-500 uppercase tracking-wider">Top L4 Talkers</h4>
-            <span className="text-[10px] font-mono font-semibold text-zinc-400 bg-zinc-200/60 px-1.5 py-0.5 rounded-full">{l4Talkers.length}</span>
+            <h4 className="text-[11px] font-bold text-fg-tertiary uppercase tracking-wider">Top L4 Talkers</h4>
+            <span className="text-[10px] font-mono font-semibold text-fg-tertiary bg-bg-muted/60 px-1.5 py-0.5 rounded-full">{l4Talkers.length}</span>
           </div>
         </div>
 
@@ -157,7 +157,7 @@ export default function TopEndpoints({ l7Endpoints, l4Talkers, loading }: TopEnd
           <EmptyState label={t('common.noData')} />
         ) : (
           <div>
-            <div className="flex items-center gap-2 px-4 py-2 border-b border-zinc-100 text-[10px] font-semibold text-zinc-400 uppercase tracking-wider">
+            <div className="flex items-center gap-2 px-4 py-2 border-b border-border-subtle text-[10px] font-semibold text-fg-tertiary uppercase tracking-wider">
               <span className="w-6 shrink-0">#</span>
               <span className="flex-1">Source → Dest</span>
               <span className="w-16 text-right">Count</span>
@@ -166,23 +166,23 @@ export default function TopEndpoints({ l7Endpoints, l4Talkers, loading }: TopEnd
             {l4Visible.map((r, i) => (
               <div
                 key={i}
-                className="relative flex items-center gap-2 px-4 py-2.5 hover:bg-zinc-50 transition-colors cursor-default group border-b border-zinc-50 last:border-0"
+                className="relative flex items-center gap-2 px-4 py-2.5 hover:bg-bg-subtle transition-colors cursor-default group border-b border-border-subtle last:border-0"
               >
                 <RowBar value={r.cnt} max={maxL4} color="#4799EB" />
                 <RankBadge rank={i + 1} />
                 <div className="relative z-10 flex-1 min-w-0 flex items-center gap-1.5">
-                  <span className="text-[13px] text-zinc-700 font-mono font-medium truncate max-w-[80px] group-hover:text-zinc-900">
+                  <span className="text-[13px] text-fg-secondary font-mono font-medium truncate max-w-[80px] group-hover:text-fg-primary">
                     {r.src}
                   </span>
-                  <span className="text-zinc-300 shrink-0 text-[10px]">→</span>
-                  <span className="text-[13px] text-zinc-700 font-mono font-medium truncate max-w-[80px] group-hover:text-zinc-900">
+                  <span className="text-fg-disabled shrink-0 text-[10px]">→</span>
+                  <span className="text-[13px] text-fg-secondary font-mono font-medium truncate max-w-[80px] group-hover:text-fg-primary">
                     {r.dst}
                   </span>
                 </div>
-                <span className="relative z-10 w-16 text-right text-[13px] text-zinc-600 font-semibold font-mono tabular-nums shrink-0">
+                <span className="relative z-10 w-16 text-right text-[13px] text-fg-secondary font-semibold font-mono tabular-nums shrink-0">
                   {fmtN(r.cnt)}
                 </span>
-                <span className="relative z-10 w-10 text-right text-[10px] text-zinc-400 font-mono tabular-nums shrink-0">
+                <span className="relative z-10 w-10 text-right text-[10px] text-fg-tertiary font-mono tabular-nums shrink-0">
                   {maxL4 > 0 ? Math.round((r.cnt / maxL4) * 100) : 0}%
                 </span>
               </div>
@@ -191,7 +191,7 @@ export default function TopEndpoints({ l7Endpoints, l4Talkers, loading }: TopEnd
             {l4Talkers.length > defaultLimit && (
               <button
                 onClick={() => setShowMoreL4(!showMoreL4)}
-                className="w-full px-4 py-2.5 text-[11px] text-[#632CA6] hover:text-[#4a1f8c] hover:bg-[#F3F0FA]/40 transition-colors text-center font-medium border-t border-zinc-100"
+                className="w-full px-4 py-2.5 text-[11px] text-accent-primary hover:text-[#4a1f8c] hover:bg-[#F3F0FA]/40 transition-colors text-center font-medium border-t border-border-subtle"
               >
                 {showMoreL4 ? t('common.collapse') : `Show all ${l4Talkers.length}`}
               </button>

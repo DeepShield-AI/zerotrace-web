@@ -42,8 +42,8 @@ export default function SyncedSparklines({ data, field, title, unit, colors }: {
   if (series.length === 0) return null;
 
   return (
-    <div className="bg-white border border-[#DEE2E6] rounded-lg p-4 mt-3">
-      <h3 className="text-[11px] font-semibold uppercase tracking-wider text-[#6C757D] mb-3">{title}</h3>
+    <div className="bg-bg-elevated border border-border rounded-lg p-4 mt-3">
+      <h3 className="text-[11px] font-semibold uppercase tracking-wider text-fg-tertiary mb-3">{title}</h3>
       <div className="space-y-1.5" ref={containerRef} onMouseMove={handleMouseMove} onMouseLeave={() => setHoverIdx(null)}>
         {series.map((s) => {
           const max = Math.max(...s.data.map(d => d.val), 1);
@@ -55,7 +55,7 @@ export default function SyncedSparklines({ data, field, title, unit, colors }: {
           }).join(' ');
           return (
             <div key={s.name} className="flex items-center gap-3 relative">
-              <span className="text-[11px] font-mono w-28 truncate shrink-0 text-[#212529]">{s.name}</span>
+              <span className="text-[11px] font-mono w-28 truncate shrink-0 text-fg-primary">{s.name}</span>
               <svg width={W} height={H} className="shrink-0">
                 <polyline points={points} fill="none" stroke={s.color} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
                 {/* Area fill */}
@@ -76,7 +76,7 @@ export default function SyncedSparklines({ data, field, title, unit, colors }: {
               </svg>
               <span className="text-[11px] font-mono tabular-nums w-16 text-right shrink-0" style={{ color: s.color }}>
                 {hoverVal ? (hoverVal.val >= 1000 ? (hoverVal.val / 1000).toFixed(1) + 'K' : hoverVal.val.toFixed(1)) : '—'}
-                <span className="text-[10px] text-[#ADB5BD] ml-0.5">{unit}</span>
+                <span className="text-[10px] text-fg-disabled ml-0.5">{unit}</span>
               </span>
             </div>
           );

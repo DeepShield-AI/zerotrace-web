@@ -22,12 +22,12 @@ function StatusFilterItem({
     <div
       onClick={onClick}
       className={`flex items-center gap-2 px-3 py-2 rounded cursor-pointer transition-all select-none ${
-        active ? 'bg-[#F3F0FA]' : 'hover:bg-zinc-50/50'
+        active ? 'bg-[#F3F0FA]' : 'hover:bg-bg-subtle/50'
       }`}
     >
       <div
         className={`w-4 h-4 rounded border flex items-center justify-center transition-colors ${
-          active ? 'border-[#632CA6] bg-[#632CA6]' : 'border-zinc-300 bg-white'
+          active ? 'border-accent-primary bg-accent-primary' : 'border-border bg-bg-elevated'
         }`}
       >
         {active && (
@@ -37,8 +37,8 @@ function StatusFilterItem({
         )}
       </div>
       <span className={`w-2 h-2 rounded-full ${color}`} />
-      <span className="text-[12px] text-zinc-700 flex-1">{label}</span>
-      <span className="text-[11px] text-zinc-400 font-mono tabular-nums">{count}</span>
+      <span className="text-[12px] text-fg-secondary flex-1">{label}</span>
+      <span className="text-[11px] text-fg-tertiary font-mono tabular-nums">{count}</span>
     </div>
   );
 }
@@ -62,8 +62,8 @@ function HostItem({
       onClick={onClick}
       className={`w-full text-left px-3 py-2.5 text-[12px] transition-all flex items-center gap-2.5 group ${
         selected
-          ? 'bg-[#F3F0FA] border-l-[3px] border-[#632CA6]'
-          : 'hover:bg-zinc-50 border-l-[3px] border-transparent'
+          ? 'bg-[#F3F0FA] border-l-[3px] border-accent-primary'
+          : 'hover:bg-bg-subtle border-l-[3px] border-transparent'
       }`}
     >
       <span
@@ -71,14 +71,14 @@ function HostItem({
         style={{ backgroundColor: statusColor }}
       />
       <div className="flex-1 min-w-0">
-        <div className="font-medium text-zinc-800 truncate group-hover:text-zinc-900">
+        <div className="font-medium text-fg-primary truncate group-hover:text-fg-primary">
           {agent.NAME}
         </div>
-        <div className="text-[11px] font-mono text-zinc-400 truncate mt-0.5">
+        <div className="text-[11px] font-mono text-fg-tertiary truncate mt-0.5">
           {agent.CTRL_IP}
         </div>
       </div>
-      <span className="text-[10px] text-zinc-400 font-mono shrink-0">
+      <span className="text-[10px] text-fg-tertiary font-mono shrink-0">
         {ago(agent.SYNCED_CONTROLLER_AT)}
       </span>
     </button>
@@ -134,35 +134,35 @@ export default function InfrastructureDirectory({
   };
 
   return (
-    <div className="w-[240px] shrink-0 bg-white border border-zinc-200 rounded-lg overflow-hidden flex flex-col">
+    <div className="w-[240px] shrink-0 bg-bg-elevated border border-border rounded-lg overflow-hidden flex flex-col">
       {/* Header */}
-      <div className="px-4 py-3 border-b border-zinc-100 flex items-center justify-between">
-        <h3 className="text-[13px] font-semibold text-zinc-900">Filter</h3>
-        <span className="text-[11px] font-mono text-zinc-400 bg-zinc-100 px-2 py-0.5 rounded-full">
+      <div className="px-4 py-3 border-b border-border-subtle flex items-center justify-between">
+        <h3 className="text-[13px] font-semibold text-fg-primary">Filter</h3>
+        <span className="text-[11px] font-mono text-fg-tertiary bg-bg-muted px-2 py-0.5 rounded-full">
           {agents.length}
         </span>
       </div>
 
       {/* Search */}
-      <div className="p-3 border-b border-zinc-100">
+      <div className="p-3 border-b border-border-subtle">
         <div className="relative">
-          <SearchOutlined className="absolute left-2.5 top-1/2 -translate-y-1/2 text-zinc-400 text-[12px]" />
+          <SearchOutlined className="absolute left-2.5 top-1/2 -translate-y-1/2 text-fg-tertiary text-[12px]" />
           <input
             type="text"
             value={search}
             onChange={e => setSearch(e.target.value)}
             placeholder={t('infrastructure.filterHostsPlaceholder')}
-            className="w-full h-8 pl-8 pr-2 text-[12px] border border-zinc-200 rounded bg-white
-              placeholder:text-zinc-400 focus:outline-none focus:border-[#632CA6] focus:ring-1 focus:ring-[#632CA6]/10 transition-all"
+            className="w-full h-8 pl-8 pr-2 text-[12px] border border-border rounded bg-bg-elevated
+              placeholder:text-fg-tertiary focus:outline-none focus:border-accent-primary focus:ring-1 focus:ring-accent-primary/10 transition-all"
           />
         </div>
       </div>
 
       {/* Status Section */}
-      <div className="border-b border-zinc-100">
+      <div className="border-b border-border-subtle">
         <button
           onClick={() => toggleSection('status')}
-          className="w-full flex items-center justify-between px-3 py-2 text-[11px] font-semibold text-zinc-500 uppercase tracking-wider hover:bg-zinc-50 transition-colors"
+          className="w-full flex items-center justify-between px-3 py-2 text-[11px] font-semibold text-fg-tertiary uppercase tracking-wider hover:bg-bg-subtle transition-colors"
         >
           <span>Status</span>
           <svg
@@ -178,21 +178,21 @@ export default function InfrastructureDirectory({
             <StatusFilterItem
               label="Online"
               count={onlineCount}
-              color="bg-emerald-400"
+              color="bg-severity-ok"
               active={statusFilter.online}
               onClick={() => setStatusFilter(p => ({ ...p, online: !p.online }))}
             />
             <StatusFilterItem
               label="Stale"
               count={staleCount}
-              color="bg-amber-400"
+              color="bg-severity-warn"
               active={statusFilter.stale}
               onClick={() => setStatusFilter(p => ({ ...p, stale: !p.stale }))}
             />
             <StatusFilterItem
               label="Offline"
               count={offlineCount}
-              color="bg-red-400"
+              color="bg-severity-alert"
               active={statusFilter.offline}
               onClick={() => setStatusFilter(p => ({ ...p, offline: !p.offline }))}
             />
@@ -204,11 +204,11 @@ export default function InfrastructureDirectory({
       <div className="flex-1 min-h-0 overflow-hidden flex flex-col">
         <button
           onClick={() => toggleSection('hosts')}
-          className="w-full flex items-center justify-between px-3 py-2 text-[11px] font-semibold text-zinc-500 uppercase tracking-wider hover:bg-zinc-50 transition-colors"
+          className="w-full flex items-center justify-between px-3 py-2 text-[11px] font-semibold text-fg-tertiary uppercase tracking-wider hover:bg-bg-subtle transition-colors"
         >
           <span>{t('infrastructure.hosts')}</span>
           <div className="flex items-center gap-1.5">
-            <span className="text-[11px] font-mono text-zinc-400">{displayAgents.length}</span>
+            <span className="text-[11px] font-mono text-fg-tertiary">{displayAgents.length}</span>
             <svg
               className={`w-3 h-3 transition-transform ${expanded.hosts ? 'rotate-180' : ''}`}
               viewBox="0 0 12 12"
@@ -228,7 +228,7 @@ export default function InfrastructureDirectory({
               </div>
             )}
             {!loading && displayAgents.length === 0 && (
-              <p className="text-[12px] text-zinc-400 text-center py-8 px-3">
+              <p className="text-[12px] text-fg-tertiary text-center py-8 px-3">
                 {search ? 'No hosts match your search' : 'No hosts available'}
               </p>
             )}
