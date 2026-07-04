@@ -1,7 +1,165 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
 
+/* ── Content sources ── */
+@source "./index.html";
+@source "./src/**/*.{js,ts,jsx,tsx}";
+
+/* ── Dark mode (class strategy) ── */
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* ═══════════════════════════════════════════════════════════════
+   @theme — migrated from tailwind.config.js (v3 → v4)
+   ═══════════════════════════════════════════════════════════════ */
+@theme {
+  /* ── Font families ── */
+  --font-sans: "Geist Sans", system-ui, -apple-system, sans-serif;
+  --font-mono: "Geist Mono", "JetBrains Mono", ui-monospace, monospace;
+
+  /* ── Font sizes ── */
+  --text-h1: 24px;
+  --text-h1--line-height: 32px;
+  --text-h1--font-weight: 700;
+  --text-h2: 20px;
+  --text-h2--line-height: 28px;
+  --text-h2--font-weight: 600;
+  --text-h3: 16px;
+  --text-h3--line-height: 24px;
+  --text-h3--font-weight: 600;
+  --text-h4: 14px;
+  --text-h4--line-height: 22px;
+  --text-h4--font-weight: 600;
+  --text-h5: 13px;
+  --text-h5--line-height: 20px;
+  --text-h5--font-weight: 600;
+  --text-h6: 11px;
+  --text-h6--line-height: 16px;
+  --text-h6--font-weight: 600;
+  --text-h6--letter-spacing: 0.02em;
+
+  /* ── Colors: brand ── */
+  --color-brand-50: #f5f0ff;
+  --color-brand-100: #ede5ff;
+  --color-brand-200: #dccfff;
+  --color-brand-300: #c4a8ff;
+  --color-brand-400: #a87fff;
+  --color-brand-500: #8b5cf6;
+  --color-brand-600: #632ca6;
+  --color-brand-700: #4c1d8a;
+  --color-brand-800: #39176b;
+  --color-brand-900: #28104e;
+
+  /* ── Colors: status ── */
+  --color-status-success: #2db88d;
+  --color-status-success-soft: #e8f5e9;
+  --color-status-success-contrast: #ffffff;
+  --color-status-warning: #e2903c;
+  --color-status-warning-soft: #fff8f3;
+  --color-status-warning-contrast: #ffffff;
+  --color-status-danger: #e65c5c;
+  --color-status-danger-soft: #ffebee;
+  --color-status-danger-contrast: #ffffff;
+  --color-status-info: #4799eb;
+  --color-status-info-soft: #e3f2fd;
+  --color-status-info-contrast: #ffffff;
+
+  /* ── Colors: chart ── */
+  --color-chart-blue: #4799eb;
+  --color-chart-purple: #632ca6;
+  --color-chart-green: #2db88d;
+  --color-chart-orange: #e2903c;
+  --color-chart-red: #e65c5c;
+  --color-chart-teal: #008597;
+  --color-chart-axis: #adb5bd;
+  --color-chart-grid: #f1f3f5;
+
+  /* ── Colors: code ── */
+  --color-code-bg: #1a1d24;
+  --color-code-text: #c8cdd0;
+  --color-code-border: #2d313a;
+  --color-code-keyword: #ff79c6;
+  --color-code-string: #f1fa8c;
+  --color-code-func: #50fa7b;
+  --color-code-comment: #6272a4;
+
+  /* ── Colors: sidebar ── */
+  --color-sidebar-bg: #292e39;
+  --color-sidebar-text: #eeefee;
+  --color-sidebar-muted: #babdbb;
+  --color-sidebar-hover: #333845;
+  --color-sidebar-active: #3c4151;
+
+  /* ── Colors: surface ── */
+  --color-surface: #f9fafb;
+  --color-surface-card: #ffffff;
+  --color-surface-hover: #f8f9fa;
+  --color-surface-selected: #f3f0fa;
+  --color-surface-zebra: #fafbfc;
+
+  /* ── Colors: ink ── */
+  --color-ink: #1c2b34;
+  --color-ink-secondary: #506e81;
+  --color-ink-muted: #8b9bb4;
+  --color-ink-placeholder: #adb5bd;
+
+  /* ── Colors: edge ── */
+  --color-edge: #d1d9e0;
+  --color-edge-light: #e9ecef;
+  --color-edge-lighter: #f1f3f5;
+  --color-edge-focus: #632ca6;
+
+  /* ── Shadows ── */
+  --shadow: 0 1px 3px rgba(0, 0, 0, 0.04), 0 1px 2px rgba(0, 0, 0, 0.03);
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.04);
+  --shadow-md: 0 4px 12px -4px rgba(0, 0, 0, 0.08);
+  --shadow-lg: 0 8px 24px -8px rgba(0, 0, 0, 0.1);
+  --shadow-xl: 0 16px 40px -12px rgba(0, 0, 0, 0.12);
+  --shadow-modal: 0 20px 60px -15px rgba(0, 0, 0, 0.15);
+  --shadow-card: 0 1px 3px rgba(0, 0, 0, 0.04), 0 1px 2px rgba(0, 0, 0, 0.03);
+  --shadow-elevated: 0 4px 16px -8px rgba(0, 0, 0, 0.08), 0 2px 4px rgba(0, 0, 0, 0.04);
+
+  /* ── Animations ── */
+  --animate-fade-in: fade-in 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  --animate-slide-up: slide-up 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  --animate-shimmer: shimmer 2s infinite;
+  --animate-pulse-soft: pulse-soft 2s ease-in-out infinite;
+
+  /* ── Easing ── */
+  --ease-spring: cubic-bezier(0.16, 1, 0.3, 1);
+
+  /* ── Width ── */
+  --width-sidebar: 160px;
+
+  /* ── Z-index ── */
+  --z-index-sidebar: 30;
+  --z-index-overlay: 40;
+  --z-index-panel: 50;
+  --z-index-modal: 60;
+  --z-index-toast: 70;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   Keyframes (migrated from tailwind.config.js theme.extend.keyframes)
+   ═══════════════════════════════════════════════════════════════ */
+@keyframes fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@keyframes slide-up {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes shimmer {
+  from { transform: translateX(-100%); }
+  to { transform: translateX(100%); }
+}
+@keyframes pulse-soft {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.7; }
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   Base layer
+   ═══════════════════════════════════════════════════════════════ */
 :root {
   --sidebar-bg: #292e39;
   --sidebar-width: 160px;
@@ -21,10 +179,10 @@
     box-sizing: border-box;
   }
   body {
-    @apply font-sans bg-[#f9fafb] text-zinc-900 antialiased;
+    @apply font-sans bg-surface text-zinc-900 antialiased;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
-    accent-color: #632CA6;
+    accent-color: #632ca6;
   }
 
   /* Consistent focus ring */
@@ -34,13 +192,16 @@
   }
 }
 
+/* ═══════════════════════════════════════════════════════════════
+   Component layer
+   ═══════════════════════════════════════════════════════════════ */
 @layer components {
   /* Skeleton shimmer */
   .skeleton {
     @apply relative overflow-hidden bg-zinc-200/50 rounded-lg;
   }
   .skeleton::after {
-    content: '';
+    content: "";
     @apply absolute inset-0 -translate-x-full;
     background-image: linear-gradient(
       90deg,
@@ -55,19 +216,19 @@
   .glass-panel {
     @apply bg-white/80 backdrop-blur-xl border border-white/20;
     box-shadow:
-      inset 0 1px 0 rgba(255,255,255,0.4),
-      0 20px 40px -15px rgba(0,0,0,0.06);
+      inset 0 1px 0 rgba(255, 255, 255, 0.4),
+      0 20px 40px -15px rgba(0, 0, 0, 0.06);
   }
 
-  /* Card surface — consistent Zerotrace-style cards */
+  /* Card surface */
   .card-surface {
-    @apply bg-white border border-gray-200;
+    @apply bg-white border border-edge rounded;
     border-radius: 4px;
   }
 
   /* KPI stat card */
   .stat-card {
-    @apply bg-white border border-gray-200 px-4 py-3;
+    @apply bg-white border border-edge px-4 py-3;
     border-radius: 4px;
   }
 
@@ -77,28 +238,27 @@
   }
 }
 
-/* ── Keyframes ── */
-@keyframes shimmer {
-  100% { transform: translateX(100%); }
-}
-@keyframes slideUp {
-  from { opacity: 0; transform: translateY(8px); }
-  to   { opacity: 1; transform: translateY(0); }
-}
-@keyframes pulseSoft {
-  0%, 100% { opacity: 1; }
-  50%      { opacity: 0.4; }
-}
-@keyframes flameTooltipIn {
-  from { opacity: 0; transform: translateY(4px); }
-  to   { opacity: 1; transform: translateY(0); }
-}
-
-/* ── Utilities ── */
+/* ═══════════════════════════════════════════════════════════════
+   Utilities
+   ═══════════════════════════════════════════════════════════════ */
 @layer utilities {
   .btn-tactile:active {
     transform: translateY(1px) scale(0.98);
   }
+}
+
+/* ── Keyframes (page-level) ── */
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes pulseSoft {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
+@keyframes flameTooltipIn {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
 /* ── Stagger cascade ── */
@@ -212,7 +372,9 @@
   transition-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-/* ── Ant Design table overrides ── */
+/* ═══════════════════════════════════════════════════════════════
+   Ant Design table overrides
+   ═══════════════════════════════════════════════════════════════ */
 .api-keys-table .ant-table { font-size: 13px; }
 .api-keys-table .ant-table-thead > tr > th {
   @apply bg-zinc-50 text-xs font-medium text-zinc-500 uppercase tracking-wider border-b border-zinc-200;
@@ -245,7 +407,9 @@
   transition: background 0.15s ease;
 }
 
-/* ── Dark mode overrides ── */
+/* ═══════════════════════════════════════════════════════════════
+   Dark mode overrides
+   ═══════════════════════════════════════════════════════════════ */
 .dark .card-surface,
 .dark .card-hover,
 .dark .stat-card {
@@ -257,7 +421,7 @@
 }
 
 .dark .host-row-selected {
-  background-color: #1E1035;
+  background-color: #1e1035;
 }
 
 .dark .skeleton {
@@ -327,7 +491,9 @@
   @apply border-brand-600;
 }
 
-/* Test mode: disable animations for reliable Playwright pixel comparison */
+/* ═══════════════════════════════════════════════════════════════
+   Test mode: disable animations for Playwright pixel comparison
+   ═══════════════════════════════════════════════════════════════ */
 [data-test-mode] .animate-fade-in,
 [data-test-mode] .animate-slide-up,
 [data-test-mode] .stagger-children > *,
