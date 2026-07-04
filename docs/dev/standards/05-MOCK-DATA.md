@@ -391,7 +391,7 @@ export function genMetricPoint(i: number) {
 
 ## 其他生成器骨架
 
-见 `docs/frontend-standards/proposed-files/mocks/`（下一步产出）。
+见 `docs/dev/standards/proposed-files/mocks/`（下一步产出）。
 
 **约定**：
 - 每个 `gen<Domain><Entity>()` 函数返回**一个**该实体

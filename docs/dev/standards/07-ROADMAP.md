@@ -2,7 +2,7 @@
 
 **读者**：在目标机器上执行的开发者或 AI agent（**没有** Claude CLI，用普通编辑器 + terminal）。
 
-**目标**：一步一步落地 `docs/frontend-standards/00-06` 里描述的所有规范。
+**目标**：一步一步落地 `docs/dev/standards/00-06` 里描述的所有规范。
 
 **原则**：每步做完都能 `pnpm dev` 起来；每步都能独立 commit / 回滚。
 
@@ -25,7 +25,7 @@ M5. 组件规范化（渐进） ← 持续
 
 ### 任务
 
-- [ ] 阅读 `docs/frontend-standards/00-06` 所有 doc（30 分钟）
+- [ ] 阅读 `docs/dev/standards/00-06` 所有 doc（30 分钟）
 - [ ] 在项目根跑一次 `pnpm install`（frontend 和根 backend 分别）
 - [ ] 确认能启动 dev server：`cd frontend && pnpm dev`
 - [ ] 确认能启动后端（可选，如果要联调）
@@ -45,7 +45,7 @@ M5. 组件规范化（渐进） ← 持续
 
 ## M1. Token 系统落地（1 天）
 
-按 `docs/frontend-standards/03-MIGRATION-PLAYBOOK.md` 的 Phase 0-3 顺序执行。
+按 `docs/dev/standards/03-MIGRATION-PLAYBOOK.md` 的 Phase 0-3 顺序执行。
 
 ### Step 1.1：拷贝新配置（30 分钟）
 
@@ -54,15 +54,15 @@ cd frontend
 
 # 1. tokens.css 落地
 mkdir -p src/styles
-cp ../docs/frontend-standards/proposed-files/tokens.css src/styles/tokens.css
+cp ../docs/dev/standards/proposed-files/tokens.css src/styles/tokens.css
 
 # 2. tokens.ts 落地（给 ECharts 用）
 mkdir -p src/lib
-cp ../docs/frontend-standards/proposed-files/tokens.ts src/lib/tokens.ts
+cp ../docs/dev/standards/proposed-files/tokens.ts src/lib/tokens.ts
 
 # 3. tailwind config 替换（先备份）
 mv tailwind.config.js tailwind.config.old.bak.js
-cp ../docs/frontend-standards/proposed-files/tailwind.config.js tailwind.config.js
+cp ../docs/dev/standards/proposed-files/tailwind.config.js tailwind.config.js
 
 # 4. main.tsx 加 import
 # 手动改：在 import './index.css' 上一行加：
@@ -127,7 +127,7 @@ git commit: `refactor: extract antd overrides, purge hardcoded hex from globals`
 
 ## M2. Mock 数据层（1 天）
 
-按 `docs/frontend-standards/05-MOCK-DATA.md` 执行。
+按 `docs/dev/standards/05-MOCK-DATA.md` 执行。
 
 ### Step 2.1：安装 MSW（15 分钟）
 
@@ -226,7 +226,7 @@ git commit: `chore: reorganize datadog-capture with clean scripts and named scre
 
 ### Step 3.3：写 `components-catalog.md`（1-2 小时）
 
-在 `docs/frontend-standards/components-catalog.md` 列出 10-15 个核心组件，每条包含：位置、Props、变体、参考图路径。
+在 `docs/dev/standards/components-catalog.md` 列出 10-15 个核心组件，每条包含：位置、Props、变体、参考图路径。
 
 模板见 `06-PIPELINE-SALVAGE.md` E 段。
 

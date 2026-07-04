@@ -83,7 +83,7 @@
 - [ ] `datadog-capture/scripts/` 只有 4-5 个明确命名的脚本
 - [ ] `datadog-capture/README.md` 完整
 - [ ] `datadog-capture/outputs/screenshots/` 按 `<page>-<component>.png` 命名
-- [ ] `docs/frontend-standards/components-catalog.md` 覆盖 10+ 组件
+- [ ] `docs/dev/standards/components-catalog.md` 覆盖 10+ 组件
 - [ ] 根 `CLAUDE.md` 更新为规范索引
 - [ ] `pnpm check:no-hex` `pnpm check:no-inline-color` 通过
 - [ ] （可选）Ladle 或 Storybook 集成，UI 原语有 story

@@ -33,7 +33,7 @@
 
 ## L1 结构对齐：手工审查表
 
-对每个页面填一份 audit table。位置：`docs/frontend-standards/pages/<name>.parity.md`
+对每个页面填一份 audit table。位置：`docs/dev/standards/pages/<name>.parity.md`
 
 ```markdown
 ## L1 结构审查
@@ -342,6 +342,6 @@ monitors-manage.mostly-alert.png
 □ pnpm check:parity:l2 全绿
 □ node datadog-capture/scripts/page-parity.mjs 通过（< 15%）
 □ 深色主题下也做了一次 L3 对比
-□ mine.png / diff.png 存到 docs/frontend-standards/pages/<name>-parity/
+□ mine.png / diff.png 存到 docs/dev/standards/pages/<name>-parity/
 □ parity.md 报告已更新（diff 值 + 时间戳）
 ```

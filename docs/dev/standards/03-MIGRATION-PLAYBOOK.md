@@ -10,18 +10,18 @@
 
 ### Step 0.1 落盘新配置文件
 
-从 `docs/frontend-standards/proposed-files/` 复制到目标位置：
+从 `docs/dev/standards/proposed-files/` 复制到目标位置：
 
 ```bash
 cd frontend
 
 # 新增 3 个文件（不覆盖任何东西）
-cp ../docs/frontend-standards/proposed-files/tokens.css src/styles/tokens.css
-cp ../docs/frontend-standards/proposed-files/tokens.ts  src/lib/tokens.ts
+cp ../docs/dev/standards/proposed-files/tokens.css src/styles/tokens.css
+cp ../docs/dev/standards/proposed-files/tokens.ts  src/lib/tokens.ts
 
 # 备份现有 tailwind config，替换
 mv tailwind.config.js tailwind.config.old.js.bak
-cp ../docs/frontend-standards/proposed-files/tailwind.config.js tailwind.config.js
+cp ../docs/dev/standards/proposed-files/tailwind.config.js tailwind.config.js
 ```
 
 ### Step 0.2 在 main.tsx 引入 tokens.css

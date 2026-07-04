@@ -18,7 +18,7 @@
 | `gen-components.sh`（AI 循环生成）| ❌ 丢弃 | 目标机没 claude |
 | `gen-pages.sh` | ❌ 丢弃 | 同上 |
 | `verify-visual.mjs`（Playwright 视觉回归）| ✅ 保留 | `datadog-capture/scripts/visual-regress.mjs`（很有用）|
-| `components.manifest.ts` 概念 | ✅ 保留 | 变成 `docs/frontend-standards/components-catalog.md` |
+| `components.manifest.ts` 概念 | ✅ 保留 | 变成 `docs/dev/standards/components-catalog.md` |
 | `routes.ts` 概念 | 已存在 | 项目已有 `src/App.tsx` 里的路由声明 |
 
 ---
@@ -96,7 +96,7 @@ node scripts/normalize.mjs outputs/merged/all.json outputs/merged/normalized.jso
 
 ### 5. 更新 tokens.css
 
-**人工**：查看 `outputs/merged/normalized.json`，按 `docs/frontend-standards/02-DESIGN-SYSTEM.md` 里的规则更新 `frontend/src/styles/tokens.css`。
+**人工**：查看 `outputs/merged/normalized.json`，按 `docs/dev/standards/02-DESIGN-SYSTEM.md` 里的规则更新 `frontend/src/styles/tokens.css`。
 
 ### 6. 抓参考截图
 
@@ -172,7 +172,7 @@ export default function Compare() {
 把之前 `component-pipeline/config/components.manifest.ts` 的**契约思想**保留下来，但是转成**给人看**的 catalog：
 
 ```
-docs/frontend-standards/components-catalog.md
+docs/dev/standards/components-catalog.md
 ```
 
 内容：列出所有组件、状态、变体、Props、参考图路径。开发者写新组件前先查这里。

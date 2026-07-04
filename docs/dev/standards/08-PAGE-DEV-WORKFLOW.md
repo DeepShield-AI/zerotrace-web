@@ -38,7 +38,7 @@ Phase 6  视觉回归     ── Playwright 截图对比 Datadog 参考
    ls datadog-capture/outputs/screenshots/apm-*
    ```
    如果缺，用 datadog-capture 抓一张（见 [06-PIPELINE-SALVAGE.md](./06-PIPELINE-SALVAGE.md)）。
-3. **在 `docs/frontend-standards/pages/<page-name>.md` 建页面档案**（新目录，示例见 [附录 A](#附录-a页面档案模板)）。
+3. **在 `docs/dev/standards/pages/<page-name>.md` 建页面档案**（新目录，示例见 [附录 A](#附录-a页面档案模板)）。
 4. **在参考图上手动"划分区"**：截图打开，脑内切成 5-10 个矩形区块，命名如：
    - `topbar`（顶部工具栏）
    - `filter-bar`（过滤条）
@@ -48,7 +48,7 @@ Phase 6  视觉回归     ── Playwright 截图对比 Datadog 参考
 
 ### 产出
 
-`docs/frontend-standards/pages/apm-services.md`：
+`docs/dev/standards/pages/apm-services.md`：
 
 ```markdown
 # APM Services 列表页
@@ -72,7 +72,7 @@ Phase 6  视觉回归     ── Playwright 截图对比 Datadog 参考
 
 - [ ] 参考图存在且清晰（分辨率 ≥ 1440 宽）
 - [ ] 区块划分明确，每块有名字
-- [ ] 页面档案落到 `docs/frontend-standards/pages/`
+- [ ] 页面档案落到 `docs/dev/standards/pages/`
 
 ---
 
@@ -356,7 +356,7 @@ export default function ApmServicesPage() {
 2. 用 Playwright 截图（脚本见下）
 3. 与 `datadog-capture/outputs/screenshots/apm-services.png` 做 pixelmatch diff
 4. 差异 > 15% → 分析差异原因，回 Phase 4 或 5 修
-5. 差异 < 15% → 记录 diff 图到 `docs/frontend-standards/pages/<name>.parity.png`
+5. 差异 < 15% → 记录 diff 图到 `docs/dev/standards/pages/<name>.parity.png`
 
 ### 截图 + diff 脚本
 
@@ -412,7 +412,7 @@ await browser.close();
 - [ ] 差异率 < 15%
 - [ ] 深色主题下也做一次对比（Datadog 深色截图 vs 本项目深色）
 - [ ] 关键结构（列数、卡片数、按钮位置）无缺失
-- [ ] diff 图和 mine 图存到 `docs/frontend-standards/pages/<name>-parity/`
+- [ ] diff 图和 mine 图存到 `docs/dev/standards/pages/<name>-parity/`
 
 ---
 
@@ -442,7 +442,7 @@ frontend/src/
 ├── i18n/locales/zh-CN.json                   ← 加 apm.services.* keys
 └── i18n/locales/en-US.json                   ← 加 apm.services.* keys
 
-docs/frontend-standards/pages/
+docs/dev/standards/pages/
 ├── apm-services.md                           ← 页面档案
 └── apm-services-parity/
     ├── mine.png                              ← 本项目截图
@@ -454,7 +454,7 @@ docs/frontend-standards/pages/
 
 ## 附录 A：页面档案模板
 
-放置：`docs/frontend-standards/pages/<page-name>.md`
+放置：`docs/dev/standards/pages/<page-name>.md`
 
 ```markdown
 # <页面中文名>（<Page English Name>）
