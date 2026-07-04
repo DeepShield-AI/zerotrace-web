@@ -187,8 +187,8 @@ export default function Infrastructure() {
   const [groupBy, setGroupBy] = useState(saved.groupBy || 'none');
   const [infraView, setInfraView] = useState<'table' | 'map'>((saved.infraView as any) || 'table');
   const [keyboardHint, setKeyboardHint] = useState<string | null>(null);
-  const hintTimer = useRef<ReturnType<typeof setTimeout>>();
-  const intervalRef = useRef<ReturnType<typeof setInterval>>();
+  const hintTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const [refreshInterval, setRefreshInterval] = useState(10000);
   const [activeNav, setActiveNav] = useState<'hosts' | 'containers' | 'processes'>('hosts');
   const [processes, setProcesses] = useState<any[]>([]);

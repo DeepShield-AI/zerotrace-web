@@ -285,4 +285,16 @@ export const api = {
 
   guardianStoryDetail: (id: string) =>
     request<any>(`/guardian/stories/${encodeURIComponent(id)}`),
+
+  // APM demos (slow requests & error summary)
+  getSlowRequests: (params?: { min_duration_us?: number; limit?: number }) => {
+    const qs = new URLSearchParams();
+    if (params?.min_duration_us) qs.set('min_duration_us', String(params.min_duration_us));
+    if (params?.limit) qs.set('limit', String(params.limit));
+    const s = qs.toString();
+    return request<{ slow_requests: any[] }>(`/apm/traces${s ? '?' + s : ''}`);
+  },
+
+  getErrorSummary: () =>
+    request<{ errors: any[] }>('/apm/traces?status=error&limit=50'),
 };

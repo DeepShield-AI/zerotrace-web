@@ -20,7 +20,7 @@ export default function FilterBar({
   const { t } = useTranslation();
   const inputRef = useRef<HTMLInputElement>(null);
   const [localQuery, setLocalQuery] = useState(searchQuery);
-  const debounceRef = useRef<ReturnType<typeof setTimeout>>();
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const offlineCount = totalCount - onlineCount - staleCount;
 
