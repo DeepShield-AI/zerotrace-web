@@ -1,8 +1,28 @@
 import { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { tokens } from '../theme';
 
-const T = tokens;
+// TODO: Migrate inline styles to Tailwind semantic classes
+// (see docs/dev/standards/03-MIGRATION-PLAYBOOK.md)
+const T = {
+  brand: {
+    primary: '#632CA6',
+    success: '#2DB88D',
+    warning: '#E2903C',
+    error: '#E65C5C',
+  },
+  border: {
+    light: '#E9ECEF',
+    normal: '#DEE2E6',
+  },
+  content: {
+    text: 'rgba(28, 43, 52, 0.98)',
+    textSecondary: 'rgba(28, 43, 52, 0.66)',
+    textMuted: 'rgba(28, 43, 52, 0.4)',
+  },
+  typo: {
+    font: 'NotoSans, "Lucida Grande", "Lucida Sans Unicode", sans-serif',
+  },
+} as const;
 const fmtN = (n?: number | string): string => { const v = typeof n === 'string' ? parseFloat(n) : (n || 0); if (v >= 1e6) return (v / 1e6).toFixed(1) + 'M'; if (v >= 1e3) return (v / 1e3).toFixed(1) + 'K'; return String(Math.round(v)); };
 const fmtMs = (n?: number | string): string => { const v = typeof n === 'string' ? parseFloat(n) : (n || 0); if (v >= 1000) return (v / 1000).toFixed(2) + 's'; return v.toFixed(0) + 'ms'; };
 
@@ -48,15 +68,15 @@ export default function ApmServicesView({ services, svcState, onRetry, range }: 
 
   if (svcState === 'loading') {
     return (
-      <div className="bg-white rounded-lg border overflow-hidden" style={{ borderColor: T.border.normal }}>
+      <div className="bg-bg-elevated rounded-lg border overflow-hidden" style={{ borderColor: T.border.normal }}>
         <div className="divide-y" style={{ borderColor: T.border.light }}>
           {Array.from({ length: 6 }).map((_, i) => (
             <div key={i} className="flex items-center gap-4 px-4 py-3">
-              <div className="h-2 w-2 rounded-full bg-gray-100 animate-pulse shrink-0" />
-              <div className="h-4 bg-gray-100 rounded animate-pulse w-36" />
-              <div className="h-4 bg-gray-100 rounded animate-pulse w-16 ml-auto" />
-              <div className="h-4 bg-gray-100 rounded animate-pulse w-20" />
-              <div className="h-4 bg-gray-100 rounded animate-pulse w-24" />
+              <div className="h-2 w-2 rounded-full bg-bg-muted animate-pulse shrink-0" />
+              <div className="h-4 bg-bg-muted rounded animate-pulse w-36" />
+              <div className="h-4 bg-bg-muted rounded animate-pulse w-16 ml-auto" />
+              <div className="h-4 bg-bg-muted rounded animate-pulse w-20" />
+              <div className="h-4 bg-bg-muted rounded animate-pulse w-24" />
             </div>
           ))}
         </div>
@@ -66,8 +86,8 @@ export default function ApmServicesView({ services, svcState, onRetry, range }: 
 
   if (svcState === 'error') {
     return (
-      <div className="flex flex-col items-center justify-center py-16 text-center bg-white rounded-lg border" style={{ borderColor: T.border.normal }}>
-        <div className="w-14 h-14 rounded-full bg-red-50 flex items-center justify-center mb-4">
+      <div className="flex flex-col items-center justify-center py-16 text-center bg-bg-elevated rounded-lg border" style={{ borderColor: T.border.normal }}>
+        <div className="w-14 h-14 rounded-full bg-accent-danger-bg flex items-center justify-center mb-4">
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke={T.brand.error} strokeWidth="1.5"><circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/></svg>
         </div>
         <p className="text-sm font-semibold" style={{ color: T.brand.error }}>Failed to load services</p>
@@ -79,7 +99,7 @@ export default function ApmServicesView({ services, svcState, onRetry, range }: 
 
   if (filtered.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center py-16 text-center bg-white rounded-lg border" style={{ borderColor: T.border.normal }}>
+      <div className="flex flex-col items-center justify-center py-16 text-center bg-bg-elevated rounded-lg border" style={{ borderColor: T.border.normal }}>
         <div className="w-14 h-14 rounded-full flex items-center justify-center mb-4" style={{ background: T.border.light }}>
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#ADB5BD" strokeWidth="1"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
         </div>
@@ -92,14 +112,14 @@ export default function ApmServicesView({ services, svcState, onRetry, range }: 
   }
 
   return (
-    <div className="bg-white rounded-lg border overflow-hidden" style={{ borderColor: T.border.normal }}>
+    <div className="bg-bg-elevated rounded-lg border overflow-hidden" style={{ borderColor: T.border.normal }}>
       {/* Toolbar */}
       <div className="flex items-center gap-3 px-4 py-2.5 border-b" style={{ borderColor: T.border.light, background: '#FAFBFC' }}>
         <div className="relative flex-1 max-w-xs">
           <svg className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="#ADB5BD" strokeWidth="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
           <input type="text" value={search} onChange={e => setSearch(e.target.value)}
             placeholder="Filter services..."
-            className="w-full h-8 pl-8 pr-3 text-[13px] border rounded bg-white placeholder:text-zinc-300 focus:outline-none focus:border-purple-300"
+            className="w-full h-8 pl-8 pr-3 text-[13px] border rounded bg-bg-elevated placeholder:text-fg-disabled focus:outline-none focus:border-accent-primary"
             style={{ borderColor: T.border.normal }} />
         </div>
         <span className="text-[11px]" style={{ color: T.content.textMuted }}>{filtered.length} services</span>
@@ -110,10 +130,10 @@ export default function ApmServicesView({ services, svcState, onRetry, range }: 
         <thead>
           <tr className="text-left text-[10px] font-semibold uppercase tracking-wider border-b" style={{ color: T.content.textMuted, borderColor: T.border.light }}>
             <th className="w-8 pl-4 py-2"></th>
-            <th className="py-2 pr-4 cursor-pointer hover:text-zinc-600" onClick={() => toggleSort('requests')}>Service {sortKey === 'requests' ? (sortDir === 'asc' ? '↑' : '↓') : ''}</th>
-            <th className="px-4 py-2 text-right w-24 cursor-pointer hover:text-zinc-600" onClick={() => toggleSort('requests')}>Requests</th>
-            <th className="px-4 py-2 text-right w-24 cursor-pointer hover:text-zinc-600" onClick={() => toggleSort('latency')}>P95 Latency</th>
-            <th className="px-4 py-2 text-right w-28 cursor-pointer hover:text-zinc-600" onClick={() => toggleSort('errors')}>Error Rate</th>
+            <th className="py-2 pr-4 cursor-pointer hover:text-fg-secondary" onClick={() => toggleSort('requests')}>Service {sortKey === 'requests' ? (sortDir === 'asc' ? '↑' : '↓') : ''}</th>
+            <th className="px-4 py-2 text-right w-24 cursor-pointer hover:text-fg-secondary" onClick={() => toggleSort('requests')}>Requests</th>
+            <th className="px-4 py-2 text-right w-24 cursor-pointer hover:text-fg-secondary" onClick={() => toggleSort('latency')}>P95 Latency</th>
+            <th className="px-4 py-2 text-right w-28 cursor-pointer hover:text-fg-secondary" onClick={() => toggleSort('errors')}>Error Rate</th>
             <th className="px-4 py-2 text-right w-20 pr-4">Last Seen</th>
           </tr>
         </thead>
@@ -132,7 +152,7 @@ export default function ApmServicesView({ services, svcState, onRetry, range }: 
                 onMouseLeave={e => { e.currentTarget.style.background = i % 2 === 0 ? 'white' : '#FAFBFC'; }}>
                 {/* Favorite */}
                 <td className="pl-4 py-2.5 w-8" onClick={e => { e.stopPropagation(); setFavorites(prev => { const n = new Set(prev); n.has(s.service_name) ? n.delete(s.service_name) : n.add(s.service_name); return n; }); }}>
-                  <span className={`text-[13px] cursor-pointer ${isFav ? 'text-purple-600' : 'text-zinc-300 hover:text-zinc-400'}`}>{isFav ? '★' : '☆'}</span>
+                  <span className={`text-[13px] cursor-pointer ${isFav ? 'text-accent-primary' : 'text-fg-disabled hover:text-fg-tertiary'}`}>{isFav ? '★' : '☆'}</span>
                 </td>
                 {/* Service name + dot */}
                 <td className="py-2.5 pr-4">
