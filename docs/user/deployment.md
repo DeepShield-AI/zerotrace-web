@@ -69,7 +69,7 @@ cd ../frontend && npm run build
 ### 2. Prepare Build Context
 
 ```bash
-./prepare-docker-build.sh
+./scripts/prepare-docker-build.sh
 ```
 
 This collects the compiled binary, frontend dist, glibc libraries, migrations, and agent installer into the `build/` directory.
