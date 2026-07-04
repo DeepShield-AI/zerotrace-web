@@ -32,12 +32,12 @@ export default function Register() {
   return (
     <div className="auth-split">
       {/* Left: Brand */}
-      <aside className="hidden lg:flex flex-col justify-between bg-zinc-950 text-zinc-100 p-14 relative overflow-hidden">
-        <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-brand-900/30 rounded-full blur-[120px] translate-y-1/3 -translate-x-1/4" />
+      <aside className="hidden lg:flex flex-col justify-between bg-bg-elevated text-fg-inverse p-14 relative overflow-hidden">
+        <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-accent-primary/30 rounded-full blur-[120px] translate-y-1/3 -translate-x-1/4" />
 
         <div className="relative z-10">
           <div className="flex items-center gap-3 mb-16">
-            <div className="w-8 h-8 rounded-lg bg-brand-500" />
+            <div className="w-8 h-8 rounded-lg bg-accent-primary" />
             <span className="text-xl font-semibold tracking-tight">{t('common.appName')}</span>
           </div>
 
@@ -52,37 +52,37 @@ export default function Register() {
           <div className="space-y-4 mt-10 max-w-sm">
             {stats.map((stat) => (
               <div key={stat.label} className="flex items-start gap-4">
-                <span className="text-2xl font-bold text-brand-400 font-mono tracking-tight leading-none">
+                <span className="text-2xl font-bold text-accent-primary font-mono tracking-tight leading-none">
                   {stat.value}
                 </span>
-                <span className="text-sm text-zinc-500 leading-snug pt-0.5">{stat.label}</span>
+                <span className="text-sm text-fg-tertiary leading-snug pt-0.5">{stat.label}</span>
               </div>
             ))}
           </div>
         </div>
 
-        <p className="relative z-10 text-sm text-zinc-600">
+        <p className="relative z-10 text-sm text-fg-secondary">
           {t('auth.registerHeroFooter')}
         </p>
       </aside>
 
       {/* Right: Form */}
-      <main className="flex items-center justify-center px-8 py-12 bg-white">
+      <main className="flex items-center justify-center px-8 py-12 bg-bg-elevated">
         <div className="w-full max-w-[420px] animate-fade-in">
           <div className="lg:hidden flex items-center gap-3 mb-10">
-            <div className="w-7 h-7 rounded-lg bg-brand-600" />
-            <span className="text-lg font-semibold tracking-tight text-zinc-900">{t('common.appName')}</span>
+            <div className="w-7 h-7 rounded-lg bg-accent-primary" />
+            <span className="text-lg font-semibold tracking-tight text-fg-primary">{t('common.appName')}</span>
           </div>
 
           <div className="mb-10">
-            <h2 className="text-3xl font-bold tracking-tight text-zinc-900 mb-2">{t('auth.createYourOrg')}</h2>
-            <p className="text-zinc-500">{t('auth.setupOrg')}</p>
+            <h2 className="text-3xl font-bold tracking-tight text-fg-primary mb-2">{t('auth.createYourOrg')}</h2>
+            <p className="text-fg-tertiary">{t('auth.setupOrg')}</p>
           </div>
 
           <Form layout="vertical" onFinish={onFinish} size="large" requiredMark={false}>
             <Form.Item
               name="org_name"
-              label={<span className="text-sm font-medium text-zinc-700">{t('auth.orgName')}</span>}
+              label={<span className="text-sm font-medium text-fg-secondary">{t('auth.orgName')}</span>}
               rules={[{ required: true, message: t('auth.enterOrgName') }]}
             >
               <Input placeholder={t('auth.orgNamePlaceholder')} className="h-11" />
@@ -90,7 +90,7 @@ export default function Register() {
 
             <Form.Item
               name="name"
-              label={<span className="text-sm font-medium text-zinc-700">{t('auth.yourName')}</span>}
+              label={<span className="text-sm font-medium text-fg-secondary">{t('auth.yourName')}</span>}
               rules={[{ required: true, message: t('auth.enterName') }]}
             >
               <Input placeholder={t('auth.namePlaceholder')} className="h-11" />
@@ -98,7 +98,7 @@ export default function Register() {
 
             <Form.Item
               name="email"
-              label={<span className="text-sm font-medium text-zinc-700">{t('auth.workEmail')}</span>}
+              label={<span className="text-sm font-medium text-fg-secondary">{t('auth.workEmail')}</span>}
               rules={[
                 { required: true, message: t('auth.enterEmail') },
                 { type: 'email', message: t('auth.validEmailRequired') },
@@ -109,7 +109,7 @@ export default function Register() {
 
             <Form.Item
               name="password"
-              label={<span className="text-sm font-medium text-zinc-700">{t('auth.password')}</span>}
+              label={<span className="text-sm font-medium text-fg-secondary">{t('auth.password')}</span>}
               rules={[
                 { required: true, message: t('auth.createPassword') },
                 { min: 8, message: t('auth.minPasswordLength') },
@@ -135,9 +135,9 @@ export default function Register() {
             </Form.Item>
           </Form>
 
-          <p className="text-center text-sm text-zinc-500">
+          <p className="text-center text-sm text-fg-tertiary">
             {t('auth.hasAccount')}{' '}
-            <Link to="/login" className="text-brand-600 font-medium hover:text-brand-700 transition-colors">
+            <Link to="/login" className="text-accent-primary font-medium hover:text-accent-primary transition-colors">
               {t('auth.signIn')}
             </Link>
           </p>
