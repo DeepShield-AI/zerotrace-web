@@ -141,9 +141,9 @@ export function agentStatus(a: AgentLike): AgentStatus {
 
 export function agentStatusColor(status: AgentStatus): string {
   switch (status) {
-    case 'online': return '#22c55e';
-    case 'stale': return '#f59e0b';
-    case 'offline': return '#ef4444';
+    case 'online': return '#41c464';   // severity-ok
+    case 'stale': return '#deab3e';    // severity-warn
+    case 'offline': return '#eb364b';   // severity-alert
   }
 }
 

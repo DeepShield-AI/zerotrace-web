@@ -162,7 +162,7 @@ export function DDSidebar({ collapsed = false }: { collapsed?: boolean }) {
     return (
       <nav className="flex-shrink-0 w-16 bg-[#1a0a2e] min-h-screen flex flex-col items-center py-4 gap-3">
         {DD_NAVIGATION.map(cat => (
-          <div key={cat.id} className="w-10 h-10 flex items-center justify-center text-white/50 hover:text-white hover:bg-white/10 rounded-lg transition-colors cursor-pointer"
+          <div key={cat.id} className="w-10 h-10 flex items-center justify-center text-white/50 hover:text-white hover:bg-fg-inverse/10 rounded-lg transition-colors cursor-pointer"
             title={cat.label}>
             <span className="text-lg">{cat.icon}</span>
           </div>
@@ -175,7 +175,7 @@ export function DDSidebar({ collapsed = false }: { collapsed?: boolean }) {
     <nav className="flex-shrink-0 w-60 bg-[#1a0a2e] min-h-screen overflow-y-auto flex flex-col">
       {/* Logo area */}
       <div className="px-4 py-4 border-b border-white/5 flex items-center gap-2.5">
-        <div className="w-8 h-8 bg-brand-600 rounded-md flex items-center justify-center flex-shrink-0">
+        <div className="w-8 h-8 bg-accent-primary rounded-md flex items-center justify-center flex-shrink-0">
           <span className="text-white text-xs font-bold">DD</span>
         </div>
         <span className="text-white font-semibold text-sm tracking-tight">ZEROTRACE</span>
@@ -189,7 +189,7 @@ export function DDSidebar({ collapsed = false }: { collapsed?: boolean }) {
             <div key={cat.id}>
               <button
                 onClick={() => toggleCategory(cat.id)}
-                className="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-white/70 hover:text-white hover:bg-white/5 rounded-md transition-colors"
+                className="w-full flex items-center gap-2.5 px-3 py-2 text-sm text-white/70 hover:text-white hover:bg-fg-inverse/5 rounded-md transition-colors"
               >
                 <span className="text-base w-5 text-center">{cat.icon}</span>
                 <span className="flex-1 text-left font-medium text-[13px]">{cat.label}</span>
@@ -207,15 +207,15 @@ export function DDSidebar({ collapsed = false }: { collapsed?: boolean }) {
                       className={({ isActive }) =>
                         `block px-3 py-1.5 text-[13px] rounded-md transition-colors ${
                           isActive
-                            ? 'text-white bg-brand-600/40 font-medium'
-                            : 'text-white/50 hover:text-white/80 hover:bg-white/5'
+                            ? 'text-white bg-accent-primary/40 font-medium'
+                            : 'text-white/50 hover:text-white/80 hover:bg-fg-inverse/5'
                         }`}
                     >
                       <span className="flex items-center gap-1.5">
                         {item.label}
                         {item.badge && (
                           <span className={`text-[9px] px-1 py-0.5 rounded font-semibold ${
-                            item.badge === 'new' ? 'bg-purple-500/30 text-purple-200' : 'bg-amber-500/30 text-amber-200'
+                            item.badge === 'new' ? 'bg-accent-primary/30 text-accent-primary' : 'bg-accent-warning/30 text-accent-warning'
                           }`}>{item.badge.toUpperCase()}</span>
                         )}
                       </span>
@@ -230,10 +230,10 @@ export function DDSidebar({ collapsed = false }: { collapsed?: boolean }) {
 
       {/* Bottom section */}
       <div className="px-3 py-3 border-t border-white/5 space-y-1">
-        <NavLink to="/org" className="block px-3 py-2 text-[13px] text-white/50 hover:text-white/80 hover:bg-white/5 rounded-md transition-colors">
+        <NavLink to="/org" className="block px-3 py-2 text-[13px] text-white/50 hover:text-white/80 hover:bg-fg-inverse/5 rounded-md transition-colors">
           ⚙ Organization
         </NavLink>
-        <NavLink to="/org/billing" className="block px-3 py-2 text-[13px] text-white/50 hover:text-white/80 hover:bg-white/5 rounded-md transition-colors">
+        <NavLink to="/org/billing" className="block px-3 py-2 text-[13px] text-white/50 hover:text-white/80 hover:bg-fg-inverse/5 rounded-md transition-colors">
           💳 Plan &amp; Usage
         </NavLink>
       </div>

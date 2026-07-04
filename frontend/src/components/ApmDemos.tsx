@@ -39,11 +39,11 @@ function DurationHistogram({ data, onSelectRange }: { data: { latency_ms: number
   const isSelected = (i: number) => dragStart != null && dragEnd != null && i >= Math.min(dragStart, dragEnd) && i <= Math.max(dragStart, dragEnd);
 
   return (
-    <div className="bg-white border rounded-lg p-4" style={{ borderColor: C.border }} onMouseUp={handleMouseUp} onMouseLeave={handleMouseUp}>
+    <div className="bg-bg-elevated border border-border rounded-lg p-4" onMouseUp={handleMouseUp} onMouseLeave={handleMouseUp}>
       <div className="flex items-center justify-between mb-3">
-        <h4 className="text-[11px] font-semibold uppercase tracking-wider" style={{ color: C.gray }}>Duration Distribution</h4>
+        <h4 className="text-[11px] font-semibold uppercase tracking-wider text-fg-tertiary">Duration Distribution</h4>
         {dragStart != null && dragEnd != null && (
-          <span className="text-[11px] font-mono" style={{ color: C.purple }}>
+          <span className="text-[11px] font-mono text-accent-primary">
             {buckets[Math.min(dragStart, dragEnd)].min}ms – {buckets[Math.max(dragStart, dragEnd)].max >= 99999 ? '∞' : (buckets[Math.max(dragStart, dragEnd)].max / 1000).toFixed(1) + 's'}
           </span>
         )}
@@ -58,11 +58,11 @@ function DurationHistogram({ data, onSelectRange }: { data: { latency_ms: number
               backgroundColor: isSelected(i) ? C.purple : b.min >= 500 ? C.red : b.min >= 100 ? C.orange : '#632CA620',
               opacity: isSelected(i) ? 1 : 0.7 + (i / buckets.length) * 0.3,
             }} />
-            <span className="text-[9px]" style={{ color: C.muted }}>{b.label}</span>
+            <span className="text-[9px] text-fg-disabled">{b.label}</span>
           </div>
         ))}
       </div>
-      <p className="text-[10px] mt-2" style={{ color: C.muted }}>Drag to select latency range</p>
+      <p className="text-[10px] mt-2 text-fg-disabled">Drag to select latency range</p>
     </div>
   );
 }
@@ -88,31 +88,31 @@ export function SlowRequestsPanel() {
     <div className="space-y-3">
       {/* Threshold selector */}
       <div className="flex items-center gap-3">
-        <span className="text-[12px] font-medium" style={{ color: C.gray }}>Min Duration:</span>
+        <span className="text-[12px] font-medium text-fg-tertiary">Min Duration:</span>
         {[10, 50, 100, 500, 1000].map(t => (
           <button key={t} onClick={() => setThreshold(t)}
             className={`px-3 py-1 text-[12px] font-medium rounded-full border transition-colors ${
-              threshold === t ? 'text-white border-transparent' : 'bg-white hover:border-[#ADB5BD]'
+              threshold === t ? 'text-fg-inverse border-transparent' : 'bg-bg-elevated hover:border-[#ADB5BD]'
             }`}
             style={threshold === t ? { background: C.purple, borderColor: C.purple } : { color: C.gray, borderColor: C.border }}>
             &gt;{t >= 1000 ? t / 1000 + 's' : t + 'ms'}
           </button>
         ))}
-        <span className="text-[11px] ml-auto" style={{ color: C.muted }}>{data.length} slow requests</span>
+        <span className="text-[11px] ml-auto text-fg-disabled">{data.length} slow requests</span>
       </div>
 
       {data.length > 0 && <DurationHistogram data={data} />}
 
       {/* Table */}
-      <div className="bg-white border rounded-lg overflow-hidden" style={{ borderColor: C.border }}>
+      <div className="bg-bg-elevated border border-border rounded-lg overflow-hidden">
         {loading ? (
-          <div className="py-12 text-center text-[13px]" style={{ color: C.muted }}>Loading...</div>
+          <div className="py-12 text-center text-[13px] text-fg-disabled">Loading...</div>
         ) : data.length === 0 ? (
-          <div className="py-12 text-center text-[13px]" style={{ color: C.muted }}>No slow requests found above {threshold}ms threshold</div>
+          <div className="py-12 text-center text-[13px] text-fg-disabled">No slow requests found above {threshold}ms threshold</div>
         ) : (
           <table className="w-full text-[12px]">
             <thead>
-              <tr className="text-left text-[10px] font-semibold uppercase tracking-wider" style={{ borderBottom: `1px solid ${C.border}`, color: C.muted }}>
+              <tr className="text-left text-[10px] font-semibold uppercase tracking-wider border-b border-border text-fg-disabled">
                 <th className="px-4 py-2.5">Time</th>
                 <th className="px-4 py-2.5">Service</th>
                 <th className="px-4 py-2.5">Resource</th>
@@ -126,13 +126,13 @@ export function SlowRequestsPanel() {
                 const isSlow = ms > 1000;
                 const isErr = parseInt(r.response_code) >= 400;
                 return (
-                  <tr key={i} className="transition-colors hover:bg-purple-50/30" style={{ borderBottom: `1px solid #F1F3F5` }}>
-                    <td className="px-4 py-2 font-mono text-[11px]" style={{ color: C.muted }}>{r.time?.slice(11, 19)}</td>
-                    <td className="px-4 py-2 font-medium truncate max-w-[180px]" style={{ color: C.text }}>{r.service || '—'}</td>
-                    <td className="px-4 py-2 font-mono text-[11px] truncate max-w-[300px]" style={{ color: C.gray }}>{r.request_resource || '—'}</td>
+                  <tr key={i} className="transition-colors hover:bg-purple-50/30 border-b border-border-subtle">
+                    <td className="px-4 py-2 font-mono text-[11px] text-fg-disabled">{r.time?.slice(11, 19)}</td>
+                    <td className="px-4 py-2 font-medium truncate max-w-[180px] text-fg-primary">{r.service || '—'}</td>
+                    <td className="px-4 py-2 font-mono text-[11px] truncate max-w-[300px] text-fg-tertiary">{r.request_resource || '—'}</td>
                     <td className="px-4 py-2 text-right">
                       <div className="flex items-center justify-end gap-2">
-                        <div className="w-16 h-1.5 rounded-full overflow-hidden" style={{ background: '#F1F3F5' }}>
+                        <div className="w-16 h-1.5 rounded-full overflow-hidden bg-bg-subtle">
                           <div className="h-full rounded-full" style={{
                             width: `${Math.min((ms / 1000) * 10, 100)}%`,
                             backgroundColor: isSlow ? C.red : isErr ? C.orange : C.green,
@@ -144,7 +144,7 @@ export function SlowRequestsPanel() {
                       </div>
                     </td>
                     <td className="px-4 py-2 text-center">
-                      <span className={`inline-flex text-[11px] font-semibold px-2 py-0.5 rounded-full ${isErr ? 'bg-red-50 text-red-700' : 'bg-emerald-50 text-emerald-700'}`}>
+                      <span className={`inline-flex text-[11px] font-semibold px-2 py-0.5 rounded-full ${isErr ? 'bg-accent-danger-bg text-accent-danger' : 'bg-accent-success-bg text-accent-success'}`}>
                         {r.response_code || '—'}
                       </span>
                     </td>
@@ -180,26 +180,26 @@ export function ErrorAnalysisPanel() {
     <div className="space-y-3">
       {/* Summary stat */}
       <div className="flex items-center gap-4">
-        <div className="bg-white border rounded-lg px-5 py-3" style={{ borderColor: C.border }}>
-          <p className="text-[10px] font-semibold uppercase tracking-wider" style={{ color: C.muted }}>Total Errors (1h)</p>
-          <p className="text-[24px] font-bold font-mono" style={{ color: C.red }}>{fmtN(totalErrors)}</p>
+        <div className="bg-bg-elevated border border-border rounded-lg px-5 py-3">
+          <p className="text-[10px] font-semibold uppercase tracking-wider text-fg-disabled">Total Errors (1h)</p>
+          <p className="text-[24px] font-bold font-mono text-accent-danger">{fmtN(totalErrors)}</p>
         </div>
-        <div className="bg-white border rounded-lg px-5 py-3" style={{ borderColor: C.border }}>
-          <p className="text-[10px] font-semibold uppercase tracking-wider" style={{ color: C.muted }}>Endpoints with Errors</p>
-          <p className="text-[24px] font-bold font-mono" style={{ color: C.orange }}>{data.length}</p>
+        <div className="bg-bg-elevated border border-border rounded-lg px-5 py-3">
+          <p className="text-[10px] font-semibold uppercase tracking-wider text-fg-disabled">Endpoints with Errors</p>
+          <p className="text-[24px] font-bold font-mono text-accent-warning">{data.length}</p>
         </div>
       </div>
 
       {/* Error table */}
-      <div className="bg-white border rounded-lg overflow-hidden" style={{ borderColor: C.border }}>
+      <div className="bg-bg-elevated border border-border rounded-lg overflow-hidden">
         {loading ? (
-          <div className="py-12 text-center text-[13px]" style={{ color: C.muted }}>Loading...</div>
+          <div className="py-12 text-center text-[13px] text-fg-disabled">Loading...</div>
         ) : data.length === 0 ? (
-          <div className="py-12 text-center text-[13px]" style={{ color: C.muted }}>No errors found in the last hour</div>
+          <div className="py-12 text-center text-[13px] text-fg-disabled">No errors found in the last hour</div>
         ) : (
           <table className="w-full text-[12px]">
             <thead>
-              <tr className="text-left text-[10px] font-semibold uppercase tracking-wider" style={{ borderBottom: `1px solid ${C.border}`, color: C.muted }}>
+              <tr className="text-left text-[10px] font-semibold uppercase tracking-wider border-b border-border text-fg-disabled">
                 <th className="px-4 py-2.5">Endpoint</th>
                 <th className="px-4 py-2.5">Service</th>
                 <th className="px-4 py-2.5 text-right">Count</th>
@@ -212,21 +212,21 @@ export function ErrorAnalysisPanel() {
                 const cnt = parseInt(r.error_count) || 0;
                 const ratio = cnt / Math.max(totalErrors, 1);
                 return (
-                  <tr key={i} className="transition-colors hover:bg-purple-50/30" style={{ borderBottom: `1px solid #F1F3F5` }}>
-                    <td className="px-4 py-2 font-mono text-[11px] truncate max-w-[300px]" style={{ color: C.text }}>{r.endpoint || '—'}</td>
-                    <td className="px-4 py-2 truncate max-w-[150px]" style={{ color: C.gray }}>{r.service || '—'}</td>
+                  <tr key={i} className="transition-colors hover:bg-purple-50/30 border-b border-border-subtle">
+                    <td className="px-4 py-2 font-mono text-[11px] truncate max-w-[300px] text-fg-primary">{r.endpoint || '—'}</td>
+                    <td className="px-4 py-2 truncate max-w-[150px] text-fg-tertiary">{r.service || '—'}</td>
                     <td className="px-4 py-2 text-right">
                       <div className="flex items-center justify-end gap-2">
-                        <div className="w-12 h-1.5 rounded-full overflow-hidden" style={{ background: '#F1F3F5' }}>
+                        <div className="w-12 h-1.5 rounded-full overflow-hidden bg-bg-subtle">
                           <div className="h-full rounded-full" style={{ width: `${ratio * 100}%`, backgroundColor: C.red }} />
                         </div>
-                        <span className="font-mono font-semibold tabular-nums" style={{ color: C.red }}>{cnt}</span>
+                        <span className="font-mono font-semibold tabular-nums text-accent-danger">{cnt}</span>
                       </div>
                     </td>
-                    <td className="px-4 py-2 text-right font-mono tabular-nums" style={{ color: C.gray }}>
+                    <td className="px-4 py-2 text-right font-mono tabular-nums text-fg-tertiary">
                       {parseFloat(r.avg_latency_ms || 0).toFixed(1)}ms
                     </td>
-                    <td className="px-4 py-2 text-right font-mono tabular-nums" style={{ color: C.gray }}>
+                    <td className="px-4 py-2 text-right font-mono tabular-nums text-fg-tertiary">
                       {parseFloat(r.max_latency_ms || 0).toFixed(1)}ms
                     </td>
                   </tr>

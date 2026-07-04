@@ -27,7 +27,7 @@ import { LogsExplorerPage, TriggeredMonitorsPage, MonitorCreatePage, DowntimeMan
 import GuardianPanel from './components/GuardianPanel';
 
 function PageLoader() {
-  return (<div className="min-h-[100dvh] bg-zinc-50 flex items-center justify-center"><div className="space-y-6 w-full max-w-[400px] px-6"><div className="skeleton h-10 w-48 mx-auto rounded-xl"/><div className="skeleton h-5 w-64 mx-auto rounded-lg"/><div className="space-y-3 mt-8"><div className="skeleton h-12 w-full rounded-xl"/><div className="skeleton h-12 w-full rounded-xl"/><div className="skeleton h-11 w-full rounded-xl"/></div></div></div>);
+  return (<div className="min-h-[100dvh] bg-bg-base flex items-center justify-center"><div className="space-y-6 w-full max-w-[400px] px-6"><div className="skeleton h-10 w-48 mx-auto rounded-xl"/><div className="skeleton h-5 w-64 mx-auto rounded-lg"/><div className="space-y-3 mt-8"><div className="skeleton h-12 w-full rounded-xl"/><div className="skeleton h-12 w-full rounded-xl"/><div className="skeleton h-11 w-full rounded-xl"/></div></div></div>);
 }
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) { const { user, loading } = useAuth(); if (loading) return <PageLoader/>; if (!user) return <Navigate to="/login" replace/>; return <>{children}</>; }

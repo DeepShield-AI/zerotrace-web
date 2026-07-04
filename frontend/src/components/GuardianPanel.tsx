@@ -59,10 +59,10 @@ function severityColor(s: string): string {
 
 function severityBadge(s: string): string {
   switch (s) {
-    case 'Critical': return 'bg-red-100 text-red-700';
-    case 'Warning': return 'bg-amber-100 text-amber-700';
+    case 'Critical': return 'bg-accent-danger-bg text-accent-danger';
+    case 'Warning': return 'bg-accent-warning-bg text-accent-warning';
     case 'Info': return 'bg-blue-100 text-blue-700';
-    default: return 'bg-zinc-100 text-zinc-600';
+    default: return 'bg-bg-muted text-fg-secondary';
   }
 }
 
@@ -88,11 +88,11 @@ function SimpleMarkdown({ text }: { text: string }) {
         // Bold: **text**
         const parts = line.split(/(\*\*.*?\*\*)/g).map((part, j) => {
           if (part.startsWith('**') && part.endsWith('**')) {
-            return <strong key={j} className="font-semibold text-zinc-800">{part.slice(2, -2)}</strong>;
+            return <strong key={j} className="font-semibold text-fg-primary">{part.slice(2, -2)}</strong>;
           }
           return <span key={j}>{part}</span>;
         });
-        return <p key={i} className="text-xs leading-relaxed text-zinc-600 mb-0.5">{parts}</p>;
+        return <p key={i} className="text-xs leading-relaxed text-fg-secondary mb-0.5">{parts}</p>;
       })}
     </div>
   );
@@ -156,7 +156,7 @@ export default function GuardianPanel() {
       {!isOpen && (
         <button
           onClick={() => setIsOpen(true)}
-          className="fixed bottom-6 right-6 z-50 flex items-center gap-2 px-4 py-2.5 rounded-full shadow-lg transition-all duration-200 hover:scale-105 hover:shadow-xl animate-slide-up bg-white border border-zinc-200"
+          className="fixed bottom-6 right-6 z-50 flex items-center gap-2 px-4 py-2.5 rounded-full shadow-lg transition-all duration-200 hover:scale-105 hover:shadow-xl animate-slide-up bg-bg-elevated border border-border"
           title="Guardian Insights"
         >
           <Badge count={criticalCount > 0 ? criticalCount : (warningCount > 0 ? warningCount : 0)} size="small" offset={[-2, 2]}>
@@ -166,7 +166,7 @@ export default function GuardianPanel() {
               <line x1="12" y1="17" x2="12.01" y2="17" />
             </svg>
           </Badge>
-          <span className="text-xs font-medium text-zinc-700">
+          <span className="text-xs font-medium text-fg-secondary">
             {hasActive ? `${criticalCount + warningCount} issue(s)` : 'Guardian'}
           </span>
         </button>
@@ -177,9 +177,9 @@ export default function GuardianPanel() {
         <div className="fixed inset-0 z-50 flex justify-end">
           <div className="absolute inset-0 bg-black/20 backdrop-blur-sm" onClick={() => setIsOpen(false)} />
 
-          <div className="relative w-[420px] max-w-[90vw] h-full bg-white shadow-2xl flex flex-col animate-slide-up">
+          <div className="relative w-[420px] max-w-[90vw] h-full bg-bg-elevated shadow-2xl flex flex-col animate-slide-up">
             {/* Header */}
-            <div className="shrink-0 flex items-center justify-between px-4 py-3 border-b border-zinc-100" style={{ background: 'linear-gradient(135deg, #632CA6, #8B5CF6)' }}>
+            <div className="shrink-0 flex items-center justify-between px-4 py-3 border-b border-border-subtle" style={{ background: 'linear-gradient(135deg, #632CA6, #8B5CF6)' }}>
               <div className="flex items-center gap-2.5">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round">
                   <path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" />
@@ -187,7 +187,7 @@ export default function GuardianPanel() {
                 <span className="text-sm font-semibold text-white tracking-tight">Guardian Insights</span>
               </div>
               <div className="flex items-center gap-1">
-                <button onClick={runAnalysis} disabled={analyzing} className="w-7 h-7 rounded-md flex items-center justify-center text-white/70 hover:text-white hover:bg-white/10 transition-colors" title="Run analysis">
+                <button onClick={runAnalysis} disabled={analyzing} className="w-7 h-7 rounded-md flex items-center justify-center text-white/70 hover:text-white hover:bg-bg-elevated/10 transition-colors" title="Run analysis">
                   {analyzing ? <Spin size="small" /> : (
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
                       <polyline points="23 4 23 10 17 10" />
@@ -195,7 +195,7 @@ export default function GuardianPanel() {
                     </svg>
                   )}
                 </button>
-                <button onClick={() => { setIsOpen(false); setSelectedStory(null); }} className="w-7 h-7 rounded-md flex items-center justify-center text-white/70 hover:text-white hover:bg-white/10 transition-colors" title="Close">
+                <button onClick={() => { setIsOpen(false); setSelectedStory(null); }} className="w-7 h-7 rounded-md flex items-center justify-center text-white/70 hover:text-white hover:bg-bg-elevated/10 transition-colors" title="Close">
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
                     <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
                   </svg>
@@ -208,7 +208,7 @@ export default function GuardianPanel() {
               {selectedStory ? (
                 /* ── Story Detail ── */
                 <div className="p-4 space-y-4">
-                  <button onClick={() => setSelectedStory(null)} className="text-xs text-purple-600 hover:text-purple-800 font-medium flex items-center gap-1 mb-2">
+                  <button onClick={() => setSelectedStory(null)} className="text-xs text-accent-primary hover:text-accent-primary font-medium flex items-center gap-1 mb-2">
                     <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><polyline points="15 18 9 12 15 6" /></svg>
                     Back to stories
                   </button>
@@ -217,27 +217,27 @@ export default function GuardianPanel() {
                     <span className={`text-[10px] font-semibold uppercase px-2 py-0.5 rounded-full ${severityBadge(selectedStory.severity)}`}>
                       {selectedStory.severity}
                     </span>
-                    <h3 className="text-base font-semibold text-zinc-800 mt-2 leading-snug">{selectedStory.title}</h3>
-                    <p className="text-[11px] text-zinc-400 mt-1">{ago(selectedStory.detected_at)} · {selectedStory.affected_services.length} service(s)</p>
+                    <h3 className="text-base font-semibold text-fg-primary mt-2 leading-snug">{selectedStory.title}</h3>
+                    <p className="text-[11px] text-fg-tertiary mt-1">{ago(selectedStory.detected_at)} · {selectedStory.affected_services.length} service(s)</p>
                   </div>
 
                   <div>
-                    <h4 className="text-xs font-semibold text-zinc-500 uppercase tracking-wider mb-2">Description</h4>
+                    <h4 className="text-xs font-semibold text-fg-secondary uppercase tracking-wider mb-2">Description</h4>
                     <SimpleMarkdown text={selectedStory.description} />
                   </div>
 
                   {/* Anomaly details */}
                   <div>
-                    <h4 className="text-xs font-semibold text-zinc-500 uppercase tracking-wider mb-2">Anomalies ({selectedStory.anomalies.length})</h4>
+                    <h4 className="text-xs font-semibold text-fg-secondary uppercase tracking-wider mb-2">Anomalies ({selectedStory.anomalies.length})</h4>
                     <div className="space-y-2">
                       {selectedStory.anomalies.map((a) => (
-                        <div key={a.id} className="bg-zinc-50 border border-zinc-100 rounded-lg px-3 py-2.5">
+                        <div key={a.id} className="bg-bg-subtle border border-border-subtle rounded-lg px-3 py-2.5">
                           <div className="flex items-center justify-between mb-1">
-                            <span className="text-xs font-medium text-zinc-700">{a.service_name}</span>
+                            <span className="text-xs font-medium text-fg-secondary">{a.service_name}</span>
                             <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded-full ${severityBadge(a.severity)}`}>{a.severity}</span>
                           </div>
-                          <p className="text-[11px] text-zinc-500 mb-1.5">{a.description}</p>
-                          <div className="flex items-center gap-3 text-[10px] text-zinc-400">
+                          <p className="text-[11px] text-fg-secondary mb-1.5">{a.description}</p>
+                          <div className="flex items-center gap-3 text-[10px] text-fg-tertiary">
                             <span>{metricLabel(a.metric)}</span>
                             <span>Z={a.z_score.toFixed(1)}</span>
                             <span>cur: {a.current_value.toFixed(1)}</span>
@@ -251,11 +251,11 @@ export default function GuardianPanel() {
                   {/* Actions */}
                   {selectedStory.suggested_actions.length > 0 && (
                     <div>
-                      <h4 className="text-xs font-semibold text-zinc-500 uppercase tracking-wider mb-2">Suggested Actions</h4>
+                      <h4 className="text-xs font-semibold text-fg-secondary uppercase tracking-wider mb-2">Suggested Actions</h4>
                       <ul className="space-y-1.5">
                         {selectedStory.suggested_actions.map((action, i) => (
-                          <li key={i} className="text-xs text-zinc-600 flex items-start gap-2">
-                            <span className="text-purple-500 mt-0.5 shrink-0">→</span>
+                          <li key={i} className="text-xs text-fg-secondary flex items-start gap-2">
+                            <span className="text-accent-primary mt-0.5 shrink-0">→</span>
                             <SimpleMarkdown text={action} />
                           </li>
                         ))}
@@ -274,8 +274,8 @@ export default function GuardianPanel() {
                           <path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" />
                         </svg>
                       </div>
-                      <h3 className="text-sm font-semibold text-zinc-800 mb-1">No insights yet</h3>
-                      <p className="text-xs text-zinc-500 mb-4">Run an analysis to detect anomalies across your services.</p>
+                      <h3 className="text-sm font-semibold text-fg-primary mb-1">No insights yet</h3>
+                      <p className="text-xs text-fg-secondary mb-4">Run an analysis to detect anomalies across your services.</p>
                       <Button type="primary" onClick={runAnalysis} loading={analyzing} size="small">
                         Analyze Now
                       </Button>
@@ -294,7 +294,7 @@ export default function GuardianPanel() {
                     <button
                       key={story.id}
                       onClick={() => viewStory(story.id)}
-                      className="w-full text-left bg-white border border-zinc-200 rounded-lg px-4 py-3 hover:border-purple-200 hover:shadow-sm transition-all"
+                      className="w-full text-left bg-bg-elevated border border-border rounded-lg px-4 py-3 hover:border-accent-primary hover:shadow-sm transition-all"
                     >
                       <div className="flex items-start justify-between gap-2">
                         <div className="flex-1 min-w-0">
@@ -302,13 +302,13 @@ export default function GuardianPanel() {
                             <span className={`text-[10px] font-semibold uppercase px-1.5 py-0.5 rounded-full ${severityBadge(story.severity)}`}>
                               {story.severity}
                             </span>
-                            <span className="text-[11px] text-zinc-400">{ago(story.detected_at)}</span>
+                            <span className="text-[11px] text-fg-tertiary">{ago(story.detected_at)}</span>
                           </div>
-                          <h4 className="text-sm font-medium text-zinc-800 leading-snug truncate">{story.title}</h4>
+                          <h4 className="text-sm font-medium text-fg-primary leading-snug truncate">{story.title}</h4>
                           <div className="flex items-center gap-2 mt-1.5">
-                            <span className="text-[11px] text-zinc-400">{story.anomaly_count} anomalies</span>
-                            <span className="text-zinc-200">·</span>
-                            <span className="text-[11px] text-zinc-400 truncate">{story.affected_services.slice(0, 3).join(', ')}{story.affected_services.length > 3 ? ` +${story.affected_services.length - 3}` : ''}</span>
+                            <span className="text-[11px] text-fg-tertiary">{story.anomaly_count} anomalies</span>
+                            <span className="text-fg-disabled">·</span>
+                            <span className="text-[11px] text-fg-tertiary truncate">{story.affected_services.slice(0, 3).join(', ')}{story.affected_services.length > 3 ? ` +${story.affected_services.length - 3}` : ''}</span>
                           </div>
                         </div>
                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#a1a1aa" strokeWidth="2" strokeLinecap="round" className="shrink-0 mt-1"><polyline points="9 18 15 12 9 6" /></svg>

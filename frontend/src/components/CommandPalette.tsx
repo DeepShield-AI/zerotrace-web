@@ -176,10 +176,10 @@ export default function CommandPalette() {
       <div className="fixed inset-0 bg-black/40 z-[100] backdrop-blur-sm" onClick={closePalette} />
 
       {/* Palette */}
-      <div className="fixed top-[20%] left-1/2 -translate-x-1/2 z-[101] w-full max-w-[540px] bg-white rounded-xl shadow-2xl border border-zinc-200 overflow-hidden animate-fade-in">
+      <div className="fixed top-[20%] left-1/2 -translate-x-1/2 z-[101] w-full max-w-[540px] bg-bg-elevated rounded-xl shadow-2xl border border-border overflow-hidden animate-fade-in">
         {/* Search input */}
-        <div className="flex items-center gap-3 px-4 py-3.5 border-b border-zinc-200">
-          <svg className="w-5 h-5 text-zinc-400 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+        <div className="flex items-center gap-3 px-4 py-3.5 border-b border-border">
+          <svg className="w-5 h-5 text-fg-tertiary shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
             <circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" />
           </svg>
           <input
@@ -188,21 +188,21 @@ export default function CommandPalette() {
             value={query}
             onChange={e => { setQuery(e.target.value); setSelectedIdx(0); }}
             placeholder="Jump to a page..."
-            className="flex-1 text-[15px] text-zinc-900 bg-transparent outline-none placeholder:text-zinc-400"
+            className="flex-1 text-[15px] text-fg-primary bg-transparent outline-none placeholder:text-fg-tertiary"
           />
-          <kbd className="text-[11px] text-zinc-400 bg-zinc-100 px-2 py-0.5 rounded font-mono">esc</kbd>
+          <kbd className="text-[11px] text-fg-tertiary bg-bg-muted px-2 py-0.5 rounded font-mono">esc</kbd>
         </div>
 
         {/* Results */}
         <div ref={listRef} className="max-h-[360px] overflow-y-auto p-2">
           {flatList.length === 0 ? (
             <div className="py-12 text-center">
-              <p className="text-sm text-zinc-400">No pages found</p>
+              <p className="text-sm text-fg-tertiary">No pages found</p>
             </div>
           ) : (
             Array.from(grouped.entries()).map(([group, items]) => (
               <div key={group} className="mb-1">
-                <div className="px-3 py-1.5 text-[10px] font-semibold text-zinc-400 uppercase tracking-wider">
+                <div className="px-3 py-1.5 text-[10px] font-semibold text-fg-tertiary uppercase tracking-wider">
                   {group}
                 </div>
                 {items.map(item => {
@@ -216,21 +216,21 @@ export default function CommandPalette() {
                       onMouseEnter={() => setSelectedIdx(idx)}
                       className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-left transition-all ${
                         isSelected
-                          ? 'bg-[#F3F0FA] text-[#632CA6]'
-                          : 'text-zinc-700 hover:bg-zinc-50'
+                          ? 'bg-[#F3F0FA] text-accent-primary'
+                          : 'text-fg-secondary hover:bg-bg-subtle'
                       }`}
                     >
-                      <span className={`shrink-0 ${isSelected ? 'text-[#632CA6]' : 'text-zinc-400'}`}>
+                      <span className={`shrink-0 ${isSelected ? 'text-accent-primary' : 'text-fg-tertiary'}`}>
                         {item.icon}
                       </span>
                       <div className="flex-1 min-w-0">
                         <p className="text-[13px] font-medium truncate">{item.label}</p>
                         {item.description && (
-                          <p className="text-[11px] text-zinc-400 truncate">{item.description}</p>
+                          <p className="text-[11px] text-fg-tertiary truncate">{item.description}</p>
                         )}
                       </div>
                       {isSelected && (
-                        <svg className="w-4 h-4 shrink-0 text-[#632CA6]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+                        <svg className="w-4 h-4 shrink-0 text-accent-primary" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
                           <path d="M5 12h14" />
                         </svg>
                       )}
@@ -243,15 +243,15 @@ export default function CommandPalette() {
         </div>
 
         {/* Footer */}
-        <div className="flex items-center gap-4 px-4 py-2.5 border-t border-zinc-100 bg-zinc-50/50 text-[11px] text-zinc-400">
+        <div className="flex items-center gap-4 px-4 py-2.5 border-t border-border-subtle bg-bg-subtle/50 text-[11px] text-fg-tertiary">
           <span className="flex items-center gap-1.5">
-            <kbd className="px-1 py-0.5 bg-white border border-zinc-200 rounded text-[10px] font-mono">↑↓</kbd> Navigate
+            <kbd className="px-1 py-0.5 bg-bg-elevated border border-border rounded text-[10px] font-mono">↑↓</kbd> Navigate
           </span>
           <span className="flex items-center gap-1.5">
-            <kbd className="px-1 py-0.5 bg-white border border-zinc-200 rounded text-[10px] font-mono">⏎</kbd> Open
+            <kbd className="px-1 py-0.5 bg-bg-elevated border border-border rounded text-[10px] font-mono">⏎</kbd> Open
           </span>
           <span className="flex items-center gap-1.5">
-            <kbd className="px-1 py-0.5 bg-white border border-zinc-200 rounded text-[10px] font-mono">esc</kbd> Close
+            <kbd className="px-1 py-0.5 bg-bg-elevated border border-border rounded text-[10px] font-mono">esc</kbd> Close
           </span>
         </div>
       </div>
