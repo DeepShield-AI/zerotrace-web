@@ -65,12 +65,24 @@ function AntTheme({ children }: { children: React.ReactNode }) {
   return <ConfigProvider theme={theme}>{children}</ConfigProvider>
 }
 
-ReactDOM.createRoot(document.getElementById('root')!).render(
-  <React.StrictMode>
-    <AntTheme>
-      <BrowserRouter>
-        <App />
-      </BrowserRouter>
-    </AntTheme>
-  </React.StrictMode>,
-)
+async function bootstrap() {
+  // Conditionally start MSW mock service worker in dev mode
+  if (import.meta.env.DEV && import.meta.env.VITE_USE_MOCKS === 'true') {
+    const { worker } = await import('./mocks/browser');
+    await worker.start({
+      onUnhandledRequest: 'bypass',
+    });
+  }
+
+  ReactDOM.createRoot(document.getElementById('root')!).render(
+    <React.StrictMode>
+      <AntTheme>
+        <BrowserRouter>
+          <App />
+        </BrowserRouter>
+      </AntTheme>
+    </React.StrictMode>,
+  );
+}
+
+bootstrap();
