@@ -372,12 +372,12 @@ export default function TopologyMap({ nodes, edges, loading, onServiceClick, onR
   }
 
   return (
-    <div className="bg-white border border-zinc-200 rounded-lg overflow-hidden">
+    <div className="bg-bg-elevated border border-border rounded-lg overflow-hidden">
       {/* Toolbar */}
-      <div className="flex items-center gap-3 px-4 py-2.5 border-b border-zinc-100 bg-zinc-50/50">
+      <div className="flex items-center gap-3 px-4 py-2.5 border-b border-border-subtle bg-bg-subtle/50">
         <div className="flex items-center gap-2">
-          <NodeIndexOutlined className="text-zinc-400" />
-          <span className="text-xs font-semibold text-zinc-600 uppercase tracking-wider">Service Map</span>
+          <NodeIndexOutlined className="text-fg-tertiary" />
+          <span className="text-xs font-semibold text-fg-secondary uppercase tracking-wider">Service Map</span>
         </div>
         <div className="flex-1" />
 
@@ -419,7 +419,7 @@ export default function TopologyMap({ nodes, edges, loading, onServiceClick, onR
       {/* Graph area */}
       <div style={{ position: 'relative', height: 520 }}>
         {loading ? (
-          <div className="absolute inset-0 flex items-center justify-center bg-white/80 z-10">
+          <div className="absolute inset-0 flex items-center justify-center bg-bg-elevated/80 z-10">
             <Spin size="large" />
           </div>
         ) : (
@@ -427,7 +427,7 @@ export default function TopologyMap({ nodes, edges, loading, onServiceClick, onR
         )}
 
         {/* Legend footer */}
-        <div className="absolute bottom-3 left-3 flex items-center gap-4 text-[10px] text-zinc-400">
+        <div className="absolute bottom-3 left-3 flex items-center gap-4 text-[10px] text-fg-tertiary">
           <span className="flex items-center gap-1.5">
             <span className="w-2.5 h-0.5 rounded-full" style={{ backgroundColor: '#94A3B8' }} /> Low latency
           </span>
@@ -440,7 +440,7 @@ export default function TopologyMap({ nodes, edges, loading, onServiceClick, onR
           <span>&middot;</span>
           <span>{nodes.length} services &middot; {edges.length} edges</span>
           <span>&middot;</span>
-          <span className="text-zinc-300">Drag to pan &middot; Scroll to zoom &middot; Click node for details</span>
+          <span className="text-fg-disabled">Drag to pan &middot; Scroll to zoom &middot; Click node for details</span>
         </div>
       </div>
     </div>

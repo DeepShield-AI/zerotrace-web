@@ -31,8 +31,8 @@ interface Props {
 function FacetSection({ title, defaultOpen = true, children }: { title: string; defaultOpen?: boolean; children: React.ReactNode }) {
   const [open, setOpen] = useState(defaultOpen);
   return (
-    <div className="border-b border-edge-light">
-      <button onClick={() => setOpen(!open)} className="w-full flex items-center gap-1.5 py-2 text-xs font-semibold uppercase tracking-wider text-ink-secondary hover:text-ink transition-colors">
+    <div className="border-b border-border-light">
+      <button onClick={() => setOpen(!open)} className="w-full flex items-center gap-1.5 py-2 text-xs font-semibold uppercase tracking-wider text-fg-secondary hover:text-fg-primary transition-colors">
         {open ? <DownOutlined style={{ fontSize: 8 }} /> : <RightOutlined style={{ fontSize: 8 }} />}{title}
       </button>
       {open && <div className="pb-2">{children}</div>}
@@ -42,13 +42,13 @@ function FacetSection({ title, defaultOpen = true, children }: { title: string; 
 
 function CheckItem({ label, count, active, dotColor, onClick }: { label: string; count?: number; active: boolean; dotColor?: string; onClick: () => void }) {
   return (
-    <label className="flex items-center gap-2 px-1.5 py-1 rounded cursor-pointer text-xs text-ink-secondary hover:bg-surface-hover select-none">
-      <div onClick={onClick} className={`w-3.5 h-3.5 rounded border flex items-center justify-center shrink-0 transition-colors ${active ? 'bg-brand-600 border-brand-600' : 'bg-white border-edge'}`}>
+    <label className="flex items-center gap-2 px-1.5 py-1 rounded cursor-pointer text-xs text-fg-secondary hover:bg-bg-muted-hover select-none">
+      <div onClick={onClick} className={`w-3.5 h-3.5 rounded border flex items-center justify-center shrink-0 transition-colors ${active ? 'bg-accent-primary border-accent-primary' : 'bg-bg-elevated border-border'}`}>
         {active && <svg viewBox="0 0 16 16" fill="white" className="w-3 h-3"><path d="M3 8l3 3 7-7" stroke="white" strokeWidth="2" fill="none"/></svg>}
       </div>
       {dotColor && <span className="w-2 h-2 rounded-full shrink-0" style={{ background: dotColor }} />}
       <span className="flex-1 truncate">{label}</span>
-      {count != null && <span className="text-2xs text-ink-muted">{count}</span>}
+      {count != null && <span className="text-2xs text-fg-tertiary">{count}</span>}
     </label>
   );
 }
@@ -84,10 +84,10 @@ export default function TracesExplorer(props: Props) {
       {/* Search + time picker */}
       <div className="flex items-center gap-3 mb-2">
         <div className="relative flex-1">
-          <SearchOutlined className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-ink-placeholder" />
+          <SearchOutlined className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-fg-primary-placeholder" />
           <input type="text" value={query} onChange={e => onQueryChange(e.target.value)} onKeyDown={e => { if (e.key === 'Enter') onTracesRefresh(); }}
             placeholder="Search for any tag or attribute on your spans. Press Enter to search."
-            className="w-full h-9 pl-10 pr-4 text-sm border rounded-md bg-white placeholder:text-ink-placeholder focus:outline-none focus:border-brand-600 focus:ring-2 focus:ring-brand-600/10 transition-shadow" />
+            className="w-full h-9 pl-10 pr-4 text-sm border rounded-md bg-bg-elevated placeholder:text-fg-primary-placeholder focus:outline-none focus:border-accent-primary focus:ring-2 focus:ring-accent-primary/10 transition-shadow" />
         </div>
         {timeRange && onTimeRangeChange && <TimeRangePicker value={timeRange} onChange={onTimeRangeChange} />}
       </div>
@@ -95,14 +95,14 @@ export default function TracesExplorer(props: Props) {
       {/* Filter chips */}
       {hasFilters && (
         <div className="flex flex-wrap items-center gap-1.5 mb-2">
-          <span className="text-xs font-semibold uppercase text-ink-secondary mr-1">Filters:</span>
+          <span className="text-xs font-semibold uppercase text-fg-secondary mr-1">Filters:</span>
           {chips.map((c, i) => (
-            <span key={i} className="inline-flex items-center gap-1 text-xs font-medium px-2.5 py-1 rounded-full bg-surface-selected text-brand-600 border border-brand-200">
-              {c.label}<button onClick={c.remove} className="text-brand-400 hover:text-brand-600 text-xs leading-none">×</button>
+            <span key={i} className="inline-flex items-center gap-1 text-xs font-medium px-2.5 py-1 rounded-full bg-bg-muted-selected text-accent-primary border border-accent-primary">
+              {c.label}<button onClick={c.remove} className="text-accent-primary hover:text-accent-primary text-xs leading-none">×</button>
             </span>
           ))}
           <button onClick={() => { onFacetStatusChange(''); onFacetServiceChange(''); onFacetDurationChange(''); onQueryChange(''); }}
-            className="text-xs font-medium text-brand-600 hover:underline ml-1">Clear all</button>
+            className="text-xs font-medium text-accent-primary hover:underline ml-1">Clear all</button>
         </div>
       )}
 
@@ -110,13 +110,13 @@ export default function TracesExplorer(props: Props) {
         {/* LEFT: Facets */}
         <div className="w-[200px] shrink-0">
           <div className="flex items-center justify-between mb-1">
-            <h3 className="text-sm font-semibold text-ink">Facets</h3>
+            <h3 className="text-sm font-semibold text-fg-primary">Facets</h3>
             {hasFilters && <button onClick={() => { onFacetStatusChange(''); onFacetServiceChange(''); onFacetDurationChange(''); }}
-              className="text-xs font-medium text-brand-600">Clear</button>}
+              className="text-xs font-medium text-accent-primary">Clear</button>}
           </div>
           <FacetSection title="Status">
-            <CheckItem label="OK" count={okCnt} active={facetStatus === 'ok'} dotColor="#2DB88D" onClick={() => onFacetStatusChange(facetStatus === 'ok' ? '' : 'ok')} />
-            <CheckItem label="Error" count={errCnt} active={facetStatus === 'error'} dotColor="#E65C5C" onClick={() => onFacetStatusChange(facetStatus === 'error' ? '' : 'error')} />
+            <CheckItem label="OK" count={okCnt} active={facetStatus === 'ok'} dotColor="#2db88d" onClick={() => onFacetStatusChange(facetStatus === 'ok' ? '' : 'ok')} />
+            <CheckItem label="Error" count={errCnt} active={facetStatus === 'error'} dotColor="#e65c5c" onClick={() => onFacetStatusChange(facetStatus === 'error' ? '' : 'error')} />
           </FacetSection>
           <FacetSection title="Duration" defaultOpen={false}>
             {[{ label: '< 10 ms', query: 'duration:<10ms' },{ label: '10 – 100 ms', query: 'duration:>10ms duration:<100ms' },{ label: '100 ms – 1 s', query: 'duration:>100ms duration:<1s' },{ label: '> 1 s', query: 'duration:>1s' }].map(d => (
@@ -125,12 +125,12 @@ export default function TracesExplorer(props: Props) {
           </FacetSection>
           <FacetSection title="Service" defaultOpen={false}>
             <input type="text" value={svcSearch} onChange={e => setSvcSearch(e.target.value)} placeholder="Filter services"
-              className="w-full px-2 py-1.5 text-xs border border-edge rounded bg-white placeholder:text-ink-placeholder focus:outline-none focus:border-brand-600 mb-1" />
+              className="w-full px-2 py-1.5 text-xs border border-border rounded bg-bg-elevated placeholder:text-fg-primary-placeholder focus:outline-none focus:border-accent-primary mb-1" />
             <div className="space-y-0.5 max-h-52 overflow-y-auto">
               {services.filter(s => !svcSearch || s.service_name.toLowerCase().includes(svcSearch.toLowerCase())).slice(0, 30).map(s => {
                 const p = num(s.error_rate_pct);
                 return <CheckItem key={s.service_name} label={s.service_name} count={num(s.request_count)}
-                  dotColor={p > 5 ? '#E65C5C' : p > 1 ? '#E2903C' : '#2DB88D'} active={facetService === s.service_name}
+                  dotColor={p > 5 ? '#e65c5c' : p > 1 ? '#e2903c' : '#2db88d'} active={facetService === s.service_name}
                   onClick={() => onFacetServiceChange(facetService === s.service_name ? '' : s.service_name)} />;
               })}
             </div>
@@ -140,8 +140,8 @@ export default function TracesExplorer(props: Props) {
         {/* RIGHT: Table */}
         <div className="flex-1 min-w-0">
           {latencyHistogram && latencyHistogram.length > 0 && (
-            <div className="bg-white rounded-lg border border-edge p-4 mb-3">
-              <h4 className="text-xs font-semibold uppercase tracking-wider text-ink-secondary mb-3">Duration Distribution</h4>
+            <div className="bg-bg-elevated rounded-lg border border-border p-4 mb-3">
+              <h4 className="text-xs font-semibold uppercase tracking-wider text-fg-secondary mb-3">Duration Distribution</h4>
               <ReactEChartsCore echarts={echarts} option={{
                 grid: { left: 0, right: 8, top: 4, bottom: 14 }, xAxis: { type: 'category', data: latencyHistogram.map(b => b.bucket), axisLabel: { fontSize: 9, color: '#ADB5BD' }, axisTick: { show: false } },
                 yAxis: { show: false }, series: [{ type: 'bar', data: latencyHistogram.map(b => num(b.cnt)), itemStyle: { color: '#632CA6', borderRadius: [2, 2, 0, 0] }, barMaxWidth: 20 }], tooltip: { trigger: 'axis' as const },
@@ -149,22 +149,22 @@ export default function TracesExplorer(props: Props) {
             </div>
           )}
 
-          <div className="bg-white rounded-lg border border-edge overflow-hidden">
-            <div className="px-4 py-3 border-b border-edge-light bg-surface-zebra flex items-center justify-between">
-              <span className="text-sm font-semibold text-ink">Spans</span>
-              <span className="text-xs text-ink-secondary">{tracesTotal > 0 ? `${tracesTotal} span${tracesTotal !== 1 ? 's' : ''}` : `${traces.length} loaded`}</span>
+          <div className="bg-bg-elevated rounded-lg border border-border overflow-hidden">
+            <div className="px-4 py-3 border-b border-border-light bg-bg-muted-zebra flex items-center justify-between">
+              <span className="text-sm font-semibold text-fg-primary">Spans</span>
+              <span className="text-xs text-fg-secondary">{tracesTotal > 0 ? `${tracesTotal} span${tracesTotal !== 1 ? 's' : ''}` : `${traces.length} loaded`}</span>
             </div>
 
             {traces.length === 0 && trState !== 'loading' && (
               <div className="py-16 text-center">
-                <p className="text-sm font-medium text-ink">No spans found</p>
-                <p className="text-xs text-ink-secondary mt-1">Try adjusting your time range or search filters.</p>
+                <p className="text-sm font-medium text-fg-primary">No spans found</p>
+                <p className="text-xs text-fg-secondary mt-1">Try adjusting your time range or search filters.</p>
               </div>
             )}
 
             <table className="w-full">
               <thead>
-                <tr className="border-b border-edge-light bg-surface-zebra">
+                <tr className="border-b border-border-light bg-bg-muted-zebra">
                   {['DATE','SERVICE','RESOURCE','DURATION','METHOD','STATUS'].map(h => (
                     <th key={h} className="text-left text-h6 px-3 py-3">{h}</th>
                   ))}
@@ -175,28 +175,28 @@ export default function TracesExplorer(props: Props) {
                   const isOk = t.status === 'ok';
                   return (
                     <tr key={t.trace_id} onClick={() => navigate('/apm/traces/' + t.trace_id)}
-                      className="border-b border-edge-lighter hover:bg-surface-selected/50 cursor-pointer transition-colors">
-                      <td className="px-3 py-3 font-mono text-2xs text-ink-muted min-w-[120px]">{formatDate(t.start_time)}</td>
+                      className="border-b border-border-lighter hover:bg-bg-muted-selected/50 cursor-pointer transition-colors">
+                      <td className="px-3 py-3 font-mono text-2xs text-fg-tertiary min-w-[120px]">{formatDate(t.start_time)}</td>
                       <td className="px-3 py-3 min-w-[120px]">
                         <div className="flex items-center gap-2">
-                          <span className="w-2.5 h-2.5 rounded-full shrink-0 bg-brand-600" />
-                          <span className="text-xs font-medium text-brand-600 truncate max-w-[160px]">{t.root_service || '—'}</span>
+                          <span className="w-2.5 h-2.5 rounded-full shrink-0 bg-accent-primary" />
+                          <span className="text-xs font-medium text-accent-primary truncate max-w-[160px]">{t.root_service || '—'}</span>
                         </div>
                       </td>
-                      <td className="px-3 py-3 text-xs font-mono text-ink-secondary truncate max-w-[220px]">{t.root_operation || '—'}</td>
+                      <td className="px-3 py-3 text-xs font-mono text-fg-secondary truncate max-w-[220px]">{t.root_operation || '—'}</td>
                       <td className="px-3 py-3">
                         <div className="flex items-center gap-2">
                           <div className="w-12 h-1.5 rounded-full overflow-hidden bg-edge-lighter">
-                            <div className="h-full rounded-full" style={{ width: `${Math.max((num(t.duration_us) / maxDuration) * 100, 1)}%`, backgroundColor: isOk ? '#632CA6' : '#E65C5C' }} />
+                            <div className="h-full rounded-full" style={{ width: `${Math.max((num(t.duration_us) / maxDuration) * 100, 1)}%`, backgroundColor: isOk ? '#632ca6' : '#e65c5c' }} />
                           </div>
-                          <span className="text-2xs font-mono tabular-nums text-ink-secondary whitespace-nowrap">{fmtDurationUs(t.duration_us)}</span>
+                          <span className="text-2xs font-mono tabular-nums text-fg-secondary whitespace-nowrap">{fmtDurationUs(t.duration_us)}</span>
                         </div>
                       </td>
                       <td className="px-3 py-3">
-                        <span className="text-2xs font-mono px-1.5 py-0.5 rounded border border-edge bg-surface text-ink-secondary">{t.root_operation?.split(' ')[0] || '—'}</span>
+                        <span className="text-2xs font-mono px-1.5 py-0.5 rounded border border-border bg-bg-muted text-fg-secondary">{t.root_operation?.split(' ')[0] || '—'}</span>
                       </td>
                       <td className="px-3 py-3">
-                        <span className={`inline-flex items-center gap-1 text-2xs font-semibold px-2 py-0.5 rounded ${isOk ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-red-50 text-red-700 border border-red-200'}`}>
+                        <span className={`inline-flex items-center gap-1 text-2xs font-semibold px-2 py-0.5 rounded ${isOk ? 'bg-accent-success-bg text-accent-success border border-emerald-200' : 'bg-accent-danger-bg text-accent-danger border border-red-200'}`}>
                           <StatusDot status={isOk ? 'online' : 'error'} />{isOk ? '200' : 'ERR'}
                         </span>
                       </td>
@@ -207,8 +207,8 @@ export default function TracesExplorer(props: Props) {
             </table>
 
             <div ref={sentinelRef} className="py-4 text-center">
-              {trState === 'loading' && <span className="text-xs text-ink-muted">Loading more spans...</span>}
-              {!hasMore && traces.length > 0 && <span className="text-xs text-ink-muted">All {tracesTotal > 0 ? tracesTotal : traces.length} spans loaded</span>}
+              {trState === 'loading' && <span className="text-xs text-fg-tertiary">Loading more spans...</span>}
+              {!hasMore && traces.length > 0 && <span className="text-xs text-fg-tertiary">All {tracesTotal > 0 ? tracesTotal : traces.length} spans loaded</span>}
             </div>
           </div>
         </div>

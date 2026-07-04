@@ -35,10 +35,10 @@ function CollapsibleSection({ title, defaultOpen = true, children }: { title: st
     <div>
       <button
         onClick={() => setOpen(!open)}
-        className="w-full flex items-center justify-between px-1 py-1.5 text-xs font-semibold text-zinc-500 uppercase tracking-wider hover:text-zinc-700 transition-colors"
+        className="w-full flex items-center justify-between px-1 py-1.5 text-xs font-semibold text-fg-tertiary uppercase tracking-wider hover:text-fg-secondary transition-colors"
       >
         {title}
-        <span className="text-zinc-300">{open ? <DownOutlined style={{ fontSize: 10 }} /> : <RightOutlined style={{ fontSize: 10 }} />}</span>
+        <span className="text-fg-disabled">{open ? <DownOutlined style={{ fontSize: 10 }} /> : <RightOutlined style={{ fontSize: 10 }} />}</span>
       </button>
       {open && <div className="space-y-0.5 mt-0.5">{children}</div>}
     </div>
@@ -52,7 +52,7 @@ function CollapsibleSection({ title, defaultOpen = true, children }: { title: st
 function MiniBar({ value, max, color }: { value: number; max: number; color: string }) {
   const pct = max > 0 ? Math.min((value / max) * 100, 100) : 0;
   return (
-    <div className="w-12 h-1 bg-zinc-100 rounded-full overflow-hidden shrink-0">
+    <div className="w-12 h-1 bg-bg-muted rounded-full overflow-hidden shrink-0">
       <div className="h-full rounded-full transition-all duration-300" style={{ width: `${Math.max(pct, 1)}%`, backgroundColor: color }} />
     </div>
   );
@@ -109,19 +109,19 @@ export default function FacetPanel({
   };
 
   const statusItems = [
-    { key: '', label: 'All', count: tracesTotal, dot: 'bg-zinc-300' },
-    { key: 'ok', label: 'OK', count: okCnt, dot: 'bg-emerald-400' },
-    { key: 'error', label: 'Error', count: errCnt, dot: 'bg-red-400' },
+    { key: '', label: 'All', count: tracesTotal, dot: 'bg-fg-disabled' },
+    { key: 'ok', label: 'OK', count: okCnt, dot: 'bg-severity-ok' },
+    { key: 'error', label: 'Error', count: errCnt, dot: 'bg-severity-alert' },
   ];
 
   return (
     <div className="w-60 shrink-0 space-y-3" style={{ fontFamily: 'inherit' }}>
       {/* Title + clear */}
       <div className="flex items-center justify-between">
-        <h3 className="text-[13px] font-semibold" style={{ color: '#212529' }}>Filters</h3>
+        <h3 className="text-[13px] font-semibold text-fg-primary">Filters</h3>
         {hasFilters && (
           <button onClick={() => { onStatusChange(''); onServiceChange(''); }}
-            className="text-[11px] font-medium transition-colors flex items-center gap-1" style={{ color: '#632CA6' }}>
+            className="text-[11px] font-medium transition-colors flex items-center gap-1 text-accent-primary">
             <CloseOutlined style={{ fontSize: 10 }} /> Clear
           </button>
         )}
@@ -129,13 +129,13 @@ export default function FacetPanel({
 
       {/* Search */}
       <div className="relative">
-        <SearchOutlined className="absolute left-2.5 top-1/2 -translate-y-1/2 text-xs" style={{ color: '#ADB5BD' }} />
+        <SearchOutlined className="absolute left-2.5 top-1/2 -translate-y-1/2 text-xs text-fg-disabled" />
         <input
           type="text"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           placeholder="Filter facets…"
-          className="w-full pl-7 pr-2.5 py-1.5 text-xs border border-zinc-200 rounded-md bg-white placeholder:text-zinc-300 focus:outline-none focus:border-purple-300 focus:ring-1 focus:ring-purple-200 transition-all"
+          className="w-full pl-7 pr-2.5 py-1.5 text-xs border border-border rounded-md bg-bg-elevated placeholder:text-fg-disabled focus:outline-none focus:border-purple-300 focus:ring-1 focus:ring-purple-200 transition-all"
         />
       </div>
 
@@ -147,13 +147,13 @@ export default function FacetPanel({
             onClick={() => onStatusChange(item.key)}
             className={`w-full text-left px-2.5 py-1.5 rounded-md text-xs transition-colors flex items-center gap-2.5 ${
               selectedStatus === item.key
-                ? 'bg-purple-50 text-purple-700 font-medium border border-purple-100'
-                : 'text-zinc-600 hover:bg-zinc-50 border border-transparent'
+                ? 'bg-accent-primary/10 text-accent-primary font-medium border border-purple-100'
+                : 'text-fg-secondary hover:bg-bg-subtle border border-transparent'
             }`}
           >
             <span className={`w-2 h-2 rounded-full shrink-0 ${item.dot}`} />
             <span className="flex-1">{item.label}</span>
-            <span className="text-zinc-400 font-mono text-[11px]">{fmtN(item.count)}</span>
+            <span className="text-fg-tertiary font-mono text-[11px]">{fmtN(item.count)}</span>
           </button>
         ))}
       </CollapsibleSection>
@@ -172,8 +172,8 @@ export default function FacetPanel({
               onClick={() => onDurationChange?.(item.query)}
               className={`w-full text-left px-2.5 py-1.5 rounded-md text-xs transition-colors border ${
                 selectedDuration === item.query
-                  ? 'bg-purple-50 text-purple-700 font-medium border-purple-100'
-                  : 'text-zinc-600 hover:bg-zinc-50 border-transparent'
+                  ? 'bg-accent-primary/10 text-accent-primary font-medium border-purple-100'
+                  : 'text-fg-secondary hover:bg-bg-subtle border-transparent'
               }`}
             >
               {item.label}
@@ -191,7 +191,7 @@ export default function FacetPanel({
             ))}
           </div>
         ) : filteredServices.length === 0 ? (
-          <p className="text-[11px] text-zinc-400 px-2.5 py-2 italic">No services match</p>
+          <p className="text-[11px] text-fg-tertiary px-2.5 py-2 italic">No services match</p>
         ) : (
           <div className="space-y-0.5 max-h-64 overflow-y-auto">
             {filteredServices.slice(0, 30).map((s) => (
@@ -200,8 +200,8 @@ export default function FacetPanel({
                 onClick={() => onServiceChange(selectedService === s.service_name ? '' : s.service_name)}
                 className={`w-full text-left px-2.5 py-1.5 rounded-md text-xs transition-colors flex items-center gap-2 border ${
                   selectedService === s.service_name
-                    ? 'bg-purple-50 text-purple-700 font-medium border-purple-100'
-                    : 'text-zinc-600 hover:bg-zinc-50 border-transparent'
+                    ? 'bg-accent-primary/10 text-accent-primary font-medium border-purple-100'
+                    : 'text-fg-secondary hover:bg-bg-subtle border-transparent'
                 }`}
               >
                 {/* Health dot */}
@@ -214,12 +214,12 @@ export default function FacetPanel({
                 {/* Request count + mini bar */}
                 <span className="flex items-center gap-1.5 shrink-0">
                   <MiniBar value={num(s.request_count)} max={maxServiceCount} color="#632CA6" />
-                  <span className="text-zinc-400 font-mono text-[10px] w-10 text-right">{fmtN(s.request_count)}</span>
+                  <span className="text-fg-tertiary font-mono text-[10px] w-10 text-right">{fmtN(s.request_count)}</span>
                 </span>
               </button>
             ))}
             {filteredServices.length > 30 && (
-              <p className="text-[11px] text-zinc-400 px-2.5 py-1.5 italic">
+              <p className="text-[11px] text-fg-tertiary px-2.5 py-1.5 italic">
                 +{filteredServices.length - 30} more — use search to narrow
               </p>
             )}

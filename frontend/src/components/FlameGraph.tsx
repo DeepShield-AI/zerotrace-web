@@ -552,23 +552,23 @@ export default function FlameGraph({ spans, height = 480, onSpanSelect, selected
   // ── Empty state ──
   if (roots.length === 0) {
     return (
-      <div className="flex items-center justify-center py-20 text-sm text-zinc-400 bg-white border border-zinc-200 rounded-lg">
+      <div className="flex items-center justify-center py-20 text-sm text-fg-tertiary bg-bg-elevated border border-border rounded-lg">
         No span data available for flame graph
       </div>
     );
   }
 
   return (
-    <div className="bg-white border border-zinc-200 rounded-lg overflow-hidden">
+    <div className="bg-bg-elevated border border-border rounded-lg overflow-hidden">
       {/* ── Toolbar ── */}
-      <div className="flex items-center gap-3 px-4 py-2 border-b border-zinc-200 bg-white">
+      <div className="flex items-center gap-3 px-4 py-2 border-b border-border bg-bg-elevated">
         <div className="flex items-center gap-1 text-xs flex-1 min-w-0 overflow-x-auto">
           <button
             onClick={() => setZoomStack([])}
             className={`shrink-0 px-2.5 py-1 rounded-md text-xs font-medium transition-colors ${
               zoomStack.length === 0
-                ? 'bg-purple-50 text-purple-700'
-                : 'text-zinc-500 hover:text-zinc-700 hover:bg-zinc-100'
+                ? 'bg-accent-primary/10 text-accent-primary'
+                : 'text-fg-tertiary hover:text-fg-secondary hover:bg-bg-muted'
             }`}
           >
             All spans
@@ -578,13 +578,13 @@ export default function FlameGraph({ spans, height = 480, onSpanSelect, selected
             const op = node.span.operation_name?.slice(0, 30) || '';
             return (
               <span key={node.span.span_id} className="flex items-center gap-1 shrink-0">
-                <span className="text-zinc-300 select-none">/</span>
+                <span className="text-fg-disabled select-none">/</span>
                 <button
                   onClick={() => setZoomStack(prev => prev.slice(0, i + 1))}
                   className={`px-2.5 py-1 rounded-md text-xs font-medium transition-colors truncate max-w-[180px] ${
                     i === zoomStack.length - 1
-                      ? 'bg-purple-50 text-purple-700'
-                      : 'text-zinc-500 hover:text-zinc-700 hover:bg-zinc-100'
+                      ? 'bg-accent-primary/10 text-accent-primary'
+                      : 'text-fg-tertiary hover:text-fg-secondary hover:bg-bg-muted'
                   }`}
                   title={`${svc}: ${op}`}
                 >
@@ -597,7 +597,7 @@ export default function FlameGraph({ spans, height = 480, onSpanSelect, selected
         <div className="flex items-center gap-2 shrink-0">
           <Input
             size="small"
-            prefix={<SearchOutlined className="text-zinc-400" />}
+            prefix={<SearchOutlined className="text-fg-tertiary" />}
             placeholder="Search spans…"
             value={search}
             onChange={e => setSearch(e.target.value)}
@@ -608,13 +608,13 @@ export default function FlameGraph({ spans, height = 480, onSpanSelect, selected
             <>
               <button
                 onClick={() => setZoomStack(prev => prev.slice(0, -1))}
-                className="flex items-center gap-1 text-xs text-zinc-600 hover:text-zinc-800 bg-zinc-100 hover:bg-zinc-200 rounded-md px-2.5 py-1 font-medium transition-colors"
+                className="flex items-center gap-1 text-xs text-fg-secondary hover:text-fg-primary bg-bg-muted hover:bg-bg-muted rounded-md px-2.5 py-1 font-medium transition-colors"
               >
                 <CompressOutlined /> Out
               </button>
               <button
                 onClick={() => setZoomStack([])}
-                className="flex items-center gap-1 text-xs text-zinc-600 hover:text-zinc-800 bg-zinc-100 hover:bg-zinc-200 rounded-md px-2.5 py-1 font-medium transition-colors"
+                className="flex items-center gap-1 text-xs text-fg-secondary hover:text-fg-primary bg-bg-muted hover:bg-bg-muted rounded-md px-2.5 py-1 font-medium transition-colors"
               >
                 <ExpandOutlined /> Reset
               </button>
@@ -642,13 +642,13 @@ export default function FlameGraph({ spans, height = 480, onSpanSelect, selected
               top: hoverPos.y - 10,
             }}
           >
-            <div className="bg-zinc-900/95 backdrop-blur-sm text-white rounded-xl shadow-2xl border border-white/10 px-4 py-3 text-xs min-w-[240px]">
+            <div className="bg-bg-elevated/95 backdrop-blur-sm text-fg-inverse rounded-xl shadow-2xl border border-border px-4 py-3 text-xs min-w-[240px]">
               {/* Header */}
               <div className="flex items-center gap-2 mb-2.5">
                 <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: hoveredRect.color }} />
-                <span className="font-semibold text-white">{hoveredSpan.service_name || 'unknown'}</span>
+                <span className="font-semibold text-fg-inverse">{hoveredSpan.service_name || 'unknown'}</span>
                 {hoveredSpan.span_status === 'error' && (
-                  <span className="text-[10px] bg-red-500/25 text-red-300 px-1.5 py-0.5 rounded-full ml-auto font-medium">error</span>
+                  <span className="text-[10px] bg-accent-danger/25 text-accent-danger px-1.5 py-0.5 rounded-full ml-auto font-medium">error</span>
                 )}
               </div>
 
@@ -665,13 +665,13 @@ export default function FlameGraph({ spans, height = 480, onSpanSelect, selected
 
               {hoveredSpan.error_message && (
                 <div className="mt-2.5 pt-2 border-t border-white/10">
-                  <p className="text-red-400 font-mono text-[10px] leading-relaxed break-all line-clamp-3">{hoveredSpan.error_message}</p>
+                  <p className="text-accent-danger font-mono text-[10px] leading-relaxed break-all line-clamp-3">{hoveredSpan.error_message}</p>
                 </div>
               )}
 
-              <div className="mt-2.5 pt-2 border-t border-white/10 text-[10px] text-zinc-500 flex items-center justify-between">
+              <div className="mt-2.5 pt-2 border-t border-white/10 text-[10px] text-fg-tertiary flex items-center justify-between">
                 <span>Click to zoom in</span>
-                <code className="text-zinc-500">{hoveredSpan.span_id.slice(0, 16)}…</code>
+                <code className="text-fg-tertiary">{hoveredSpan.span_id.slice(0, 16)}…</code>
               </div>
             </div>
           </div>
@@ -679,7 +679,7 @@ export default function FlameGraph({ spans, height = 480, onSpanSelect, selected
       </div>
 
       {/* ── Footer ── */}
-      <div className="border-t border-zinc-100 bg-zinc-50/50 px-4 py-1.5 flex items-center justify-between text-[10px] text-zinc-400">
+      <div className="border-t border-border-subtle bg-bg-subtle/50 px-4 py-1.5 flex items-center justify-between text-[10px] text-fg-tertiary">
         <span>{spans.length} spans · depth {visibleRows} · click a bar to zoom</span>
         {zoomStack.length > 0 && (
           <span className="text-purple-500 font-medium">Zoomed {zoomStack.length} level{zoomStack.length > 1 ? 's' : ''} · Esc to reset</span>
@@ -693,8 +693,8 @@ export default function FlameGraph({ spans, height = 480, onSpanSelect, selected
 function Row({ label, value, mono }: { label: string; value: string; mono?: boolean }) {
   return (
     <tr className="border-b border-white/5 last:border-0">
-      <td className="py-1 pr-4 text-zinc-500 whitespace-nowrap align-top">{label}</td>
-      <td className={`py-1 text-right text-white ${mono ? 'font-mono' : ''}`}>{value}</td>
+      <td className="py-1 pr-4 text-fg-tertiary whitespace-nowrap align-top">{label}</td>
+      <td className={`py-1 text-right text-fg-inverse ${mono ? 'font-mono' : ''}`}>{value}</td>
     </tr>
   );
 }
