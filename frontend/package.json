@@ -7,7 +7,9 @@
     "dev": "vite",
     "dev:mock": "VITE_USE_MOCKS=true vite",
     "build": "tsc && vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "story": "ladle serve",
+    "story:build": "ladle build"
   },
   "dependencies": {
     "@ant-design/icons": "^6.3.2",
