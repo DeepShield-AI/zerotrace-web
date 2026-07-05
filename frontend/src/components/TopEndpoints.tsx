@@ -17,9 +17,9 @@ function RankBadge({ rank }: { rank: number }) {
   const isTop3 = rank <= 3;
   return (
     <span className={`w-6 h-6 rounded-md flex items-center justify-center shrink-0 text-[11px] font-bold ${
-      rank === 1 ? 'bg-accent-warning-bg text-accent-warning border border-amber-200' :
+      rank === 1 ? 'bg-accent-warning-bg text-accent-warning border border-accent-warning/20' :
       rank === 2 ? 'bg-bg-muted text-fg-secondary border border-border' :
-      rank === 3 ? 'bg-orange-50 text-orange-600 border border-orange-100' :
+      rank === 3 ? 'bg-accent-warning-bg text-accent-warning border border-accent-warning/20' :
       'text-fg-tertiary'
     }`}>
       {rank}
@@ -115,7 +115,7 @@ export default function TopEndpoints({ l7Endpoints, l4Talkers, loading }: TopEnd
                 key={i}
                 className="relative flex items-center gap-2 px-4 py-2.5 hover:bg-bg-subtle transition-colors cursor-default group border-b border-border-subtle last:border-0"
               >
-                <RowBar value={r.cnt} max={maxL7} color="#632CA6" />
+                <RowBar value={r.cnt} max={maxL7} color="var(--accent-primary)" />
                 <RankBadge rank={i + 1} />
                 <code className="relative z-10 flex-1 text-[13px] text-fg-secondary truncate group-hover:text-fg-primary transition-colors font-medium">
                   {r.name || '(root)'}
@@ -135,7 +135,7 @@ export default function TopEndpoints({ l7Endpoints, l4Talkers, loading }: TopEnd
             {l7Endpoints.length > defaultLimit && (
               <button
                 onClick={() => setShowMoreL7(!showMoreL7)}
-                className="w-full px-4 py-2.5 text-[11px] text-accent-primary hover:text-[#4a1f8c] hover:bg-[#F3F0FA]/40 transition-colors text-center font-medium border-t border-border-subtle"
+                className="w-full px-4 py-2.5 text-[11px] text-accent-primary hover:bg-accent-primary-bg/40 transition-colors text-center font-medium border-t border-border-subtle"
               >
                 {showMoreL7 ? t('common.collapse') : `Show all ${l7Endpoints.length}`}
               </button>
@@ -168,7 +168,7 @@ export default function TopEndpoints({ l7Endpoints, l4Talkers, loading }: TopEnd
                 key={i}
                 className="relative flex items-center gap-2 px-4 py-2.5 hover:bg-bg-subtle transition-colors cursor-default group border-b border-border-subtle last:border-0"
               >
-                <RowBar value={r.cnt} max={maxL4} color="#4799EB" />
+                <RowBar value={r.cnt} max={maxL4} color="var(--accent-info)" />
                 <RankBadge rank={i + 1} />
                 <div className="relative z-10 flex-1 min-w-0 flex items-center gap-1.5">
                   <span className="text-[13px] text-fg-secondary font-mono font-medium truncate max-w-[80px] group-hover:text-fg-primary">
@@ -191,7 +191,7 @@ export default function TopEndpoints({ l7Endpoints, l4Talkers, loading }: TopEnd
             {l4Talkers.length > defaultLimit && (
               <button
                 onClick={() => setShowMoreL4(!showMoreL4)}
-                className="w-full px-4 py-2.5 text-[11px] text-accent-primary hover:text-[#4a1f8c] hover:bg-[#F3F0FA]/40 transition-colors text-center font-medium border-t border-border-subtle"
+                className="w-full px-4 py-2.5 text-[11px] text-accent-primary hover:bg-accent-primary-bg/40 transition-colors text-center font-medium border-t border-border-subtle"
               >
                 {showMoreL4 ? t('common.collapse') : `Show all ${l4Talkers.length}`}
               </button>

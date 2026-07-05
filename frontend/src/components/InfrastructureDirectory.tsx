@@ -22,7 +22,7 @@ function StatusFilterItem({
     <div
       onClick={onClick}
       className={`flex items-center gap-2 px-3 py-2 rounded cursor-pointer transition-all select-none ${
-        active ? 'bg-[#F3F0FA]' : 'hover:bg-bg-subtle/50'
+        active ? 'bg-accent-primary-bg' : 'hover:bg-bg-subtle/50'
       }`}
     >
       <div
@@ -55,14 +55,14 @@ function HostItem({
 }) {
   const online = isOnline(agent);
   const stale = isStale(agent);
-  const statusColor = online ? '#22c55e' : stale ? '#f59e0b' : '#ef4444';
+  const statusColor = online ? 'var(--accent-success)' : stale ? 'var(--accent-warning)' : 'var(--accent-danger)';
 
   return (
     <button
       onClick={onClick}
       className={`w-full text-left px-3 py-2.5 text-[12px] transition-all flex items-center gap-2.5 group ${
         selected
-          ? 'bg-[#F3F0FA] border-l-[3px] border-accent-primary'
+          ? 'bg-accent-primary-bg border-l-[3px] border-accent-primary'
           : 'hover:bg-bg-subtle border-l-[3px] border-transparent'
       }`}
     >

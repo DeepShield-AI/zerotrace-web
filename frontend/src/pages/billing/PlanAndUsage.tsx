@@ -130,7 +130,7 @@ export function BillingOverview() {
                     <td colSpan={5} className="py-2.5 px-6 text-[13px] font-semibold text-fg-secondary uppercase">{family}</td>
                   </tr>
                   {prods.map(p => (
-                    <tr key={p.product_key} className="border-b border-[#f1f3f5] hover:bg-bg-subtle transition-colors">
+                    <tr key={p.product_key} className="border-b border-border-subtle hover:bg-bg-subtle transition-colors">
                       <td className="py-3 px-6">
                         <span className="font-medium text-fg-primary">{p.product_name || p.product_key}</span>
                         <span className="text-xs text-fg-tertiary ml-2">{p.product_key}</span>
@@ -190,9 +190,9 @@ export function BillingPlan() {
           <h3 className="text-sm font-semibold text-fg-primary mb-4">Active Subscriptions</h3>
           <div className="grid grid-cols-2 gap-4">
             {subs.filter(s => s.status === 'active').map(sub => { const plan = plans.find(p => p.id === sub.plan_id); return (
-              <div key={sub.id} className="flex items-center justify-between border border-emerald-100 bg-[#e8f5e9]/30 rounded-lg px-4 py-3">
+              <div key={sub.id} className="flex items-center justify-between border border-accent-success/20 bg-accent-success-bg/30 rounded-lg px-4 py-3">
                 <div><p className="font-semibold text-fg-primary text-sm">{plan?.name || 'Unknown'}</p><p className="text-xs text-fg-tertiary">{plan?.product_key} · {sub.commitment_type} · Qty: {fmtNum(sub.committed_quantity)}</p></div>
-                <div className="flex gap-2"><button onClick={() => { setModalPlan(plan!); setModalEdit(sub); setCommitType(sub.commitment_type as any); setQty(sub.committed_quantity); setSubError(''); }} className="text-xs font-semibold text-accent-info hover:text-[#0056b3]">Modify</button><button onClick={() => doCancel(sub.id)} className="text-xs text-[#dc3545] hover:text-[#dc3545]">Cancel</button></div>
+                <div className="flex gap-2"><button onClick={() => { setModalPlan(plan!); setModalEdit(sub); setCommitType(sub.commitment_type as any); setQty(sub.committed_quantity); setSubError(''); }} className="text-xs font-semibold text-accent-info hover:text-accent-info">Modify</button><button onClick={() => doCancel(sub.id)} className="text-xs text-accent-danger hover:text-accent-danger">Cancel</button></div>
               </div>
             );})}
           </div>
@@ -220,8 +220,8 @@ export function BillingPlan() {
               )}
               {active ? (
                 <div className="mt-auto pt-4 border-t border-border flex items-center justify-between">
-                  <span className="text-[13px] text-[#28a745] font-medium">Active · {fmt(active.unit_price)}/unit</span>
-                  <button onClick={() => { setModalPlan(plan); setModalEdit(active); setCommitType(active.commitment_type as any); setQty(active.committed_quantity); }} className="text-[13px] font-medium text-accent-info hover:text-[#0056b3]">Modify</button>
+                  <span className="text-[13px] text-accent-success font-medium">Active · {fmt(active.unit_price)}/unit</span>
+                  <button onClick={() => { setModalPlan(plan); setModalEdit(active); setCommitType(active.commitment_type as any); setQty(active.committed_quantity); }} className="text-[13px] font-medium text-accent-info hover:text-accent-info">Modify</button>
                 </div>
               ) : (
                 <button onClick={() => { setModalPlan(plan); setModalEdit(null); setCommitType('annual'); setQty(1); setSubError(''); }} className="mt-auto w-full py-2.5 bg-accent-info text-fg-inverse text-sm font-medium rounded hover:bg-accent-info transition-colors">Select Plan</button>
@@ -239,15 +239,15 @@ export function BillingPlan() {
               <div key={plan.id} className="bg-bg-elevated border-border rounded-lg p-5 flex flex-col">
                 <div className="flex items-center gap-2 mb-1">
                   <h4 className="text-base font-semibold text-fg-primary">{plan.name}</h4>
-                  <span className="text-[10px] px-1.5 py-0.5 bg-[#e8daef] text-accent-primary rounded font-medium">ADD-ON</span>
+                  <span className="text-[10px] px-1.5 py-0.5 bg-accent-primary-bg text-accent-primary rounded font-medium">ADD-ON</span>
                 </div>
                 {plan.parent_product_key && <p className="text-xs text-accent-warning mb-2">Requires: {plan.parent_product_key}</p>}
                 <div className="flex items-baseline gap-1 mt-2 mb-0.5"><span className="text-[22px] font-bold text-fg-primary">{fmt(plan.unit_price_annual)}</span></div>
                 <p className="text-xs text-fg-tertiary mb-4">per {plan.billing_dimension.replace('per_', '').replace(/_/g, ' ')}, per month</p>
                 {active ? (
                   <div className="mt-auto pt-3 border-t border-border flex justify-between">
-                    <span className="text-[13px] text-[#28a745] font-medium">Active · {fmt(active.unit_price)}/unit</span>
-                    <button onClick={() => doCancel(active.id)} className="text-[13px] text-[#dc3545] hover:text-accent-danger">Cancel</button>
+                    <span className="text-[13px] text-accent-success font-medium">Active · {fmt(active.unit_price)}/unit</span>
+                    <button onClick={() => doCancel(active.id)} className="text-[13px] text-accent-danger hover:text-accent-danger">Cancel</button>
                   </div>
                 ) : (
                   <button onClick={() => { setModalPlan(plan); setModalEdit(null); setCommitType('monthly'); setQty(1); setSubError(''); }} className="mt-auto w-full py-2.5 bg-accent-info text-fg-inverse text-sm font-medium rounded hover:bg-accent-info transition-colors">Select Plan</button>
@@ -264,9 +264,9 @@ export function BillingPlan() {
           <div className="bg-bg-elevated rounded-lg p-6 w-full max-w-md shadow-xl" onClick={e => e.stopPropagation()}>
             <h3 className="text-lg font-semibold text-fg-primary mb-1">{modalEdit ? 'Modify Subscription' : 'Subscribe to Plan'}</h3>
             <p className="text-sm text-fg-tertiary mb-4">{modalPlan.name} · {fmt(commitType === 'annual' ? modalPlan.unit_price_annual : modalPlan.unit_price_monthly)}/{modalPlan.billing_dimension.replace('per_', '').replace(/_/g, ' ')}/mo</p>
-            {subError && <div className="bg-[#ffebee] border border-[#f5c6cb] text-[#dc3545] rounded-md px-4 py-3 text-sm mb-4">{subError}</div>}
+            {subError && <div className="bg-accent-danger-bg border border-accent-danger text-accent-danger rounded-md px-4 py-3 text-sm mb-4">{subError}</div>}
             {modalPlan.is_addon && modalPlan.parent_product_key && !modalEdit && (
-              <div className="bg-[#fff3e0] border border-[#ffe0b2] text-accent-warning rounded-md px-4 py-3 text-xs mb-4">
+              <div className="bg-accent-warning-bg border border-accent-warning text-accent-warning rounded-md px-4 py-3 text-xs mb-4">
                 ⚠ This is an add-on and requires an active <strong>{modalPlan.parent_product_key}</strong> subscription.
               </div>
             )}
@@ -289,7 +289,7 @@ export function BillingPlan() {
                 <div><label className="text-xs font-semibold text-fg-tertiary uppercase tracking-wide block mb-1">Annual Price ($)</label><input type="number" step="0.01" value={editAnnual} onChange={e => setEditAnnual(parseFloat(e.target.value) || 0)} className="w-full px-3 py-2 border border-border rounded-md text-sm" /></div>
                 <div><label className="text-xs font-semibold text-fg-tertiary uppercase tracking-wide block mb-1">Monthly Price ($)</label><input type="number" step="0.01" value={editMonthly} onChange={e => setEditMonthly(parseFloat(e.target.value) || 0)} className="w-full px-3 py-2 border border-border rounded-md text-sm" /></div>
               </div>
-              <div className="bg-[#fff3e0] border border-[#ffe0b2] rounded-md p-3 text-xs text-accent-warning">⚠ Admins can modify plan pricing. Existing subscriptions keep their locked-in price.</div>
+              <div className="bg-accent-warning-bg border border-accent-warning rounded-md p-3 text-xs text-accent-warning">⚠ Admins can modify plan pricing. Existing subscriptions keep their locked-in price.</div>
               <div className="flex gap-3"><button onClick={() => setEditPlan(null)} className="flex-1 py-2.5 border border-border text-sm font-semibold text-fg-secondary rounded-md hover:bg-bg-subtle">Cancel</button><button onClick={doEditSave} disabled={editSaving} className="flex-1 py-2.5 bg-accent-info text-fg-inverse text-sm font-semibold rounded-md hover:bg-accent-info disabled:opacity-50">{editSaving ? 'Saving...' : 'Save Changes'}</button></div>
             </div>
           </div>
@@ -337,9 +337,9 @@ export function BillingHistory() {
                 <table className="w-full text-sm">
                   <thead><tr className="border-b border-border text-left text-[11px] font-semibold text-fg-tertiary uppercase tracking-wider"><th className="pb-3">Product</th><th className="pb-3 text-right">Commitment</th><th className="pb-3 text-right">Overage</th><th className="pb-3 text-right">Total</th></tr></thead>
                   <tbody>{lines.map((l: any) => { const cq = parseFloat(l.commitment_quantity) || 0; const oq = parseFloat(l.overage_quantity) || 0; return (
-                    <tr key={l.id} className="border-b border-[#f1f3f5]"><td className="py-3"><p className="font-medium text-fg-primary capitalize">{l.product_key.replace(/_/g, ' ')}</p><p className="text-[11px] text-fg-tertiary">{l.description}</p></td><td className="py-3 text-right">{cq > 0 ? <><p className="font-medium text-fg-secondary">{fmt(parseFloat(l.commitment_total))}</p><p className="text-[11px] text-fg-tertiary">{cq.toLocaleString()} × {fmt(parseFloat(l.commitment_unit_price))}</p></> : <span className="text-fg-disabled">—</span>}</td><td className="py-3 text-right">{oq > 0 ? <><p className="font-medium text-accent-warning">{fmt(parseFloat(l.overage_total))}</p><p className="text-[11px] text-fg-tertiary">{oq.toLocaleString()} × {fmt(parseFloat(l.overage_unit_price))}</p></> : <span className="text-fg-disabled">—</span>}</td><td className="py-3 text-right font-semibold text-fg-primary">{fmt(parseFloat(l.line_total))}</td></tr>
+                    <tr key={l.id} className="border-b border-border-subtle"><td className="py-3"><p className="font-medium text-fg-primary capitalize">{l.product_key.replace(/_/g, ' ')}</p><p className="text-[11px] text-fg-tertiary">{l.description}</p></td><td className="py-3 text-right">{cq > 0 ? <><p className="font-medium text-fg-secondary">{fmt(parseFloat(l.commitment_total))}</p><p className="text-[11px] text-fg-tertiary">{cq.toLocaleString()} × {fmt(parseFloat(l.commitment_unit_price))}</p></> : <span className="text-fg-disabled">—</span>}</td><td className="py-3 text-right">{oq > 0 ? <><p className="font-medium text-accent-warning">{fmt(parseFloat(l.overage_total))}</p><p className="text-[11px] text-fg-tertiary">{oq.toLocaleString()} × {fmt(parseFloat(l.overage_unit_price))}</p></> : <span className="text-fg-disabled">—</span>}</td><td className="py-3 text-right font-semibold text-fg-primary">{fmt(parseFloat(l.line_total))}</td></tr>
                   );})}</tbody>
-                  <tfoot><tr className="border-t-2 border-border"><td colSpan={3} className="pt-3 text-right text-sm text-fg-tertiary">Subtotal</td><td className="pt-3 text-right text-sm font-bold">{fmt(selected.subtotal)}</td></tr>{selected.discount > 0 && <tr><td colSpan={3} className="text-right text-sm text-[#28a745]">Discount</td><td className="text-right text-sm font-medium text-[#28a745]">-{fmt(selected.discount)}</td></tr>}<tr><td colSpan={3} className="pt-2 text-right text-base font-semibold text-fg-primary">Total</td><td className="pt-2 text-right text-base font-bold">{fmt(selected.total)}</td></tr></tfoot>
+                  <tfoot><tr className="border-t-2 border-border"><td colSpan={3} className="pt-3 text-right text-sm text-fg-tertiary">Subtotal</td><td className="pt-3 text-right text-sm font-bold">{fmt(selected.subtotal)}</td></tr>{selected.discount > 0 && <tr><td colSpan={3} className="text-right text-sm text-accent-success">Discount</td><td className="text-right text-sm font-medium text-accent-success">-{fmt(selected.discount)}</td></tr>}<tr><td colSpan={3} className="pt-2 text-right text-base font-semibold text-fg-primary">Total</td><td className="pt-2 text-right text-base font-bold">{fmt(selected.total)}</td></tr></tfoot>
                 </table>
               </div>
             )}
@@ -368,7 +368,7 @@ export function BillingUsagePage() {
       <div><h2 className="text-xl font-bold text-fg-primary">Hourly Usage</h2><p className="text-sm text-fg-tertiary mt-1">Per-hour usage breakdown by product</p></div>
       <div className="flex flex-wrap gap-2">{usage.map((p: any) => (<button key={p.product_key} onClick={() => setSelected(p.product_key)} className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${selected === p.product_key ? 'bg-accent-info text-fg-inverse shadow-md' : 'bg-bg-elevated border-border text-fg-secondary hover:border-border-strong hover:bg-bg-subtle'}`}>{p.product_key}<span className={`ml-1.5 text-xs ${selected === p.product_key ? 'text-white/70' : 'text-fg-tertiary'}`}>{fmtShort(parseFloat(p.total_quantity))}</span></button>))}</div>
       <div className="grid grid-cols-4 gap-3">{[{ l: 'Total', v: fmtShort(stats.total), c: 'text-accent-info' },{ l: 'Peak', v: fmtShort(stats.max), c: 'text-accent-warning' },{ l: '99th%ile', v: fmtShort(stats.p99), c: 'text-accent-primary' },{ l: 'Average', v: fmtShort(stats.avg), c: 'text-accent-info' }].map(s => (<div key={s.l} className="bg-bg-elevated border-border rounded-lg p-4"><p className="text-[11px] font-semibold text-fg-tertiary uppercase tracking-wider">{s.l}</p><p className={`text-xl font-bold ${s.c}`}>{s.v}</p></div>))}</div>
-      <div className="bg-bg-elevated border-border rounded-lg p-6">{chartLoading ? <SharedSpinner /> : display.length === 0 ? <p className="text-center py-16 text-fg-disabled text-sm">No hourly data</p> : (<div className="flex items-end gap-[2px] h-48 overflow-x-auto pb-6">{display.map((d: any, i: number) => { const q = parseFloat(d.quantity) || 0; const h = Math.max((q / barMax) * 100, 2); return (<div key={i} className="flex-1 flex flex-col items-center min-w-[8px]" title={`${d.hour}: ${q}`}><div className={`w-full rounded-t-sm transition-all hover:opacity-80 ${q === stats.max ? 'bg-severity-warn' : 'bg-[#f0f7ff]0'}`} style={{ height: `${h}%` }} />{(i % 6 === 0) && <span className="text-[9px] text-fg-tertiary mt-1.5">{new Date(d.hour + 'Z').getUTCHours().toString().padStart(2, '0')}:00</span>}</div>);})}</div>)}</div>
+      <div className="bg-bg-elevated border-border rounded-lg p-6">{chartLoading ? <SharedSpinner /> : display.length === 0 ? <p className="text-center py-16 text-fg-disabled text-sm">No hourly data</p> : (<div className="flex items-end gap-[2px] h-48 overflow-x-auto pb-6">{display.map((d: any, i: number) => { const q = parseFloat(d.quantity) || 0; const h = Math.max((q / barMax) * 100, 2); return (<div key={i} className="flex-1 flex flex-col items-center min-w-[8px]" title={`${d.hour}: ${q}`}><div className={`w-full rounded-t-sm transition-all hover:opacity-80 ${q === stats.max ? 'bg-severity-warn' : 'bg-accent-info-bg'}`} style={{ height: `${h}%` }} />{(i % 6 === 0) && <span className="text-[9px] text-fg-tertiary mt-1.5">{new Date(d.hour + 'Z').getUTCHours().toString().padStart(2, '0')}:00</span>}</div>);})}</div>)}</div>
     </div>
   );
 }

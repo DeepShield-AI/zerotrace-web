@@ -87,7 +87,7 @@ export default function TopologySidebar({
           value={searchQuery}
           onChange={(e) => onSearchChange(e.target.value)}
           placeholder="Search nodes…"
-          className="w-full pl-7 pr-2.5 py-1.5 text-xs border border-border rounded-md bg-bg-elevated placeholder:text-fg-disabled focus:outline-none focus:border-purple-300 focus:ring-1 focus:ring-purple-200 transition-all"
+          className="w-full pl-7 pr-2.5 py-1.5 text-xs border border-border rounded-md bg-bg-elevated placeholder:text-fg-disabled focus:outline-none focus:border-accent-primary focus:ring-1 focus:ring-accent-primary-bg transition-all"
         />
       </div>
 
@@ -129,15 +129,15 @@ export default function TopologySidebar({
         <h4 className="text-xs font-semibold text-fg-tertiary uppercase tracking-wider mb-2 px-1">Edge Colors</h4>
         <div className="space-y-1 px-1">
           <div className="flex items-center gap-2 text-[11px] text-fg-tertiary">
-            <span className="w-3 h-0.5 rounded-full" style={{ backgroundColor: '#2DB88D' }} />
+            <span className="w-3 h-0.5 rounded-full bg-accent-success" />
             Low latency
           </div>
           <div className="flex items-center gap-2 text-[11px] text-fg-tertiary">
-            <span className="w-3 h-0.5 rounded-full" style={{ backgroundColor: '#E2903C' }} />
+            <span className="w-3 h-0.5 rounded-full bg-accent-warning" />
             Medium latency
           </div>
           <div className="flex items-center gap-2 text-[11px] text-fg-tertiary">
-            <span className="w-3 h-0.5 rounded-full" style={{ backgroundColor: '#E65C5C' }} />
+            <span className="w-3 h-0.5 rounded-full bg-accent-danger" />
             High latency / Errors
           </div>
         </div>
@@ -171,14 +171,13 @@ export default function TopologySidebar({
                     onClick={() => onNodeHighlight(highlightedNode === node.service_name ? undefined : node.service_name)}
                     className={`w-full text-left px-2.5 py-1.5 rounded-md text-xs transition-colors flex items-center gap-2 border ${
                       highlightedNode === node.service_name
-                        ? 'bg-accent-primary/10 text-accent-primary font-medium border-purple-100'
+                        ? 'bg-accent-primary/10 text-accent-primary font-medium border-accent-primary-bg'
                         : 'text-fg-secondary hover:bg-bg-subtle border-transparent'
                     }`}
                   >
                     {/* Health dot */}
                     <span
-                      className="w-2 h-2 rounded-full shrink-0"
-                      style={{ backgroundColor: errPct > 5 ? '#E65C5C' : errPct > 1 ? '#E2903C' : '#2DB88D' }}
+                      className={`w-2 h-2 rounded-full shrink-0 ${errPct > 5 ? 'bg-accent-danger' : errPct > 1 ? 'bg-accent-warning' : 'bg-accent-success'}`}
                     />
                     {/* Name */}
                     <span className="flex-1 truncate">{node.service_name}</span>

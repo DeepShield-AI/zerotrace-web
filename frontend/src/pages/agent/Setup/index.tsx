@@ -152,7 +152,7 @@ export default function AgentSetup() {
       <div className="flex items-center justify-between mb-6">
         <div>
           <h1 className="text-xl font-bold text-fg-primary">{t('apmIntro.setupApm')}</h1>
-          <p className="text-sm text-[#506e81] mt-0.5">Guided onboarding — instrument your services in minutes</p>
+          <p className="text-sm text-fg-tertiary mt-0.5">Guided onboarding — instrument your services in minutes</p>
         </div>
         <div className="flex items-center gap-2 text-[11px] text-fg-tertiary">
           <span>⚠ {t('apmIntro.instrumentationErrors')}</span>
@@ -166,12 +166,12 @@ export default function AgentSetup() {
           <button
             key={t}
             onClick={() => { if (t === 'Services') navigate('/apm'); if (t === 'Traces') navigate('/apm?view=traces'); if (t === 'Profiles') navigate('/profiling'); }}
-            className={`px-4 py-2.5 text-[13px] font-medium border-b-[2px] -mb-[2px] ${t === 'APM Set up' ? 'text-accent-primary border-accent-primary' : 'text-[#506e81] border-transparent hover:text-fg-primary hover:border-border'}`}
+            className={`px-4 py-2.5 text-[13px] font-medium border-b-[2px] -mb-[2px] ${t === 'APM Set up' ? 'text-accent-primary border-accent-primary' : 'text-fg-tertiary border-transparent hover:text-fg-primary hover:border-border'}`}
           >
             {t}
           </button>
         ))}
-        <div className="ml-auto text-[13px] text-[#506e81] flex items-center gap-1 cursor-pointer" onClick={() => navigate('/apm/settings')}>
+        <div className="ml-auto text-[13px] text-fg-tertiary flex items-center gap-1 cursor-pointer" onClick={() => navigate('/apm/settings')}>
           Settings
           <svg width="10" height="10" viewBox="0 0 12 12" fill="currentColor"><path d="M6 8L2 4h8z"/></svg>
         </div>
@@ -226,7 +226,7 @@ export default function AgentSetup() {
                 </div>
                 {sections.map(sec => (
                   <div key={sec} className="mb-5">
-                    <div className="text-[10px] font-semibold text-[#506e81] uppercase tracking-wider mb-2">{sec}</div>
+                    <div className="text-[10px] font-semibold text-fg-tertiary uppercase tracking-wider mb-2">{sec}</div>
                     <div className="flex gap-3">
                       {ALL_CARDS.filter(c => c.section === sec).map(c => (
                         <button
@@ -247,19 +247,19 @@ export default function AgentSetup() {
 
                 {/* SSI Banner for Linux */}
                 {platform === 'linux' && (
-                  <div className="bg-accent-primary/10 border border-[#d4c4ed] rounded-lg p-4">
+                  <div className="bg-accent-primary/10 border border-accent-primary rounded-lg p-4">
                     <div className="flex items-start gap-3">
                       <svg className="w-5 h-5 text-accent-primary shrink-0 mt-0.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                         <circle cx="12" cy="12" r="10"/><path d="M9 12l2 2 4-4"/>
                       </svg>
                       <div className="flex-1">
                         <p className="text-[13px] font-semibold text-fg-primary">Single Step Instrumentation</p>
-                        <p className="text-[12px] text-[#506e81] mt-0.5">
+                        <p className="text-[12px] text-fg-tertiary mt-0.5">
                           Automatically installs the correct APM libraries via the Agent, instrumenting services without code changes.
                         </p>
                         <div className="flex flex-wrap gap-2 mt-3">
                           {SSI_LANGUAGES.map(lang => (
-                            <span key={lang} className="inline-flex items-center gap-1 px-2.5 py-1 bg-bg-elevated border border-border rounded-full text-[11px] font-medium text-[#506e81]">
+                            <span key={lang} className="inline-flex items-center gap-1 px-2.5 py-1 bg-bg-elevated border border-border rounded-full text-[11px] font-medium text-fg-tertiary">
                               {lang}
                             </span>
                           ))}
@@ -283,7 +283,7 @@ export default function AgentSetup() {
                 {/* Existing keys selector */}
                 {apiKeys.length > 0 && (
                   <div className="mb-4">
-                    <label className="text-[11px] font-semibold text-[#506e81] uppercase tracking-wider block mb-2">Existing Keys</label>
+                    <label className="text-[11px] font-semibold text-fg-tertiary uppercase tracking-wider block mb-2">Existing Keys</label>
                     <p className="text-[11px] text-fg-tertiary mb-2">Click a key to reveal and use it in the install command.</p>
                     <div className="flex flex-wrap gap-2">
                       {apiKeys.map((k: any, i: number) => {
@@ -299,7 +299,7 @@ export default function AgentSetup() {
                                 ? 'border-accent-success bg-accent-success-bg text-accent-success font-medium'
                                 : isRevealing
                                 ? 'border-accent-primary bg-accent-primary/10 text-accent-primary'
-                                : 'border-border text-[#506e81] hover:border-border hover:bg-bg-subtle'
+                                : 'border-border text-fg-tertiary hover:border-border hover:bg-bg-subtle'
                             }`}
                           >
                             <span className="flex items-center gap-1.5">
@@ -331,7 +331,7 @@ export default function AgentSetup() {
                     <button
                       onClick={() => { setKeyError(''); handleCreateKey(); }}
                       disabled={keyCreating}
-                      className="px-5 py-2.5 bg-accent-primary text-fg-inverse text-[13px] font-semibold rounded-md hover:bg-[#4a1d8a] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                      className="px-5 py-2.5 bg-accent-primary text-fg-inverse text-[13px] font-semibold rounded-md hover:bg-accent-primary transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                       data-testid="generate-key-btn"
                     >
                       {keyCreating ? (
@@ -347,7 +347,7 @@ export default function AgentSetup() {
                   </div>
                 ) : (
                   /* Revealed key card */
-                  <div className={`rounded-lg p-4 ${newKeyData.source === 'created' ? 'bg-accent-success-bg border border-[#b8dfca]' : 'bg-accent-primary/10 border border-[#d4c4ed]'}`} data-testid="key-reveal-card">
+                  <div className={`rounded-lg p-4 ${newKeyData.source === 'created' ? 'bg-accent-success-bg border border-accent-success' : 'bg-accent-primary/10 border border-accent-primary'}`} data-testid="key-reveal-card">
                     <div className="flex items-start gap-3">
                       <svg className={`w-5 h-5 shrink-0 mt-0.5 ${newKeyData.source === 'created' ? 'text-accent-success' : 'text-accent-primary'}`} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                         <circle cx="12" cy="12" r="10"/><path d="M9 12l2 2 4-4"/>
@@ -361,7 +361,7 @@ export default function AgentSetup() {
                             Copy this key now. You won't be able to see it again.
                           </p>
                         ) : (
-                          <p className="text-[12px] text-[#506e81] mt-1">
+                          <p className="text-[12px] text-fg-tertiary mt-1">
                             Key revealed — it's now embedded in the install command below.
                           </p>
                         )}
@@ -374,7 +374,7 @@ export default function AgentSetup() {
                               handleCopy(newKeyData.key, true);
                               setApiKey(newKeyData.key);
                             }}
-                            className={`px-3 py-2 text-[12px] font-semibold rounded-md transition-colors shrink-0 ${keyCopied ? 'bg-accent-success-bg text-accent-success border border-[#b8dfca]' : 'bg-accent-primary text-fg-inverse hover:bg-[#4a1d8a]'}`}
+                            className={`px-3 py-2 text-[12px] font-semibold rounded-md transition-colors shrink-0 ${keyCopied ? 'bg-accent-success-bg text-accent-success border border-accent-success' : 'bg-accent-primary text-fg-inverse hover:bg-accent-primary'}`}
                           >
                             {keyCopied ? '✓ Copied!' : newKeyData.source === 'created' ? 'Copy & Use' : 'Copy Key'}
                           </button>
@@ -386,7 +386,7 @@ export default function AgentSetup() {
 
                 {/* Manual API key input */}
                 <div className="mt-4">
-                  <label className="text-[11px] font-semibold text-[#506e81] uppercase tracking-wider block mb-1">
+                  <label className="text-[11px] font-semibold text-fg-tertiary uppercase tracking-wider block mb-1">
                     Or paste a key manually
                   </label>
                   <div className="relative max-w-md">
@@ -425,7 +425,7 @@ export default function AgentSetup() {
                 </div>
 
                 {isKeyTruncated && (
-                  <div className="bg-accent-warning-bg border border-[#f5d5b0] rounded-lg p-3 mb-3 text-[12px] text-[#8b6914] flex items-start gap-2">
+                  <div className="bg-accent-warning-bg border border-accent-warning rounded-lg p-3 mb-3 text-[12px] text-accent-warning flex items-start gap-2">
                     <svg className="w-4 h-4 shrink-0 mt-0.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0zM12 9v4M12 17h.01"/></svg>
                     <div>
                       <span className="font-semibold">API key is incomplete.</span> Click an existing key above or create a new one to pre-fill the full key in the command below.
@@ -434,14 +434,14 @@ export default function AgentSetup() {
                 )}
 
                 {!isKeyTruncated && apiKey.length > 0 && (
-                  <div className="bg-accent-success-bg border border-[#b8dfca] rounded-lg p-3 mb-3 text-[12px] text-fg-primary flex items-center gap-2">
+                  <div className="bg-accent-success-bg border border-accent-success rounded-lg p-3 mb-3 text-[12px] text-fg-primary flex items-center gap-2">
                     <svg className="w-4 h-4 text-accent-success shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M5 13l4 4L19 7"/></svg>
                     <span>API key ready — the install command below includes your full key.</span>
                   </div>
                 )}
 
                 {!step2Done && !isKeyTruncated && (
-                  <div className="bg-accent-warning-bg border border-[#f5d5b0] rounded-lg p-3 mb-3 text-[12px] text-[#8b6914]">
+                  <div className="bg-accent-warning-bg border border-accent-warning rounded-lg p-3 mb-3 text-[12px] text-accent-warning">
                     ⚠ Generate or paste an API key in Step 2 to pre-fill the command.
                   </div>
                 )}
@@ -466,7 +466,7 @@ export default function AgentSetup() {
 
                 {/* Tags configuration */}
                 <div className="mt-4 max-w-lg">
-                  <label className="text-[11px] font-semibold text-[#506e81] uppercase tracking-wider block mb-1">
+                  <label className="text-[11px] font-semibold text-fg-tertiary uppercase tracking-wider block mb-1">
                     Tags <span className="font-normal normal-case text-fg-tertiary">(optional)</span>
                   </label>
                   <input
@@ -492,7 +492,7 @@ export default function AgentSetup() {
                 {agents.length > 0 && (
                   <div className="grid grid-cols-4 gap-3 mb-4">
                     <div className="bg-bg-elevated border border-border rounded-lg p-3 text-center">
-                      <p className="text-2xl font-bold text-[#506e81]">{agents.length}</p>
+                      <p className="text-2xl font-bold text-fg-tertiary">{agents.length}</p>
                       <p className="text-[10px] font-semibold text-fg-tertiary uppercase">Total</p>
                     </div>
                     <div className="bg-bg-elevated border border-border rounded-lg p-3 text-center">
@@ -546,7 +546,7 @@ export default function AgentSetup() {
                           return (
                           <tr key={i} className="border-b border-border-subtle">
                             <td className="py-2.5 px-4 font-medium text-fg-primary">{a.name || a.NAME || `Agent-${i + 1}`}</td>
-                            <td className="py-2.5 px-4 text-[#506e81] font-mono text-[12px]">{a.ctrl_ip || a.CTRL_IP || '—'}</td>
+                            <td className="py-2.5 px-4 text-fg-tertiary font-mono text-[12px]">{a.ctrl_ip || a.CTRL_IP || '—'}</td>
                             <td className="py-2.5 px-4">
                               <span className="inline-flex items-center gap-1.5">
                                 <span className="w-1.5 h-1.5 rounded-full inline-block" style={{ backgroundColor: statusInfo.color }} />
@@ -567,7 +567,7 @@ export default function AgentSetup() {
                 <div className="flex items-center gap-3 mt-6 pt-2 border-t border-border">
                   <button
                     onClick={() => navigate('/apm')}
-                    className="px-6 py-2.5 bg-accent-primary text-fg-inverse text-sm font-semibold rounded-md hover:bg-[#4a1d8a] transition-colors"
+                    className="px-6 py-2.5 bg-accent-primary text-fg-inverse text-sm font-semibold rounded-md hover:bg-accent-primary transition-colors"
                     data-testid="continue-to-apm"
                   >
                     {t('apmIntro.continueToAPM')}
@@ -594,7 +594,7 @@ export default function AgentSetup() {
                       </div>
                       <div>
                         <p className="text-[13px] font-semibold text-fg-primary">{f.t}</p>
-                        <p className="text-[11px] text-[#8b9bb4] mt-0.5">{f.d}</p>
+                        <p className="text-[11px] text-fg-tertiary mt-0.5">{f.d}</p>
                       </div>
                     </div>
                   </div>

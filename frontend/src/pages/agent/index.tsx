@@ -178,13 +178,13 @@ function FleetView() {
             key={f}
             onClick={() => setStatusFilter(f)}
             data-testid={`agent-filter-${f}`}
-            className={`px-3 py-1.5 text-[12px] font-medium rounded border transition-colors ${statusFilter === f ? 'bg-accent-primary text-fg-inverse border-accent-primary' : 'bg-bg-elevated text-[#506e81] border-border hover:border-border'}`}
+            className={`px-3 py-1.5 text-[12px] font-medium rounded border transition-colors ${statusFilter === f ? 'bg-accent-primary text-fg-inverse border-accent-primary' : 'bg-bg-elevated text-fg-tertiary border-border hover:border-border'}`}
           >
             {f === 'all' ? 'All' : f.charAt(0).toUpperCase() + f.slice(1)}
           </button>
         ))}
         <div className="flex-1" />
-        <button onClick={() => navigate('/agents/setup')} className="px-4 py-1.5 bg-accent-primary text-fg-inverse text-[12px] font-semibold rounded-md hover:bg-[#4a1d8a] transition-colors">
+        <button onClick={() => navigate('/agents/setup')} className="px-4 py-1.5 bg-accent-primary text-fg-inverse text-[12px] font-semibold rounded-md hover:bg-accent-primary transition-colors">
           + Install Agent
         </button>
         <Button icon={<ReloadOutlined />} onClick={() => fetchAgents()} size="small" />
@@ -210,7 +210,7 @@ function FleetView() {
                 <th
                   key={h.key}
                   onClick={() => { if (sortField === h.key) setSortDir(d => d === 'asc' ? 'desc' : 'asc'); else setSortField(h.key); }}
-                  className="text-left text-[10px] font-semibold text-fg-tertiary uppercase tracking-wider px-3 py-2.5 cursor-pointer hover:text-[#506e81] select-none"
+                  className="text-left text-[10px] font-semibold text-fg-tertiary uppercase tracking-wider px-3 py-2.5 cursor-pointer hover:text-fg-tertiary select-none"
                 >
                   {h.label} {sortField === h.key ? (sortDir === 'asc' ? '↑' : '↓') : ''}
                 </th>
@@ -258,17 +258,17 @@ function FleetView() {
                         <span className="text-[13px] font-medium text-fg-primary">{n.hostname}</span>
                       </div>
                     </td>
-                    <td className="px-3 py-2.5 text-[12px] text-[#506e81] font-mono">{n.ctrlIp || '—'}</td>
-                    <td className="px-3 py-2.5 text-[12px] text-[#506e81] capitalize">{n.platform}</td>
-                    <td className="px-3 py-2.5 text-[12px] text-[#506e81]">{n.version}</td>
+                    <td className="px-3 py-2.5 text-[12px] text-fg-tertiary font-mono">{n.ctrlIp || '—'}</td>
+                    <td className="px-3 py-2.5 text-[12px] text-fg-tertiary capitalize">{n.platform}</td>
+                    <td className="px-3 py-2.5 text-[12px] text-fg-tertiary">{n.version}</td>
                     <td className="px-3 py-2.5">
                       <span className="inline-flex items-center gap-1.5 text-[12px] font-medium" style={{ color: st.color }}>
                         {st.dot} {st.label}
                       </span>
                     </td>
-                    <td className="px-3 py-2.5 text-[12px] text-[#506e81] tabular-nums">{n.cpu > 0 ? n.cpu.toFixed(1) + '%' : '—'}</td>
-                    <td className="px-3 py-2.5 text-[12px] text-[#506e81] tabular-nums">{n.mem > 0 ? n.mem + ' MB' : '—'}</td>
-                    <td className="px-3 py-2.5 text-[12px] text-[#506e81] tabular-nums">{n.services > 0 ? n.services : '—'}</td>
+                    <td className="px-3 py-2.5 text-[12px] text-fg-tertiary tabular-nums">{n.cpu > 0 ? n.cpu.toFixed(1) + '%' : '—'}</td>
+                    <td className="px-3 py-2.5 text-[12px] text-fg-tertiary tabular-nums">{n.mem > 0 ? n.mem + ' MB' : '—'}</td>
+                    <td className="px-3 py-2.5 text-[12px] text-fg-tertiary tabular-nums">{n.services > 0 ? n.services : '—'}</td>
                     <td className="px-3 py-2.5 text-[12px] text-fg-tertiary">{n.uptime}</td>
                     <td className="px-3 py-2.5 text-[12px] text-fg-tertiary">{ago(n.syncedAt)}</td>
                   </tr>
@@ -317,7 +317,7 @@ function FleetView() {
                 <p className="text-[11px] font-semibold text-fg-tertiary uppercase tracking-wider mb-2">Tags</p>
                 <div className="flex flex-wrap gap-1.5">
                   {n.tags.map((t, i) => (
-                    <span key={i} className="inline-flex items-center gap-1 px-2 py-0.5 bg-bg-muted rounded text-[11px] text-[#506e81] font-mono">{t}</span>
+                    <span key={i} className="inline-flex items-center gap-1 px-2 py-0.5 bg-bg-muted rounded text-[11px] text-fg-tertiary font-mono">{t}</span>
                   ))}
                 </div>
               </div>
@@ -346,7 +346,7 @@ export function AgentMgmtLayout() {
     <div className="animate-fade-in" style={{ maxWidth: 1480 }}>
       <div className="mb-1">
         <h1 className="text-xl font-bold text-fg-primary">{t('agentMgmt.title')}</h1>
-        <p className="text-sm text-[#506e81] mt-0.5">{t('agentMgmt.subtitle')}</p>
+        <p className="text-sm text-fg-tertiary mt-0.5">{t('agentMgmt.subtitle')}</p>
       </div>
 
       <nav className="flex gap-1 mb-4 border-b border-border">
@@ -358,7 +358,7 @@ export function AgentMgmtLayout() {
               to={item.to}
               end={item.exact}
               className={`px-4 py-2.5 text-[13px] font-medium border-b-[2px] -mb-[2px] transition-colors ${
-                isActive ? 'text-accent-primary border-accent-primary' : 'text-[#506e81] border-transparent hover:text-fg-primary hover:border-border'
+                isActive ? 'text-accent-primary border-accent-primary' : 'text-fg-tertiary border-transparent hover:text-fg-primary hover:border-border'
               }`}
             >
               {item.label}

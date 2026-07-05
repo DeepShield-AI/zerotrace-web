@@ -429,13 +429,13 @@ export default function TopologyMap({ nodes, edges, loading, onServiceClick, onR
         {/* Legend footer */}
         <div className="absolute bottom-3 left-3 flex items-center gap-4 text-[10px] text-fg-tertiary">
           <span className="flex items-center gap-1.5">
-            <span className="w-2.5 h-0.5 rounded-full" style={{ backgroundColor: '#94A3B8' }} /> Low latency
+            <span className="w-2.5 h-0.5 rounded-full bg-accent-info/40" /> Low latency
           </span>
           <span className="flex items-center gap-1.5">
-            <span className="w-2.5 h-0.5 rounded-full" style={{ backgroundColor: '#F59E0B' }} /> High latency
+            <span className="w-2.5 h-0.5 rounded-full bg-accent-warning" /> High latency
           </span>
           <span className="flex items-center gap-1.5">
-            <span className="w-2.5 h-0.5 rounded-full" style={{ backgroundColor: '#EF4444' }} /> Errors
+            <span className="w-2.5 h-0.5 rounded-full bg-accent-danger" /> Errors
           </span>
           <span>&middot;</span>
           <span>{nodes.length} services &middot; {edges.length} edges</span>

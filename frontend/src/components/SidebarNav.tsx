@@ -160,7 +160,7 @@ export function DDSidebar({ collapsed = false }: { collapsed?: boolean }) {
 
   if (collapsed) {
     return (
-      <nav className="flex-shrink-0 w-16 bg-[#1a0a2e] min-h-screen flex flex-col items-center py-4 gap-3">
+      <nav className="flex-shrink-0 w-16 bg-sidebar-bg min-h-screen flex flex-col items-center py-4 gap-3">
         {DD_NAVIGATION.map(cat => (
           <div key={cat.id} className="w-10 h-10 flex items-center justify-center text-white/50 hover:text-white hover:bg-fg-inverse/10 rounded-lg transition-colors cursor-pointer"
             title={cat.label}>
@@ -172,7 +172,7 @@ export function DDSidebar({ collapsed = false }: { collapsed?: boolean }) {
   }
 
   return (
-    <nav className="flex-shrink-0 w-60 bg-[#1a0a2e] min-h-screen overflow-y-auto flex flex-col">
+    <nav className="flex-shrink-0 w-60 bg-sidebar-bg min-h-screen overflow-y-auto flex flex-col">
       {/* Logo area */}
       <div className="px-4 py-4 border-b border-white/5 flex items-center gap-2.5">
         <div className="w-8 h-8 bg-accent-primary rounded-md flex items-center justify-center flex-shrink-0">

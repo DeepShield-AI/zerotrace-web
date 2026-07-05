@@ -55,7 +55,7 @@ export default function BillingUsage() {
 
   if (loading) return (
     <div className="flex justify-center py-20">
-      <div className="animate-spin h-8 w-8 border-2 border-[#007bff] border-t-transparent rounded-full" />
+      <div className="animate-spin h-8 w-8 border-2 border-accent-info border-t-transparent rounded-full" />
     </div>
   );
 
@@ -114,7 +114,7 @@ export default function BillingUsage() {
 
         {chartLoading ? (
           <div className="flex justify-center py-12">
-            <div className="animate-spin h-6 w-6 border-2 border-[#007bff] border-t-transparent rounded-full" />
+            <div className="animate-spin h-6 w-6 border-2 border-accent-info border-t-transparent rounded-full" />
           </div>
         ) : displayData.length === 0 ? (
           <div className="text-center py-16 text-border">No hourly usage data available for {selectedProduct}</div>
@@ -131,7 +131,7 @@ export default function BillingUsage() {
                     <div className={`absolute -top-5 text-[9px] font-mono text-fg-tertiary opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap`}>
                       {qty.toLocaleString()}
                     </div>
-                    <div className={`w-full rounded-t-sm transition-all hover:opacity-80 flex-shrink-0 ${isPeak ? 'bg-severity-warn' : 'bg-[#f0f7ff]0'}`}
+                    <div className={`w-full rounded-t-sm transition-all hover:opacity-80 flex-shrink-0 ${isPeak ? 'bg-severity-warn' : 'bg-accent-info-bg'}`}
                       style={{ height: `${h}%` }} />
                     {(i % 6 === 0 || i === displayData.length - 1) && (
                       <span className="text-[9px] text-fg-tertiary mt-1.5 whitespace-nowrap tabular-nums">
@@ -144,7 +144,7 @@ export default function BillingUsage() {
             </div>
 
             <div className="flex items-center gap-6 text-xs text-fg-tertiary pt-4 border-t border-border">
-              <div className="flex items-center gap-1.5"><div className="w-3 h-3 rounded-sm bg-[#f0f7ff]0" /> Normal</div>
+              <div className="flex items-center gap-1.5"><div className="w-3 h-3 rounded-sm bg-accent-info-bg" /> Normal</div>
               <div className="flex items-center gap-1.5"><div className="w-3 h-3 rounded-sm bg-severity-warn" /> Peak ({fmtShort(stats.max)})</div>
               <span className="ml-auto">Showing {displayData.length} of {hourlyData.length} data points</span>
             </div>

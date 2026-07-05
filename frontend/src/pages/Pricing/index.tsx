@@ -15,19 +15,19 @@ function TopNav() {
       <div className="max-w-[1344px] mx-auto px-6 h-[72px] flex items-center justify-between">
         {/* Left links */}
         <div className="flex items-center gap-8">
-          <a href="#" className="text-sm font-medium text-[#555] hover:text-fg-primary transition-colors tracking-wide">
+          <a href="#" className="text-sm font-medium text-fg-secondary hover:text-fg-primary transition-colors tracking-wide">
             PRODUCT
           </a>
-          <a href="#" className="text-sm font-medium text-[#555] hover:text-fg-primary transition-colors tracking-wide">
+          <a href="#" className="text-sm font-medium text-fg-secondary hover:text-fg-primary transition-colors tracking-wide">
             CUSTOMERS
           </a>
-          <a href="#" className="text-sm font-bold text-accent-primary tracking-wide" style={{ color: '#632CA6' }}>
+          <a href="#" className="text-sm font-bold text-accent-primary tracking-wide">
             PRICING
           </a>
-          <a href="#" className="text-sm font-medium text-[#555] hover:text-fg-primary transition-colors tracking-wide">
+          <a href="#" className="text-sm font-medium text-fg-secondary hover:text-fg-primary transition-colors tracking-wide">
             SOLUTIONS
           </a>
-          <a href="#" className="text-sm font-medium text-[#555] hover:text-fg-primary transition-colors tracking-wide">
+          <a href="#" className="text-sm font-medium text-fg-secondary hover:text-fg-primary transition-colors tracking-wide">
             DOCS
           </a>
         </div>
@@ -41,18 +41,18 @@ function TopNav() {
               <path d="M18 8h-4l4-4 4 4z"/>
             </svg>
           </div>
-          <span className="text-lg font-bold tracking-tight" style={{ color: '#632CA6' }}>ZEROTRACE</span>
+          <span className="text-lg font-bold text-accent-primary tracking-tight">ZEROTRACE</span>
         </div>
 
         {/* Right links */}
         <div className="flex items-center gap-8">
-          <a href="#" className="text-sm font-medium text-[#555] hover:text-fg-primary transition-colors tracking-wide">
+          <a href="#" className="text-sm font-medium text-fg-secondary hover:text-fg-primary transition-colors tracking-wide">
             ABOUT
           </a>
-          <a href="#" className="text-sm font-medium text-[#555] hover:text-fg-primary transition-colors tracking-wide">
+          <a href="#" className="text-sm font-medium text-fg-secondary hover:text-fg-primary transition-colors tracking-wide">
             BLOG
           </a>
-          <a href="#" className="text-sm font-medium text-[#555] hover:text-fg-primary transition-colors tracking-wide">
+          <a href="#" className="text-sm font-medium text-fg-secondary hover:text-fg-primary transition-colors tracking-wide">
             LOGIN
           </a>
           <button className="text-sm text-fg-tertiary hover:text-fg-secondary">
@@ -61,11 +61,7 @@ function TopNav() {
             </svg>
           </button>
           <button
-            className="px-5 py-2 text-sm font-semibold rounded-full border-2 text-fg-primary hover:bg-accent-primary/10 transition-all tracking-wide"
-            style={{
-              borderColor: '#632CA6',
-              borderImage: 'linear-gradient(90deg, #632CA6, #a855f7) 1',
-            }}
+            className="px-5 py-2 text-sm font-semibold rounded-full border-2 border-accent-primary text-fg-primary hover:bg-accent-primary/10 transition-all tracking-wide"
           >
             GET STARTED FREE
           </button>
@@ -77,7 +73,7 @@ function TopNav() {
 
 function Hero() {
   return (
-    <header className="w-full" style={{ background: 'linear-gradient(180deg, #F3EEFA 0%, #EBE3F5 100%)' }}>
+    <header className="w-full bg-accent-primary-bg/50">
       <div className="max-w-[1344px] mx-auto px-6 py-20 text-center">
         <p className="text-xs font-semibold tracking-[0.2em] text-fg-secondary mb-4">PRICING</p>
         <h1 className="text-4xl md:text-5xl lg:text-[56px] font-bold text-fg-primary leading-tight mb-4 max-w-[900px] mx-auto">
@@ -88,7 +84,7 @@ function Hero() {
           <button className="px-8 py-3 bg-accent-primary text-fg-inverse font-semibold rounded-lg hover:opacity-90 transition-colors text-sm tracking-wide">
             FREE TRIAL
           </button>
-          <a href="#" className="text-accent-primary font-semibold text-sm hover:underline" style={{ color: '#632CA6' }}>
+          <a href="#" className="text-accent-primary font-semibold text-sm hover:underline">
             CONTACT US →
           </a>
         </div>
@@ -105,7 +101,7 @@ function SidebarNav({ activeProduct, onSelect }: { activeProduct: string; onSele
       {/* Site selector */}
       <div className="mb-6">
         <label className="block text-[11px] font-semibold text-fg-tertiary tracking-wider mb-2">ZEROTRACE SITE</label>
-        <select className="w-full px-3 py-2 text-sm border border-border rounded-md text-fg-secondary bg-bg-elevated focus:outline-none focus:ring-2 focus:ring-brand-200 focus:border-brand-500">
+        <select className="w-full px-3 py-2 text-sm border border-border rounded-md text-fg-secondary bg-bg-elevated focus:outline-none focus:ring-2 focus:ring-accent-primary-bg focus:border-accent-primary">
           <option>US (US1, US3, US5)</option>
           <option>US1-FED</option>
           <option>EU1</option>
@@ -136,10 +132,9 @@ function SidebarNav({ activeProduct, onSelect }: { activeProduct: string; onSele
                   onClick={() => onSelect(cat.id, item)}
                   className={`block text-sm py-1 text-left w-full transition-colors ${
                     activeProduct === cat.id
-                      ? 'font-medium'
+                      ? 'font-medium text-accent-primary'
                       : 'text-fg-secondary hover:text-fg-primary'
                   }`}
-                  style={activeProduct === cat.id ? { color: '#632CA6' } : {}}
                 >
                   {item}
                 </button>
@@ -323,7 +318,7 @@ function PricingSection({ product }: { product: ProductSection }) {
 
 function Footer() {
   return (
-    <footer className="bg-[#1a1a2e] text-white/70 mt-16">
+    <footer className="bg-bg-inverse text-white/70 mt-16">
       <div className="max-w-[1344px] mx-auto px-6 py-16">
         <div className="grid grid-cols-5 gap-10 mb-12">
           <div>

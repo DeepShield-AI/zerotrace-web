@@ -32,7 +32,7 @@ function EmptyApiKeys({ onCreate }: { onCreate: () => void }) {
 function KeyReveal({ value, onDone }: { value: string; onDone: () => void }) {
   const { t } = useTranslation();
   return (
-    <div className="bg-accent-warning-bg border border-amber-200 rounded-2xl p-6 animate-slide-up">
+    <div className="bg-accent-warning-bg border border-accent-warning/20 rounded-2xl p-6 animate-slide-up">
       <div className="flex items-start gap-3 mb-4">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" className="text-accent-warning mt-0.5 shrink-0"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" /><line x1="12" y1="9" x2="12" y2="13" /><line x1="12" y1="17" x2="12.01" y2="17" /></svg>
         <div><h4 className="font-semibold text-accent-warning text-sm">{t('dashboard.storeSecurely')}</h4><p className="text-accent-warning text-xs mt-0.5">{t('dashboard.storeSecurelyDesc')}</p></div>
@@ -88,7 +88,7 @@ function Sidebar() {
       {/* Logo */}
       <div className="px-2.5 py-2 flex items-center border-b border-white/[0.06] shrink-0" style={{ height: 56 }}>
         <button onClick={() => setCollapsed(!collapsed)} className="flex items-center gap-1.5">
-          <div className="w-[18px] h-[18px] rounded-[4px] flex items-center justify-center shrink-0" style={{ background: 'linear-gradient(0deg, #d671d0 0%, #7a71cb 100%)' }}>
+          <div className="w-[18px] h-[18px] rounded-[4px] flex items-center justify-center shrink-0 bg-accent-primary">
             <span className="text-white text-[8px] font-bold">ZT</span>
           </div>
           {!collapsed && <span className="text-[13px] font-semibold text-white tracking-[-0.01em]">ZEROTRACE</span>}
@@ -132,7 +132,7 @@ function Sidebar() {
                       {sec.items.map(item => (
                         <NavLink key={item.to} to={item.to} end onClick={() => setHoveredId(null)}
                           className={({ isActive: a }) => `flex items-center gap-2 py-1 px-4 text-[13px] no-underline transition-colors ${a ? 'text-white bg-purple-500/[0.12] font-semibold' : 'text-white/60 hover:text-white/80 hover:bg-fg-inverse/[0.04] font-normal'}`}>
-                          <span className="flex items-center gap-1.5">{item.label}{item.badge && <span className={`text-[8px] px-1 py-0.5 rounded-[3px] font-bold ${item.badge === 'new' ? 'bg-purple-500/30 text-purple-200' : 'bg-accent-warning/30 text-accent-warning'}`}>{item.badge.toUpperCase()}</span>}</span>
+                          <span className="flex items-center gap-1.5">{item.label}{item.badge && <span className={`text-[8px] px-1 py-0.5 rounded-[3px] font-bold ${item.badge === 'new' ? 'bg-accent-primary/30 text-accent-primary-bg' : 'bg-accent-warning/30 text-accent-warning'}`}>{item.badge.toUpperCase()}</span>}</span>
                         </NavLink>
                       ))}
                     </div>
@@ -164,7 +164,7 @@ function Sidebar() {
         )}
         {user && (
           <div className={`flex items-center mx-1 mt-1 pt-1 border-t border-white/[0.06] ${collapsed?'justify-center':'gap-1.5 px-2'}`}>
-            <div className="w-6 h-6 rounded-full flex items-center justify-center text-white text-[9px] font-bold shrink-0" style={{background:'linear-gradient(135deg,#632CA6,#8B5CF6)'}}>{user.email?.[0]?.toUpperCase()||'U'}</div>
+            <div className="w-6 h-6 rounded-full flex items-center justify-center text-white text-[9px] font-bold shrink-0 bg-accent-primary">{user.email?.[0]?.toUpperCase()||'U'}</div>
             {!collapsed&&<><div className="flex-1 min-w-0"><p className="text-[11px] text-white/70 truncate font-medium">{user.name||user.email}</p></div><button onClick={async()=>{try{await logout();}catch{}navigate('/login');}} className="text-white/20 hover:text-white/50 transition-colors"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" className="w-3.5 h-3.5"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg></button></>}
           </div>
         )}
