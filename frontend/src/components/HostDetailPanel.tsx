@@ -291,7 +291,7 @@ export default function HostDetailPanel({
           {/* Status + meta */}
           <div className="flex items-center gap-3 text-xs flex-wrap">
             <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full font-medium text-[11px] ${
-              on ? 'bg-accent-success-bg text-accent-success border border-emerald-100' : 'bg-accent-danger-bg text-accent-danger border border-red-100'
+              on ? 'bg-accent-success-bg text-accent-success border border-accent-success/20' : 'bg-accent-danger-bg text-accent-danger border border-accent-danger/20'
             }`}>
               <span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: statusColor }} />
               {statusLabel}
@@ -341,7 +341,7 @@ export default function HostDetailPanel({
                 <h4 className="text-[11px] font-semibold text-fg-tertiary uppercase tracking-wider">Related</h4>
                 <Link
                   to={`/apm?view=traces`}
-                  className="flex items-center gap-3 p-3 rounded-lg border border-border hover:border-accent-primary/20 hover:bg-[#F3F0FA]/30 transition-all text-sm text-fg-secondary group"
+                  className="flex items-center gap-3 p-3 rounded-lg border border-border hover:border-accent-primary/20 hover:bg-accent-primary/10 transition-all text-sm text-fg-secondary group"
                 >
                   <span className="w-8 h-8 rounded-lg bg-accent-primary/5 flex items-center justify-center text-accent-primary group-hover:bg-accent-primary/10 transition-colors">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round">
@@ -355,7 +355,7 @@ export default function HostDetailPanel({
                 </Link>
                 <Link
                   to="/logs"
-                  className="flex items-center gap-3 p-3 rounded-lg border border-border hover:border-accent-primary/20 hover:bg-[#F3F0FA]/30 transition-all text-sm text-fg-secondary group"
+                  className="flex items-center gap-3 p-3 rounded-lg border border-border hover:border-accent-primary/20 hover:bg-accent-primary/10 transition-all text-sm text-fg-secondary group"
                 >
                   <span className="w-8 h-8 rounded-lg bg-accent-primary/5 flex items-center justify-center text-accent-primary group-hover:bg-accent-primary/10 transition-colors">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round">

@@ -10,6 +10,7 @@ import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { api } from '../api/client';
 import { fmtN, fmtB, fmtLatency } from '../utils/format';
+import { chartTheme } from '../lib/tokens';
 
 echarts.use([LineChart, GridComponent, TooltipComponent, CanvasRenderer]);
 
@@ -37,7 +38,7 @@ function tsLabel(ts: string): string {
 
 /* ── Sparkline ── */
 
-function MiniSparkline({ data, color = '#632CA6', width = 70, height = 24 }: {
+function MiniSparkline({ data, color = 'var(--accent-primary)', width = 70, height = 24 }: {
   data: number[]; color?: string; width?: number; height?: number;
 }) {
   if (!data || data.length < 2) return <div style={{ width, height }} />;
@@ -195,26 +196,32 @@ export default function MetricsPage() {
 
     const data = points.map(p => p.value);
     const timestamps = points.map(p => tsLabel(p.ts));
-    const color = '#632CA6';
+    const color = getComputedStyle(document.documentElement).getPropertyValue('--accent-primary').trim() || '#632CA6';
     const unit = selectedDef?.unit || '';
+    const axisColor = chartTheme.axisColor();
+    const gridColor = chartTheme.gridColor();
+    const tooltipBg = chartTheme.tooltipBg();
+    const tooltipBorder = chartTheme.tooltipBorder();
+    const fgPrimary = getComputedStyle(document.documentElement).getPropertyValue('--fg-primary').trim() || '#27272a';
+    const fgSecondary = getComputedStyle(document.documentElement).getPropertyValue('--fg-secondary').trim() || '#71717a';
 
     inst.setOption({
       animation: false,
       grid: { left: 56, right: 20, top: 16, bottom: 28 },
       xAxis: {
         type: 'category', data: timestamps,
-        axisLine: { lineStyle: { color: '#e4e4e7' } },
+        axisLine: { lineStyle: { color: gridColor } },
         axisTick: { show: false },
         axisLabel: {
-          fontSize: 10, color: '#a1a1aa',
+          fontSize: 10, color: axisColor,
           fontFamily: 'Geist Mono, monospace',
           interval: Math.max(1, Math.floor(timestamps.length / 8)) - 1,
         },
       },
       yAxis: {
         type: 'value',
-        splitLine: { lineStyle: { color: '#f4f4f5' } },
-        axisLabel: { fontSize: 10, color: '#a1a1aa', fontFamily: 'Geist Mono, monospace' },
+        splitLine: { lineStyle: { color: gridColor } },
+        axisLabel: { fontSize: 10, color: axisColor, fontFamily: 'Geist Mono, monospace' },
       },
       series: [{
         type: 'line', data, smooth: true, symbol: 'none',
@@ -228,14 +235,14 @@ export default function MetricsPage() {
       }],
       tooltip: {
         trigger: 'axis',
-        backgroundColor: '#fff',
-        borderColor: '#e4e4e7',
-        textStyle: { fontSize: 11, color: '#27272a', fontFamily: 'Geist Sans, system-ui, sans-serif' },
+        backgroundColor: tooltipBg,
+        borderColor: tooltipBorder,
+        textStyle: { fontSize: 11, color: fgPrimary, fontFamily: 'Geist Sans, system-ui, sans-serif' },
         formatter: (params: any) => {
           const p = params[0];
-          return `<span style="font-family:Geist Mono,monospace;font-size:10px;color:#a1a1aa">${p.axisValue}</span><br/>
-            <strong style="font-size:15px">${fmtN(p.value)}</strong>
-            <span style="font-size:11px;color:#71717a;margin-left:4px">${unit}</span>`;
+          return `<span style="font-family:Geist Mono,monospace;font-size:10px;color:${axisColor}">${p.axisValue}</span><br/>
+            <strong style="font-size:15px;color:${fgPrimary}">${fmtN(p.value)}</strong>
+            <span style="font-size:11px;color:${fgSecondary};margin-left:4px">${unit}</span>`;
         },
       },
     }, { notMerge: true });
@@ -286,7 +293,7 @@ export default function MetricsPage() {
       ) : loadError ? (
         <div className="flex flex-col items-center justify-center py-24 text-center">
           <div className="w-12 h-12 rounded-2xl bg-accent-danger-bg flex items-center justify-center mb-4">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#ef4444" strokeWidth="1.5">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="text-accent-danger">
               <circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/>
             </svg>
           </div>
@@ -416,23 +423,23 @@ export default function MetricsPage() {
                     <StatCard
                       label="Latest"
                       value={formatValue(latestValue, selectedDef.unit)}
-                      color="#632CA6"
+                      color="var(--accent-primary)"
                       sparkline={sparklineData}
                     />
                     <StatCard
                       label="Average"
                       value={avgValue != null ? formatValue(avgValue, selectedDef.unit) : '--'}
-                      color="#4799EB"
+                      color="var(--accent-info)"
                     />
                     <StatCard
                       label="Maximum"
                       value={maxValue != null ? formatValue(maxValue, selectedDef.unit) : '--'}
-                      color="#22c55e"
+                      color="var(--accent-success)"
                     />
                     <StatCard
                       label="Minimum"
                       value={minValue != null ? formatValue(minValue, selectedDef.unit) : '--'}
-                      color="#e2903c"
+                      color="var(--accent-warning)"
                     />
                   </div>
                 )}

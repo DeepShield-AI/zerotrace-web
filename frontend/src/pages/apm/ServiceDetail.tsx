@@ -20,7 +20,7 @@ function fmtDurationUs(us?: number | string): string { const v = num(us) / 1000;
 
 // ════════════════════════ CHART THEME ════════════════════════
 const chartTheme = {
-  color: ['#632CA6', '#2DB88D', '#E2903C', '#E65C5C', '#4799EB'],
+  color: ['#632ca6', '#2db88d', '#e2903c', '#e65c5c', '#4799eb'],
   textStyle: { fontFamily: 'inherit', fontSize: 11, color: '#a1a1aa' },
   grid: { left: 50, right: 16, top: 12, bottom: 28 },
   xAxis: { axisLine: { lineStyle: { color: '#e4e4e7' } }, axisTick: { show: false }, splitLine: { show: false } },
@@ -160,9 +160,9 @@ export default function ServiceDetailPage() {
 
           {/* Charts */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-6">
-            <ChartCard title="Request Rate" data={rate} series={[{ name: 'req/min', key: 'cnt', color: '#632CA6' }]} areaStyle fmt={fmtN} />
-            <ChartCard title="Latency" data={rate} series={[{ name: 'latency', key: 'avg_latency_ms', color: '#E2903C' }]} areaStyle fmt={fmtLatency} />
-            <ChartCard title="Errors" data={rate} series={[{ name: 'errors', key: 'error_cnt', color: '#E65C5C' }]} areaStyle fmt={fmtN} />
+            <ChartCard title="Request Rate" data={rate} series={[{ name: 'req/min', key: 'cnt', color: '#632ca6' }]} areaStyle fmt={fmtN} />
+            <ChartCard title="Latency" data={rate} series={[{ name: 'latency', key: 'avg_latency_ms', color: '#e2903c' }]} areaStyle fmt={fmtLatency} />
+            <ChartCard title="Errors" data={rate} series={[{ name: 'errors', key: 'error_cnt', color: '#e65c5c' }]} areaStyle fmt={fmtN} />
           </div>
 
           {/* Operations + Dependencies row */}
@@ -199,8 +199,8 @@ export default function ServiceDetailPage() {
 
             {/* Dependencies */}
             <div className="space-y-4">
-              <DepList title="Upstream (Callers)" color="#2DB88D" items={depsUp.map(d => ({ name: d.upstream_service, calls: d.call_count, latency: d.avg_latency_ms, errors: d.error_count }))} emptyMsg="No upstream callers found" />
-              <DepList title="Downstream (Dependencies)" color="#632CA6" items={depsDown.map(d => ({ name: d.downstream_service, calls: d.call_count, latency: d.avg_latency_ms, errors: d.error_count }))} emptyMsg="No downstream dependencies found" />
+              <DepList title="Upstream (Callers)" color="#2db88d" items={depsUp.map(d => ({ name: d.upstream_service, calls: d.call_count, latency: d.avg_latency_ms, errors: d.error_count }))} emptyMsg="No upstream callers found" />
+              <DepList title="Downstream (Dependencies)" color="#632ca6" items={depsDown.map(d => ({ name: d.downstream_service, calls: d.call_count, latency: d.avg_latency_ms, errors: d.error_count }))} emptyMsg="No downstream dependencies found" />
             </div>
           </div>
 
@@ -291,7 +291,7 @@ function ChartCard({ title, data, series, areaStyle, fmt }: {
     yAxis: { ...chartTheme.yAxis, axisLabel: { formatter: fmt } },
     series: series.map(s => ({
       name: s.name, type: 'line', data: data.map(d => num(d[s.key])), smooth: true, symbol: 'none', lineStyle: { width: 2, color: s.color },
-      areaStyle: areaStyle ? { color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [{ offset: 0, color: (s.color || '#632CA6') + '20' }, { offset: 1, color: (s.color || '#632CA6') + '02' }]) } : undefined,
+      areaStyle: areaStyle ? { color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [{ offset: 0, color: (s.color || '#632ca6') + '20' }, { offset: 1, color: (s.color || '#632ca6') + '02' }]) } : undefined,
     })),
   };
   return <div className="bg-bg-elevated border border-border rounded-lg p-4"><h4 className="text-xs font-semibold text-fg-secondary uppercase tracking-wider mb-3">{title}</h4><ReactECharts option={option} style={{ height: h }} notMerge lazyUpdate /></div>;

@@ -15,8 +15,8 @@ export function BillingKPI({ label, value, sub, accent }: {
   label: string; value: string; sub?: string; accent?: 'green' | 'amber' | 'default';
 }) {
   const colors: Record<string, string> = {
-    green: 'border-emerald-200 bg-[#e8f5e9]/50',
-    amber: 'border-[#ffcc80] bg-[#fff3e0]/50',
+    green: 'border-accent-success/20 bg-accent-success-bg/50',
+    amber: 'border-accent-warning/20 bg-accent-warning-bg/50',
     default: 'border-border bg-bg-elevated',
   };
   return (
@@ -144,10 +144,10 @@ export function ProductUsageRow({ row }: { row: ProductUsageRowData }) {
               const usedNum = parseFloat(a.used_quantity);
               const over = usedNum > freeNum;
               return (
-                <div key={a.product_key} className={`rounded-lg p-2 ${over ? 'bg-[#fff3e0] border border-[#ffe0b2]' : 'bg-[#e8f5e9]/30'}`}>
+                <div key={a.product_key} className={`rounded-lg p-2 ${over ? 'bg-accent-warning-bg border border-accent-warning/20' : 'bg-accent-success-bg/30'}`}>
                   <div className="flex items-center justify-between">
                     <span className="text-xs text-fg-secondary">{a.product_key.replace(/_/g, ' ')}</span>
-                    <span className={`text-xs font-medium ${over ? 'text-[#e67e22]' : 'text-[#28a745]'}`}>
+                    <span className={`text-xs font-medium ${over ? 'text-accent-warning' : 'text-accent-success'}`}>
                       {over ? `${fmtNum(usedNum - freeNum)} ${t('billing.over')}` : t('billing.free')}
                     </span>
                   </div>

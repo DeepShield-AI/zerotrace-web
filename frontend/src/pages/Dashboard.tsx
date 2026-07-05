@@ -84,7 +84,7 @@ function Sidebar() {
   };
 
   return (
-    <aside className={`flex-shrink-0 bg-[#292e39] flex flex-col transition-[width] duration-200 ease-out h-screen sticky top-0 select-none ${collapsed ? 'w-[52px]' : 'w-[160px]'}`}>
+    <aside className={`flex-shrink-0 bg-sidebar-bg flex flex-col transition-[width] duration-200 ease-out h-screen sticky top-0 select-none ${collapsed ? 'w-[52px]' : 'w-[160px]'}`}>
       {/* Logo */}
       <div className="px-2.5 py-2 flex items-center border-b border-white/[0.06] shrink-0" style={{ height: 56 }}>
         <button onClick={() => setCollapsed(!collapsed)} className="flex items-center gap-1.5">
@@ -113,7 +113,7 @@ function Sidebar() {
             <div key={cat.id} className="relative" onMouseEnter={(e) => handleMouseEnter(cat.id, e)} onMouseLeave={() => setHoveredId(null)}>
               <NavLink to={cat.to} end
                 className={`flex items-center gap-2 rounded-[4px] transition-colors ${collapsed ? 'justify-center h-9 w-9 mx-auto' : 'h-[28px] px-2'} ${
-                  hasActiveChild || hoveredId === cat.id ? 'text-white/75 bg-fg-inverse/[0.08]' : 'text-[#babdbb] hover:text-white/80 hover:bg-fg-inverse/[0.05]'
+                  hasActiveChild || hoveredId === cat.id ? 'text-white/75 bg-fg-inverse/[0.08]' : 'text-sidebar-fg-muted hover:text-white/80 hover:bg-fg-inverse/[0.05]'
                 }`} title={collapsed ? cat.label : undefined}>
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={hasActiveChild ? 1.8 : 1.5} strokeLinecap="round" className={`shrink-0 ${collapsed ? 'w-[18px] h-[18px]' : 'w-[14px] h-[14px]'}`}><path d={cat.icon}/></svg>
                 {!collapsed && <span className="flex-1 text-left text-[13px] truncate font-normal">{cat.label}</span>}
@@ -121,7 +121,7 @@ function Sidebar() {
 
               {/* HOVER FLYOUT PANEL — rendered to body via portal to escape all stacking contexts */}
               {hoveredId === cat.id && !collapsed && cat.sections.length > 0 && createPortal(
-                <div className="fixed overflow-y-auto" style={{ left: 160, top: flyoutTop, maxHeight: `calc(100vh - ${flyoutTop}px)`, width: 448, background: 'rgb(23, 25, 31)', borderRadius: 0, boxShadow: 'rgba(36,41,49,0.1) 0px 0px 1px 0px, rgba(9,9,11,0.88) 0px 2px 8px 0px', padding: '8px 0', zIndex: 99999 }}
+                <div className="fixed overflow-y-auto" style={{ left: 160, top: flyoutTop, maxHeight: `calc(100vh - ${flyoutTop}px)`, width: 448, background: 'var(--flyout-bg)', borderRadius: 0, boxShadow: 'rgba(36,41,49,0.1) 0px 0px 1px 0px, rgba(9,9,11,0.88) 0px 2px 8px 0px', padding: '8px 0', zIndex: 99999 }}
                   onMouseEnter={() => setHoveredId(cat.id)} onMouseLeave={() => setHoveredId(null)}>
                   {cat.sections.map((sec, i) => (
                     <div key={i} className={i < cat.sections.length - 1 ? 'pb-1' : ''}>
@@ -147,14 +147,14 @@ function Sidebar() {
 
       {/* Bottom */}
       <div className="border-t border-white/[0.06] shrink-0 py-1">
-        <NavLink to="/org/billing" className={({ isActive: a }) => `flex items-center gap-1.5 rounded-[4px] transition-colors mx-1 ${collapsed ? 'justify-center h-7 w-7 mx-auto' : 'h-5 px-2'} ${a ? 'text-white/75 bg-fg-inverse/[0.08]' : 'text-[#babdbb] hover:text-white/80 hover:bg-fg-inverse/[0.05]'}`}>
+        <NavLink to="/org/billing" className={({ isActive: a }) => `flex items-center gap-1.5 rounded-[4px] transition-colors mx-1 ${collapsed ? 'justify-center h-7 w-7 mx-auto' : 'h-5 px-2'} ${a ? 'text-white/75 bg-fg-inverse/[0.08]' : 'text-sidebar-fg-muted hover:text-white/80 hover:bg-fg-inverse/[0.05]'}`}>
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className={`shrink-0 ${collapsed ? 'w-[16px] h-[16px]' : 'w-3 h-3'}`}><rect x="3" y="5" width="18" height="14" rx="2"/><line x1="3" y1="10" x2="21" y2="10"/><line x1="12" y1="10" x2="12" y2="19"/></svg>
           {!collapsed && <span className="text-[10px] font-medium">Plan &amp; Usage</span>}
         </NavLink>
         {!collapsed && (
           <div className="flex gap-1 mx-1 mt-1">
             {[{ l:'Invite', a:()=>navigate('/organization-settings/users/invite'), d:'M16 21v-2a4 4 0 00-4-4H6a4 4 0 00-4 4v2 M9 7a4 4 0 100-8 4 4 0 000 8 M19 8v6 M22 11h-6' },{ l:'Support', a:()=>window.open('mailto:support@zerotrace.com'), d:'M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z' },{ l:'Help', a:()=>navigate('/help'), d:'M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z M9.09 9a3 3 0 015.83 1c0 2-3 3-3 3 M12 17h.01', accent:true }].map((t,i)=>(
-              <button key={t.l} onClick={t.a} className="flex-1 flex flex-col items-center gap-0.5 px-1 py-1.5 rounded-[4px] text-[#babdbb]/60 hover:text-white/60 hover:bg-fg-inverse/[0.04] transition-colors relative">
+              <button key={t.l} onClick={t.a} className="flex-1 flex flex-col items-center gap-0.5 px-1 py-1.5 rounded-[4px] text-sidebar-fg-muted/60 hover:text-white/60 hover:bg-fg-inverse/[0.04] transition-colors relative">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="w-4 h-4" style={t.accent?{color:'rgb(249,157,2)'}:{}}><path d={t.d}/></svg>
                 <span className="text-[9px] font-medium leading-none">{t.l}</span>
                 {i===2&&<span className="absolute -top-0.5 right-0 text-[7px] font-bold px-1 py-px rounded bg-accent-warning/20 text-accent-warning">NEW</span>}

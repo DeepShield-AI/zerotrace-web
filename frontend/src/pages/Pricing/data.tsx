@@ -76,7 +76,7 @@ export const CheckIcon = () => (
 );
 
 export const ZerotraceLogo = () => (
-  <span className="text-lg font-bold tracking-tight" style={{ color: '#632CA6' }}>ZEROTRACE</span>
+  <span className="text-lg font-bold tracking-tight text-accent-primary">ZEROTRACE</span>
 );
 
 export const StarIcon = () => (<svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87L18.18 22 12 18.56 5.82 22 7 14.14l-5-4.87 6.91-1.01z"/></svg>);
@@ -93,3 +93,16 @@ export const categoryIcons: Record<string, React.ReactNode> = {
   digital: <DigitalIcon />, software: <DeliveryIcon />, security: <SecurityIcon />,
   ai: <StarIcon />, monitoring: <AppIcon />, platform: <ServiceIcon />,
 };
+
+export const infraQuestions = [
+  { q: 'What counts as a host?', a: 'A host is any physical or virtual machine, including cloud instances.' },
+  { q: 'How does high-water mark billing work?', a: 'Zerotrace counts hosts hourly, drops the top 1% of hours, and bills the entire month at the peak of the remaining 99%.' },
+  { q: 'Can I switch between plans?', a: 'Yes, you can upgrade or downgrade at any time.' },
+  { q: 'Is there a free trial?', a: 'Yes, a 14-day free trial with full access to Pro features. No credit card required.' },
+];
+
+export const productSections: ProductSection[] = [
+  { id: 'infrastructure', title: 'Infrastructure', subtitle: 'See inside any stack, any app, at any scale, anywhere', plans: [...infrastructurePlans, ...devsecopsPlans], featuresTable: infraFeaturesTable, questions: infraQuestions },
+  { id: 'apm', title: 'Application Performance Monitoring', subtitle: 'Trace requests from end to end across distributed systems', plans: [{ name: 'APM', price: '$31', unit: 'Per host, per month*', description: 'Distributed tracing and service health monitoring', features: ['150 GB ingested spans/month', '1M indexed spans/month', 'Service maps', 'Trace search & analytics'], ctaText: 'START FREE TRIAL', ctaStyle: 'primary', note: '*Billed annually or $36 on-demand' }, { name: 'APM Pro', price: '$35', unit: 'Per host, per month*', description: 'Advanced tracing with data streams monitoring', features: ['Everything in APM', 'Data Streams Monitoring', 'Pipeline visibility', 'End-to-end latency tracking'], ctaText: 'START FREE TRIAL', ctaStyle: 'primary', note: '*Billed annually or $42 on-demand' }, { name: 'APM Enterprise', price: '$40', unit: 'Per host, per month*', description: 'Full-stack profiling and advanced diagnostics', features: ['Everything in APM Pro', 'Continuous Profiler', 'Code-level visibility', '4 profiled containers included'], ctaText: 'START FREE TRIAL', ctaStyle: 'primary', note: '*Billed annually or $48 on-demand' }] },
+  { id: 'logs', title: 'Log Management', subtitle: 'Analyze and explore log data in context with flexible retention', plans: [{ name: 'Ingestion', price: '$0.10', unit: 'Per GB ingested', description: 'Collect logs from any source', features: ['Unlimited sources', 'Automatic parsing', 'Live tail', 'Archiving'], ctaText: 'START FREE TRIAL', ctaStyle: 'primary' }, { name: 'Standard Indexing', price: '$1.70', unit: 'Per million events', description: 'Full-text search with 15-day retention', features: ['15-day retention', 'Full-text search', 'Faceted search', 'Log analytics'], ctaText: 'START FREE TRIAL', ctaStyle: 'primary' }, { name: 'Flex Logs', price: '$0.05', unit: 'Per million events', description: 'Cost-effective cold storage for long-term retention', features: ['Long-term storage', 'On-demand rehydration', 'Pattern analysis', 'Compliance archiving'], ctaText: 'START FREE TRIAL', ctaStyle: 'primary', note: '*Flex Logs Starter: $0.60/million events' }] },
+];

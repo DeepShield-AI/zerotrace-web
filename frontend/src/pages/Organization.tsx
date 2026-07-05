@@ -99,8 +99,8 @@ export function UsersPage() {
           columns={[
             { key: 'user', header: 'User', render: (u: OrgUser) => (
               <div className="flex items-center gap-3">
-                <div className="w-8 h-8 rounded-full flex items-center justify-center text-fg-inverse text-xs font-bold shrink-0"
-                  style={{ background: u.name ? 'linear-gradient(135deg,#632CA6,#8B5CF6)' : '#e4e4e7' }}>
+                <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold shrink-0 ${u.name ? 'text-fg-inverse' : 'bg-bg-muted text-fg-tertiary'}`}
+                  style={u.name ? { background: 'linear-gradient(135deg,#632CA6,#8B5CF6)' } : {}}>
                   {u.name?.[0]?.toUpperCase() || u.email?.[0]?.toUpperCase() || '?'}
                 </div>
                 <div>
@@ -196,10 +196,10 @@ export function SettingsPage() {
           {isAdmin && (
             <div className="flex items-center gap-3">
               <button onClick={handleSave} disabled={saving}
-                className="px-4 py-2 bg-[#007bff] text-white text-sm font-medium rounded-md hover:bg-[#0069d9] disabled:opacity-50 transition-colors">
+                className="px-4 py-2 bg-accent-primary text-white text-sm font-medium rounded-md hover:bg-accent-primary/80 disabled:opacity-50 transition-colors">
                 {saving ? 'Saving...' : 'Save Changes'}
               </button>
-              {msg && <span className={`text-sm ${msg.includes('success') ? 'text-[#28a745]' : 'text-[#dc3545]'}`}>{msg}</span>}
+              {msg && <span className={`text-sm ${msg.includes('success') ? 'text-accent-success' : 'text-accent-danger'}`}>{msg}</span>}
             </div>
           )}
         </div>
@@ -207,25 +207,25 @@ export function SettingsPage() {
 
       {/* Organization Stats */}
       <div className="bg-bg-elevated border-border rounded-lg p-6">
-        <h3 className="text-sm font-semibold text-[#212529] mb-4">Organization Info</h3>
+        <h3 className="text-sm font-semibold text-fg-primary mb-4">Organization Info</h3>
         <div className="grid grid-cols-3 gap-4 text-sm">
-          <div className="p-4 bg-[#f8f9fa] rounded-md">
-            <p className="text-[#6c757d]">Members</p>
-            <p className="text-xl font-bold text-[#212529]">0</p>
+          <div className="p-4 bg-bg-muted rounded-md">
+            <p className="text-fg-tertiary">Members</p>
+            <p className="text-xl font-bold text-fg-primary">0</p>
           </div>
-          <div className="p-4 bg-[#f8f9fa] rounded-md">
-            <p className="text-[#6c757d]">Active Subscriptions</p>
-            <p className="text-xl font-bold text-[#212529]">0</p>
+          <div className="p-4 bg-bg-muted rounded-md">
+            <p className="text-fg-tertiary">Active Subscriptions</p>
+            <p className="text-xl font-bold text-fg-primary">0</p>
           </div>
-          <div className="p-4 bg-[#f8f9fa] rounded-md">
-            <p className="text-[#6c757d]">Your Role</p>
-            <p className="text-xl font-bold text-[#212529] capitalize">{role.replace('_', ' ')}</p>
+          <div className="p-4 bg-bg-muted rounded-md">
+            <p className="text-fg-tertiary">Your Role</p>
+            <p className="text-xl font-bold text-fg-primary capitalize">{role.replace('_', ' ')}</p>
           </div>
         </div>
       </div>
 
       {!isAdmin && (
-        <div className="bg-[#f8f9fa] border border-[#dee2e6] rounded-lg p-4 text-sm text-[#6c757d] text-center">
+        <div className="bg-bg-subtle border border-border rounded-lg p-4 text-sm text-fg-tertiary text-center">
           Only organization admins can modify organization settings.
         </div>
       )}

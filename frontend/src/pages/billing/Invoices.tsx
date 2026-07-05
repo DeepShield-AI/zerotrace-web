@@ -56,7 +56,7 @@ export default function BillingInvoices() {
 
   if (loading) return (
     <div className="flex justify-center py-20">
-      <div className="animate-spin h-8 w-8 border-2 border-[#007bff] border-t-transparent rounded-full" />
+      <div className="animate-spin h-8 w-8 border-2 border-accent-info border-t-transparent rounded-full" />
     </div>
   );
 
@@ -98,7 +98,7 @@ export default function BillingInvoices() {
               </div>
             ) : detailLoading ? (
               <div className="flex justify-center py-20">
-                <div className="animate-spin h-6 w-6 border-2 border-[#007bff] border-t-transparent rounded-full" />
+                <div className="animate-spin h-6 w-6 border-2 border-accent-info border-t-transparent rounded-full" />
               </div>
             ) : (
               <div className="bg-bg-elevated border border-border rounded-lg p-6">
@@ -138,7 +138,7 @@ export default function BillingInvoices() {
                                 <p className="font-medium text-fg-secondary">{formatCurrency(item.commitment_total)}</p>
                                 <p className="text-[11px] text-fg-tertiary">{commitQty.toLocaleString()} × {formatCurrency(item.commitment_unit_price)}</p>
                               </>
-                            ) : <span className="text-[#dee2e6]">—</span>}
+                            ) : <span className="text-fg-disabled">—</span>}
                           </td>
                           <td className="py-3 text-right">
                             {overQty > 0 ? (
@@ -146,7 +146,7 @@ export default function BillingInvoices() {
                                 <p className="font-medium text-accent-warning">{formatCurrency(item.overage_total)}</p>
                                 <p className="text-[11px] text-fg-tertiary">{overQty.toLocaleString()} × {formatCurrency(item.overage_unit_price)}</p>
                               </>
-                            ) : <span className="text-[#dee2e6]">—</span>}
+                            ) : <span className="text-fg-disabled">—</span>}
                           </td>
                           <td className="py-3 text-right font-semibold text-fg-primary">{formatCurrency(item.line_total)}</td>
                         </tr>

@@ -127,7 +127,7 @@ export default function APMPage() {
             <div className="mt-8">
               <h3 className="text-h4 mb-3">After instrumentation you&apos;ll be able to...</h3>
               <div className="grid grid-cols-3 gap-4">
-                {[{t:'Monitor performance',d:'Track throughput, latency, and error rates across all your services.',c:'#E2903C'},{t:'Troubleshoot with tracing',d:'Distributed tracing across services with flame graphs and waterfall views.',c:'#632CA6'},{t:'Optimize with AI',d:'AI-powered insights to identify bottlenecks and optimize performance.',c:'#2DB88D'}].map(card=>(
+                {[{t:'Monitor performance',d:'Track throughput, latency, and error rates across all your services.',c:'#e2903c'},{t:'Troubleshoot with tracing',d:'Distributed tracing across services with flame graphs and waterfall views.',c:'#632ca6'},{t:'Optimize with AI',d:'AI-powered insights to identify bottlenecks and optimize performance.',c:'#2db88d'}].map(card=>(
                   <div key={card.t} className="bg-bg-elevated border border-border rounded-lg overflow-hidden flex flex-col" style={{minHeight:200}}>
                     <div className="h-1" style={{backgroundColor:card.c}}/>
                     <div className="p-5 flex-1"><div className="w-10 h-10 rounded-lg flex items-center justify-center mb-3" style={{background:card.c+'15'}}><svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke={card.c} strokeWidth="2"><path d="M3 3v18h18M7 16l4-8 4 4 4-6"/></svg></div>
@@ -203,7 +203,7 @@ export default function APMPage() {
                       <td className="px-3 py-2 font-mono text-2xs text-fg-tertiary w-[120px]">{t.start_time?.slice(11,19)}</td>
                       <td className="px-3 py-2 font-medium text-accent-primary">{t.root_service||'—'}</td>
                       <td className="px-3 py-2 font-mono text-2xs text-fg-secondary truncate max-w-[200px]">{t.root_operation||'—'}</td>
-                      <td className="px-3 py-2"><div className="flex items-center gap-2"><div className="w-12 h-1 rounded-full bg-edge-lighter"><div className="h-full rounded-full" style={{width:`${Math.min((d/maxDuration)*100,100)}%`,backgroundColor:ok?'#632CA6':'#E65C5C'}}/></div><span className="text-2xs font-mono text-fg-secondary">{d>=1000?(d/1000).toFixed(2)+'s':d.toFixed(0)+'ms'}</span></div></td>
+                      <td className="px-3 py-2"><div className="flex items-center gap-2"><div className="w-12 h-1 rounded-full bg-edge-lighter"><div className={`h-full rounded-full ${ok ? 'bg-accent-primary' : 'bg-accent-danger'}`} style={{width:`${Math.min((d/maxDuration)*100,100)}%`}}/></div><span className="text-2xs font-mono text-fg-secondary">{d>=1000?(d/1000).toFixed(2)+'s':d.toFixed(0)+'ms'}</span></div></td>
                       <td className="px-3 py-2"><Badge label={ok?'200':'ERR'} variant={ok?'success':'error'}/></td>
                     </tr>);
                   })}</tbody></table>)}

@@ -151,7 +151,7 @@ export default function HostMap({ hosts, selectedHost, onSelectHost, loading }: 
       </div>
 
       {/* Map */}
-      <div ref={measuredRef} className="relative overflow-x-auto bg-[#f8f9fb]" style={{ minHeight: 400 }}>
+      <div ref={measuredRef} className="relative overflow-x-auto bg-bg-subtle" style={{ minHeight: 400 }}>
         {loading && hosts.length === 0 ? (
           <div className="p-4"><div className="skeleton h-[400px] w-full rounded-lg" /></div>
         ) : (
