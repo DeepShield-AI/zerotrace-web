@@ -1,7 +1,7 @@
 import { useState, useMemo, useEffect, useRef } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { Select, Button } from 'antd';
-import { ReloadOutlined, SearchOutlined } from '@ant-design/icons';
+import { Select } from 'antd';
+import { SearchOutlined } from '@ant-design/icons';
 import ReactECharts from 'echarts-for-react';
 import { useTranslation } from 'react-i18next';
 import { api } from '../../api/client';
@@ -120,15 +120,11 @@ export default function MetricsPage() {
 
   return (
     <div className="animate-fade-in" style={{ maxWidth: 1480 }}>
-      {/* ── Header: title + time + refresh ── */}
-      <div className="flex items-center justify-between mb-3">
-        <div>
-          <h1 className="text-[20px] font-semibold text-fg-primary">{t('metricsPage.title', { defaultValue: 'Metrics Explorer' })}</h1>
-          <p className="text-xs text-fg-tertiary mt-0.5">{isLoading ? 'Loading...' : `${filteredCount} of ${totalCount} metrics`}</p>
-        </div>
+      {/* ── Header ── */}
+      <div className="flex items-center justify-between mb-4">
+        <h1 className="text-xl font-semibold text-fg-primary">{t('metricsPage.title', { defaultValue: 'Metrics Explorer' })}</h1>
         <div className="flex items-center gap-2">
           <TimeRangePicker value={range} onChange={v => setRange(v)} />
-          <Button icon={<ReloadOutlined />} onClick={() => setSelected(selected)} size="small" className="border-border" />
         </div>
       </div>
 
