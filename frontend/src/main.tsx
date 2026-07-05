@@ -2,6 +2,7 @@ import React, { useMemo } from 'react'
 import ReactDOM from 'react-dom/client'
 import { BrowserRouter } from 'react-router-dom'
 import { ConfigProvider } from 'antd'
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import App from './App'
 import './styles/tokens.css'
 import '@fontsource/geist-sans'
@@ -74,13 +75,19 @@ async function bootstrap() {
     });
   }
 
+  const queryClient = new QueryClient({
+    defaultOptions: { queries: { retry: false, staleTime: 30_000 } },
+  });
+
   ReactDOM.createRoot(document.getElementById('root')!).render(
     <React.StrictMode>
-      <AntTheme>
-        <BrowserRouter>
-          <App />
-        </BrowserRouter>
-      </AntTheme>
+      <QueryClientProvider client={queryClient}>
+        <AntTheme>
+          <BrowserRouter>
+            <App />
+          </BrowserRouter>
+        </AntTheme>
+      </QueryClientProvider>
     </React.StrictMode>,
   );
 }
