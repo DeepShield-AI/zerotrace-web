@@ -4,7 +4,7 @@ import { useQuery } from '@tanstack/react-query';
 import { Spin, Segmented } from 'antd';
 import { WarningOutlined, FireOutlined, ColumnWidthOutlined, OrderedListOutlined } from '@ant-design/icons';
 import { api } from '../../../api/client';
-import FlameGraph from '../../../components/traces/FlameGraph';
+import FlameGraph from '../../../components/topology/FlameGraph';
 import type { TraceData, SpanNode } from './types';
 import { buildTree } from './utils';
 import { TraceHeader, WaterfallView, SpanListView, SpanDetailSidebar } from './components';

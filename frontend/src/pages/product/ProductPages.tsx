@@ -1,5 +1,8 @@
 import { useState } from 'react';
-import { DataTable, StatusBadge, KpiCard, Spinner } from '../../components/shared/Components';
+import { DataTable } from '../../components/ui/DataTable';
+import { StatusBadge } from '../../components/ui/StatusBadge';
+import { KpiCard } from '../../components/ui/KpiCard';
+import { Spinner } from '../../components/ui/Spinner';
 
 /* ═══════════════════ DASHBOARDS ═══════════════════ */
 const MOCK_DASHBOARDS = [

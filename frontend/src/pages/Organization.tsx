@@ -2,7 +2,10 @@ import { useState, useEffect } from 'react';
 import { NavLink, Outlet } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { DataTable, StatusBadge, Spinner, KpiCard } from '../components/shared/Components';
+import { DataTable } from '../components/ui/DataTable';
+import { StatusBadge } from '../components/ui/StatusBadge';
+import { Spinner } from '../components/ui/Spinner';
+import { KpiCard } from '../components/ui/KpiCard';
 import { api } from '../api/client';
 
 /* ── Types ── */

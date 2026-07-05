@@ -31,7 +31,7 @@ interface MetricPoint {
 }
 
 import TimeRangePicker, { parseRange } from '../components/shared/TimeRangePicker';
-import StatCard from '../components/StatCard';
+import StatCard from '../components/ui/StatCard';
 
 function tsLabel(ts: string): string {
   try { return ts ? ts.slice(11, 16) : ''; } catch { return ''; }

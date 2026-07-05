@@ -1,5 +1,7 @@
 import { useState } from 'react';
-import { DataTable, StatusBadge, Spinner } from '../../components/shared/Components';
+import { DataTable } from '../../components/ui/DataTable';
+import { StatusBadge } from '../../components/ui/StatusBadge';
+import { Spinner } from '../../components/ui/Spinner';
 
 /* ═══════════════════ SEAT MANAGEMENT ═══════════════════ */
 export function BillingSeats() {

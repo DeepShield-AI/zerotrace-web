@@ -71,7 +71,7 @@ function NavTabs({ active }: { active: string }) {
 }
 
 import InfraToolbar from '../components/infra/InfraToolbar';
-import KeyboardHint from '../components/KeyboardHint';
+import KeyboardHint from '../components/layout/KeyboardHint';
 
 /* ── Main Page ── */
 

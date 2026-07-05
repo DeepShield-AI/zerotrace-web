@@ -2,7 +2,10 @@ import { useState, useEffect, useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { NavLink, Outlet } from 'react-router-dom';
 import { api } from '../../api/client';
-import { KpiCard, StatusBadge, DataTable, Spinner as SharedSpinner } from '../../components/shared/Components';
+import { KpiCard } from '../../components/ui/KpiCard';
+import { StatusBadge } from '../../components/ui/StatusBadge';
+import { DataTable } from '../../components/ui/DataTable';
+import { Spinner as SharedSpinner } from '../../components/ui/Spinner';
 
 // ── Types ──
 interface Plan { id: number; product_key: string; name: string; description: string; billing_dimension: string; aggregation_method: string; unit_price_monthly: number; unit_price_annual: number; is_addon: boolean; parent_product_key: string | null; }
@@ -26,7 +29,7 @@ const FAMILIES: Record<string, { label: string; order: number }> = {
 };
 const familyOf = (key: string) => { for (const [p, f] of Object.entries(FAMILIES)) if (key.startsWith(p)) return f.label; return 'Other'; };
 
-/* Using shared KpiCard, StatusBadge, Spinner from ../components/shared/Components */
+/* Using ui/ KpiCard, StatusBadge, Spinner */
 
 // ═══════════════════════ BILLING LAYOUT ═══════════════════════
 export function BillingLayout() {
