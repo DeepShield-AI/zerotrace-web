@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { NavLink, Outlet } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { DataTable, StatusBadge, Spinner, KpiCard } from '../components/Components';
 import { api } from '../api/client';
 
@@ -56,32 +57,27 @@ export function OrgLayout() {
 
 /* ════════════════════════ USERS PAGE ════════════════════════ */
 export function UsersPage() {
-  const [users, setUsers] = useState<OrgUser[]>([]);
-  const [stats, setStats] = useState<any>({});
-  const [currentUserRole, setCurrentUserRole] = useState('member');
-  const [loading, setLoading] = useState(true);
+  const queryClient = useQueryClient();
+  const { data: usersData, isLoading } = useQuery({
+    queryKey: ['users'],
+    queryFn: () => api.listUsers(),
+  });
+  const users = usersData?.users || [];
+  const stats = usersData?.stats || {};
+  const currentUserRole = usersData?.current_user_role || 'member';
   const isSuperAdmin = currentUserRole === 'super_admin';
   const canManage = currentUserRole === 'admin' || currentUserRole === 'super_admin';
 
-  const loadUsers = () => {
-    api.listUsers().then(data => {
-      setUsers(data.users || []);
-      setStats(data.stats || {});
-      setCurrentUserRole(data.current_user_role || 'member');
-    }).catch(() => {}).finally(() => setLoading(false));
-  };
-  useEffect(() => { loadUsers(); }, []);
-
   const handleRoleChange = async (userId: number, newRole: string) => {
     await api.updateUser(userId, { role: newRole });
-    loadUsers();
+    queryClient.invalidateQueries({ queryKey: ['users'] });
   };
   const handleDisable = async (userId: number) => {
     await api.updateUser(userId, { status: 'disabled' });
-    loadUsers();
+    queryClient.invalidateQueries({ queryKey: ['users'] });
   };
 
-  if (loading) return <div className="py-12"><Spinner /></div>;
+  if (isLoading) return <div className="py-12"><Spinner /></div>;
 
   return (
     <div className="space-y-6">
@@ -159,20 +155,18 @@ export function UsersPage() {
 
 /* ════════════════════════ SETTINGS PAGE ════════════════════════ */
 export function SettingsPage() {
-  const [org, setOrg] = useState<any>(null);
-  const [name, setName] = useState('');
+  const { data: orgData } = useQuery({
+    queryKey: ['organization'],
+    queryFn: () => api.getOrganization(),
+  });
+  const org = orgData?.organization;
+  const role = orgData?.current_user_role || 'member';
+  const [name, setName] = useState(orgData?.organization?.name || '');
   const [saving, setSaving] = useState(false);
   const [msg, setMsg] = useState('');
-  const [role, setRole] = useState('member');
   const isAdmin = role === 'admin' || role === 'super_admin';
 
-  useEffect(() => {
-    api.getOrganization().then(d => {
-      setOrg(d.organization);
-      setName(d.organization.name);
-      setRole(d.current_user_role);
-    }).catch(() => {});
-  }, []);
+  useEffect(() => { if (org?.name && !name) setName(org.name); }, [org, name]);
 
   const handleSave = async () => {
     setSaving(true); setMsg('');

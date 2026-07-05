@@ -1,4 +1,5 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useCallback } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { api } from '../api/client';
 import { Button, Spin, Badge } from 'antd';
 
@@ -104,38 +105,22 @@ function SimpleMarkdown({ text }: { text: string }) {
 
 export default function GuardianPanel() {
   const [isOpen, setIsOpen] = useState(false);
-  const [stories, setStories] = useState<StorySummary[]>([]);
   const [selectedStory, setSelectedStory] = useState<Story | null>(null);
-  const [loading, setLoading] = useState(false);
   const [analyzing, setAnalyzing] = useState(false);
 
-  // Fetch stories on mount
-  const fetchStories = useCallback(async () => {
-    setLoading(true);
-    try {
-      const data = await api.guardianStories();
-      setStories(data.stories || []);
-    } catch { /* silent */ }
-    finally { setLoading(false); }
-  }, []);
-
-  useEffect(() => { fetchStories(); }, [fetchStories]);
+  const { data: storiesData, isLoading, refetch: refetchStories } = useQuery({
+    queryKey: ['guardianStories'],
+    queryFn: () => api.guardianStories(),
+  });
+  const stories = (storiesData?.stories || []) as StorySummary[];
 
   // Trigger analysis
   const runAnalysis = async () => {
     setAnalyzing(true);
     try {
-      const data = await api.guardianAnalyze({});
-      setStories(data.stories?.map((s: Story) => ({
-        id: s.id,
-        title: s.title,
-        severity: s.severity,
-        detected_at: s.detected_at,
-        affected_services: s.affected_services,
-        anomaly_count: s.anomalies.length,
-      })) || []);
-    } catch { /* silent */ }
-    finally { setAnalyzing(false); }
+      await api.guardianAnalyze({});
+      refetchStories();
+    } catch { /* silent */ } finally { setAnalyzing(false); }
   };
 
   // Fetch story detail
@@ -267,7 +252,7 @@ export default function GuardianPanel() {
                 /* ── Story List ── */
                 <div className="p-4 space-y-3">
                   {/* Empty state */}
-                  {!loading && stories.length === 0 && (
+                  {!isLoading && stories.length === 0 && (
                     <div className="text-center py-12">
                       <div className="w-12 h-12 rounded-2xl mx-auto mb-3 flex items-center justify-center" style={{ background: 'linear-gradient(135deg, #632CA6, #8B5CF6)' }}>
                         <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round">
@@ -283,7 +268,7 @@ export default function GuardianPanel() {
                   )}
 
                   {/* Loading */}
-                  {loading && (
+                  {isLoading && (
                     <div className="flex items-center justify-center py-12">
                       <Spin />
                     </div>

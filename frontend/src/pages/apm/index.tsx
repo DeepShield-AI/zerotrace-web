@@ -1,4 +1,5 @@
-import { useEffect, useState, useCallback, useMemo } from 'react';
+import { useEffect, useState, useMemo } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { Link, useNavigate, useSearchParams, useLocation } from 'react-router-dom';
 import ReactECharts from 'echarts-for-react';
 import { api } from '../../api/client';
@@ -6,7 +7,7 @@ import TopologyMap, { TopologyNode, TopologyEdge } from '../../components/Topolo
 import TopologySidebar from '../../components/TopologySidebar';
 import TimeRangePicker, { parseRange } from '../../components/TimeRangePicker';
 import { useDebounce } from '../../hooks/useDebounce';
-import type { ApmServiceItem, ApmTraceItem, ApmTsRow, ApmHistBucket, ApmStats } from '../../api/types';
+import type { ApmServiceItem, ApmTraceItem, ApmStats } from '../../api/types';
 import { SlowRequestsPanel, ErrorAnalysisPanel } from '../../components/ApmDemos';
 import ApmServicesView from '../../components/ApmServicesView';
 import { TableSkeleton, Badge, EmptyState, SearchInput, FilterBar, StatusDot } from '../../components/ui';
@@ -25,25 +26,11 @@ export default function APMPage() {
   const navigate = useNavigate(); const location = useLocation();
   const isIntro = location.pathname === '/apm/intro';
   const [range, setRange] = useState('1h');
-  const [loading, setLoading] = useState(true);
-  const [services, setServices] = useState<ApmServiceItem[]>([]);
-  const [svcState, setSvcState] = useState<'loading'|'empty'|'error'|'data'>('loading');
-  const [svcError, setSvcError] = useState('');
-  const [traces, setTraces] = useState<ApmTraceItem[]>([]);
-  const [trState, setTrState] = useState<'loading'|'empty'|'error'|'data'>('loading');
-  const [trError, setTrError] = useState('');
-  const [traceOffset, setTraceOffset] = useState(0);
-  const [traceTotal, setTraceTotal] = useState(0);
-  const TRACE_LIMIT = 20;
-  const [stats, setStats] = useState<ApmStats|null>(null);
   const [rawQuery, setRawQuery] = useState('');
   const query = useDebounce(rawQuery, 300);
   const [facetStatus, setFacetStatus] = useState('');
   const [facetService, setFacetService] = useState('');
   const [facetDuration, setFacetDuration] = useState('');
-  const [topoNodes, setTopoNodes] = useState<TopologyNode[]>([]);
-  const [topoEdges, setTopoEdges] = useState<TopologyEdge[]>([]);
-  const [topoLoading, setTopoLoading] = useState(false);
   const [topoSizing, setTopoSizing] = useState<'requests'|'latency'|'errors'>('requests');
   const [topoLayout, setTopoLayout] = useState<'force'|'circular'>('force');
   const [topoHighlighted, setTopoHighlighted] = useState<string|undefined>();
@@ -53,36 +40,53 @@ export default function APMPage() {
   useEffect(() => { const v=searchParams.get('view') as any; if(v==='traces'||v==='topology') setView(v); else if(!v) setView('services'); },[searchParams]);
   const { start, end } = parseRange(range);
   const qp = useMemo(() => ({ query: query||undefined, start, end }),[query,start,end]);
+  const TRACE_LIMIT = 20;
 
-  const fetchSvc = useCallback(async () => {
-    setSvcState('loading'); setSvcError('');
-    try {
-      const [svcData, statsData] = await Promise.all([api.getApmServices(qp), api.getApmStats(qp).catch(()=>null)]);
-      const svcs = (svcData?.services||[]).filter((s:any)=>s?.service_name);
-      setServices(svcs); setStats(statsData as ApmStats|null);
-      const isEmpty = svcs.length === 0;
-      setSvcState(isEmpty?'empty':'data');
-      if (isEmpty && location.pathname !== '/apm/intro') navigate('/apm/intro',{replace:true});
-    } catch { setSvcState('empty'); } finally { setLoading(false); }
-  },[qp,navigate]);
+  // Services + stats query
+  const svcQuery = useQuery({
+    queryKey: ['apm', 'services', qp],
+    queryFn: () => Promise.all([
+      api.getApmServices(qp),
+      api.getApmStats(qp).catch(() => null),
+    ]),
+  });
 
-  const fetchTr = useCallback(async (append=false) => {
-    setTrState('loading');
-    try {
-      const d = await api.getApmTraces({...qp,limit:TRACE_LIMIT,offset:append?traces.length:0,status:facetStatus||undefined,service:facetService||undefined,query:facetDuration||qp.query});
-      const trs = d?.traces||[];
-      setTraces(append?[...traces,...trs]:trs); setTraceTotal(d?.total||0); setTrState(trs.length>0?'data':'empty');
-    } catch { setTrState('empty'); }
-  },[qp,traces.length,facetStatus,facetService,facetDuration]);
-  const loadMoreTraces = useCallback(() => { if(traces.length<traceTotal) fetchTr(true); },[traces.length,traceTotal,fetchTr]);
+  const services: ApmServiceItem[] = (svcQuery.data?.[0]?.services || []).filter((s: any) => s?.service_name);
+  const stats = (svcQuery.data?.[1] || null) as ApmStats | null;
+  const svcState = svcQuery.isLoading ? 'loading' : services.length === 0 ? 'empty' : 'data';
+  const svcError = svcQuery.error instanceof Error ? svcQuery.error.message : '';
 
-  const fetchTopo = useCallback(async () => {
-    setTopoLoading(true);
-    try { const d=await api.getApmTopology({query:query||undefined,start,end}); setTopoNodes(d.nodes||[]); setTopoEdges(d.edges||[]); } catch{} finally { setTopoLoading(false); }
-  },[query,start,end]);
+  // Traces query
+  const trQuery = useQuery({
+    queryKey: ['apm', 'traces', qp, facetStatus, facetService, facetDuration],
+    queryFn: () => api.getApmTraces({
+      ...qp,
+      limit: TRACE_LIMIT,
+      offset: 0,
+      status: facetStatus || undefined,
+      service: facetService || undefined,
+      query: facetDuration || qp.query,
+    }),
+    enabled: view === 'traces',
+  });
 
-  useEffect(()=>{fetchSvc();fetchTopo();},[start,end]);
-  useEffect(()=>{if(view==='traces')fetchTr();if(view==='topology')fetchTopo();},[view]);
+  const traces: ApmTraceItem[] = (trQuery.data?.traces || []) as ApmTraceItem[];
+  const traceTotal = trQuery.data?.total || 0;
+  const trState = trQuery.isLoading ? 'loading' : trQuery.error ? 'error' : traces.length > 0 ? 'data' : 'empty';
+  const trError = trQuery.error instanceof Error ? trQuery.error.message : '';
+
+  // Topology query
+  const topoQuery = useQuery({
+    queryKey: ['apm', 'topology', qp],
+    queryFn: () => api.getApmTopology({ query: query || undefined, start, end }).then((d: any) => ({
+      nodes: d.nodes || [],
+      edges: d.edges || [],
+    })),
+  });
+
+  const topoNodes: TopologyNode[] = (topoQuery.data?.nodes || []) as TopologyNode[];
+  const topoEdges: TopologyEdge[] = (topoQuery.data?.edges || []) as TopologyEdge[];
+  const topoLoading = topoQuery.isFetching;
 
   const hasNoData = svcState==='empty'&&!isIntro;
   useEffect(()=>{if(!isIntro&&hasNoData)navigate('/apm/intro',{replace:true});},[isIntro,hasNoData,navigate]);
@@ -163,7 +167,7 @@ export default function APMPage() {
           value={rawQuery} onChange={setRawQuery}/>
       )}
 
-      {view==='services' && <ApmServicesView services={services} svcState={svcState} onRetry={fetchSvc} range={range}/>}
+      {view==='services' && <ApmServicesView services={services} svcState={svcState} onRetry={() => svcQuery.refetch()} range={range}/>}
 
       {view==='traces' && (<>
         <div className="flex items-center gap-1 mt-3 mb-3">
@@ -176,14 +180,14 @@ export default function APMPage() {
             <div className="w-[200px] shrink-0"><div className="bg-bg-elevated border border-border rounded-lg p-3">
               <h4 className="text-h6 mb-2">Facets</h4>
               {[{k:'',l:'All'},{k:'ok',l:'OK'},{k:'error',l:'Error'}].map(f=>(
-                <button key={f.k} onClick={()=>{setFacetStatus(facetStatus===f.k?'':f.k);setTraceOffset(0);}}
+                <button key={f.k} onClick={()=>{setFacetStatus(facetStatus===f.k?'':f.k);}}
                   className={`w-full text-left px-2.5 py-1.5 text-xs rounded flex items-center gap-2 transition-colors ${facetStatus===f.k?'bg-accent-primary/10 text-accent-primary font-medium':'text-fg-secondary hover:bg-bg-subtle'}`}>
                   <StatusDot status={f.k==='error'?'error':'online'}/><span className="flex-1">{f.l}</span>
                 </button>
               ))}
               <div className="mt-3 pt-3 border-t border-border-lighter"><h5 className="text-h6 mb-1">Duration</h5>
                 {[{l:'<10ms',q:'duration:<10ms'},{l:'10-100ms',q:'duration:>10ms duration:<100ms'},{l:'100ms-1s',q:'duration:>100ms duration:<1s'},{l:'>1s',q:'duration:>1s'}].map(d=>(
-                  <button key={d.l} onClick={()=>{setFacetDuration(facetDuration===d.q?'':d.q);setTraceOffset(0);}}
+                  <button key={d.l} onClick={()=>{setFacetDuration(facetDuration===d.q?'':d.q);}}
                     className={`w-full text-left px-2.5 py-1 text-xs rounded transition-colors ${facetDuration===d.q?'bg-accent-primary/10 text-accent-primary font-medium':'text-fg-secondary hover:bg-bg-subtle'}`}>{d.l}</button>
                 ))}
               </div>
@@ -213,7 +217,7 @@ export default function APMPage() {
       {view==='topology' && (
         <div className="flex gap-4">
           <TopologySidebar nodes={topoNodes} edges={topoEdges} activeSizing={topoSizing} onSizingChange={setTopoSizing} activeLayout={topoLayout} onLayoutChange={setTopoLayout} searchQuery="" onSearchChange={()=>{}} highlightedNode={topoHighlighted} onNodeHighlight={setTopoHighlighted}/>
-          <div className="flex-1"><TopologyMap key={`topo-${topoNodes.length}`} nodes={topoNodes} edges={topoEdges} loading={topoLoading} onServiceClick={svc=>navigate('/apm/services/'+svc)} onRefresh={fetchTopo}/></div>
+          <div className="flex-1"><TopologyMap key={`topo-${topoNodes.length}`} nodes={topoNodes} edges={topoEdges} loading={topoLoading} onServiceClick={svc=>navigate('/apm/services/'+svc)} onRefresh={() => topoQuery.refetch()}/></div>
         </div>
       )}
     </div>

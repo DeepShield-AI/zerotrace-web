@@ -1,5 +1,6 @@
-import { useEffect, useState, useCallback, useMemo } from 'react';
+import { useState, useMemo } from 'react';
 import { useParams, Link } from 'react-router-dom';
+import { useQuery } from '@tanstack/react-query';
 import { Spin, Segmented } from 'antd';
 import { WarningOutlined, FireOutlined, ColumnWidthOutlined, OrderedListOutlined } from '@ant-design/icons';
 import { api } from '../../../api/client';
@@ -10,21 +11,14 @@ import { TraceHeader, WaterfallView, SpanListView, SpanDetailSidebar } from './c
 
 export default function TraceDetailPage() {
   const { traceId } = useParams<{ traceId: string }>();
-  const [trace, setTrace] = useState<TraceData | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   const [selectedSpanId, setSelectedSpanId] = useState<string | null>(null);
   const [viewMode, setViewMode] = useState<'waterfall' | 'list' | 'flamegraph'>('waterfall');
 
-  const fetchTrace = useCallback(async () => {
-    if (!traceId) return;
-    setLoading(true); setError(null);
-    try { setTrace(await api.getApmTraceDetail(traceId)); }
-    catch (err: any) { setError(err.message || 'Failed to load trace'); }
-    finally { setLoading(false); }
-  }, [traceId]);
-
-  useEffect(() => { fetchTrace(); }, [fetchTrace]);
+  const { data: trace, isLoading, error } = useQuery<TraceData>({
+    queryKey: ['trace', traceId],
+    queryFn: () => api.getApmTraceDetail(traceId!),
+    enabled: !!traceId,
+  });
 
   const flatSpans = useMemo(() => {
     if (!trace || !trace.spans?.length) return [] as SpanNode[];
@@ -39,14 +33,14 @@ export default function TraceDetailPage() {
 
   const selectedSpan = useMemo(() => flatSpans.find((s) => s.span_id === selectedSpanId) || null, [flatSpans, selectedSpanId]);
 
-  if (loading) return <div className="flex items-center justify-center py-32"><Spin size="large" /></div>;
+  if (isLoading) return <div className="flex items-center justify-center py-32"><Spin size="large" /></div>;
 
   if (error || !trace) {
     return (
       <div className="flex flex-col items-center justify-center py-32 text-center">
         <div className="w-16 h-16 rounded-2xl bg-accent-danger-bg flex items-center justify-center mb-4"><WarningOutlined className="text-accent-danger text-2xl" /></div>
         <h3 className="text-lg font-semibold text-fg-primary mb-1">Failed to load trace</h3>
-        <p className="text-sm text-fg-secondary mb-4">{error || 'Trace not found'}</p>
+        <p className="text-sm text-fg-secondary mb-4">{error?.message || 'Trace not found'}</p>
         <Link to="/apm" className="text-accent-primary hover:underline text-sm">&larr; Back to APM</Link>
       </div>
     );
@@ -61,7 +55,6 @@ export default function TraceDetailPage() {
   return (
     <div className="animate-fade-in max-w-[1480px]">
       <TraceHeader trace={trace} services={services} />
-
       <div className="flex items-center justify-between mb-4">
         <Segmented
           options={[
@@ -73,7 +66,6 @@ export default function TraceDetailPage() {
           onChange={(v) => setViewMode(v as typeof viewMode)}
         />
       </div>
-
       <div className="flex gap-0">
         <div className="flex-1 min-w-0">{mainContent}</div>
         {selectedSpan && <SpanDetailSidebar span={selectedSpan} onClose={() => setSelectedSpanId(null)} />}

@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect, useCallback, useMemo } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { api } from '../api/client';
 
 // ---------------------------------------------------------------------------
@@ -56,18 +57,22 @@ export default function QueryBar({ value, onChange, onSubmit, placeholder, start
   const [suggestions, setSuggestions] = useState<SuggestionGroup[]>([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [selectedIndex, setSelectedIndex] = useState(-1);
-  const [tags, setTags] = useState<TagSuggestion[]>([]);
+  const [tags, setTags] = useState<TagSuggestion[]>([])
   const [services, setServices] = useState<ServiceSuggestion[]>([]);
   const inputRef = useRef<HTMLInputElement>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   // Fetch available tags and services for autocomplete
+  const { data: tagsData } = useQuery({
+    queryKey: ['apmTags', start, end],
+    queryFn: () => api.getApmTags({ start, end }),
+  });
   useEffect(() => {
-    api.getApmTags({ start, end }).then(data => {
-      setTags(data.tags || []);
-      setServices(data.services || []);
-    }).catch(() => {});
-  }, [start, end]);
+    if (tagsData) {
+      setTags(tagsData.tags || []);
+      setServices(tagsData.services || []);
+    }
+  }, [tagsData]);
 
   // Determine current token being typed
   const getCurrentContext = useCallback((): { prefix: string; key: string | null } => {

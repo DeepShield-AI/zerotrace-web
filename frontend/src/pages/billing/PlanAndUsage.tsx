@@ -1,4 +1,5 @@
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useState, useEffect, useMemo } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { NavLink, Outlet } from 'react-router-dom';
 import { api } from '../../api/client';
 import { KpiCard, StatusBadge, DataTable, Spinner as SharedSpinner } from '../../components/Components';
@@ -49,14 +50,13 @@ export function BillingLayout() {
 
 // ═══════════════════════ OVERVIEW ═══════════════════════
 export function BillingOverview() {
-  const [summary, setSummary] = useState<BillingSummary | null>(null);
-  const [estCost, setEstCost] = useState<EstimatedCost | null>(null);
-  const [loading, setLoading] = useState(true);
-  useEffect(() => { Promise.all([api.getBillingSummary().catch(() => null), api.getBillingEstimatedCost().catch(() => null)]).then(([s, e]) => { setSummary(s as any); setEstCost(e as any); setLoading(false); }); }, []);
+  const { data: summary, isLoading: summaryLoading } = useQuery({ queryKey: ['billingSummary'], queryFn: () => api.getBillingSummary().catch(() => null) });
+  const { data: estCost, isLoading: estCostLoading } = useQuery({ queryKey: ['billingEstCost'], queryFn: () => api.getBillingEstimatedCost().catch(() => null) });
+  const loading = summaryLoading || estCostLoading;
   const families = useMemo(() => {
     if (!summary?.products) return [];
     const m: Record<string, ProductUsageRow[]> = {};
-    summary.products.forEach(p => { const f = familyOf(p.product_key); if (!m[f]) m[f] = []; m[f].push(p); });
+    summary.products.forEach((p: any) => { const f = familyOf(p.product_key); if (!m[f]) m[f] = []; m[f].push(p); });
     return Object.entries(m).sort((a, b) => (Object.values(FAMILIES).find(x => x.label === a[0])?.order ?? 99) - (Object.values(FAMILIES).find(x => x.label === b[0])?.order ?? 99));
   }, [summary]);
   if (loading) return <SharedSpinner />;
@@ -155,9 +155,13 @@ export function BillingOverview() {
 
 // ═══════════════════════ PLAN (Zerotrace-style) ═══════════════════════
 export function BillingPlan() {
-  const [plans, setPlans] = useState<Plan[]>([]);
-  const [subs, setSubs] = useState<Subscription[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { data: plansData, isLoading: plansLoading, refetch: refetchPlans } = useQuery({ queryKey: ['billingPlans'], queryFn: () => api.getBillingPlans().catch(() => ({ plans: [] })) });
+  const { data: subsData, isLoading: subsLoading, refetch: refetchSubs } = useQuery({ queryKey: ['billingSubscriptions'], queryFn: () => api.getBillingSubscriptions().catch(() => ({ subscriptions: [] })) });
+  const { data: userData } = useQuery({ queryKey: ['currentUser'], queryFn: () => api.listUsers().catch(() => ({})) });
+  const plans = ((plansData as any)?.plans || []) as Plan[];
+  const subs = ((subsData as any)?.subscriptions || []) as Subscription[];
+  const loading = plansLoading || subsLoading;
+  const isSuperAdmin = (userData as any)?.current_user_role === 'super_admin';
   const [modalPlan, setModalPlan] = useState<Plan | null>(null);
   const [modalEdit, setModalEdit] = useState<Subscription | null>(null);
   const [commitType, setCommitType] = useState<'annual' | 'monthly' | 'on_demand'>('annual');
@@ -169,23 +173,12 @@ export function BillingPlan() {
   const [editMonthly, setEditMonthly] = useState(0);
   const [editAnnual, setEditAnnual] = useState(0);
   const [editSaving, setEditSaving] = useState(false);
-  const [isSuperAdmin, setIsSuperAdmin] = useState(false);
-  // Check if current user is super_admin (from users API)
-  useEffect(() => {
-    api.listUsers().then(d => setIsSuperAdmin(d.current_user_role === 'super_admin')).catch(() => {});
-  }, []);
-
-  const load = useCallback(async () => {
-    const [p, s] = await Promise.all([api.getBillingPlans().catch(() => ({ plans: [] })), api.getBillingSubscriptions().catch(() => ({ subscriptions: [] }))]);
-    setPlans((p as any)?.plans || []); setSubs((s as any)?.subscriptions || []); setLoading(false);
-  }, []);
-  useEffect(() => { load(); }, [load]);
   const activeByPid = useMemo(() => { const m: Record<number, Subscription> = {}; subs.filter(s => s.status === 'active').forEach(s => { m[s.plan_id] = s; }); return m; }, [subs]);
 
   const [subError, setSubError] = useState('');
-  const doAction = async () => { if (!modalPlan) return; setSubLoading(true); setSubError(''); try { if (modalEdit) await api.updateBillingSubscription(modalEdit.id, qty); else await api.createBillingSubscription({ plan_id: modalPlan.id, commitment_type: commitType, committed_quantity: qty }); setModalPlan(null); setModalEdit(null); load(); } catch (err: any) { setSubError(err.message || 'Subscription failed'); } finally { setSubLoading(false); } };
-  const doCancel = async (id: number) => { if (confirm('Cancel this subscription?')) { await api.cancelBillingSubscription(id); load(); } };
-  const doEditSave = async () => { if (!editPlan) return; setEditSaving(true); try { await api.updateBillingPlan(editPlan.id, { name: editName, unit_price_monthly: editMonthly, unit_price_annual: editAnnual }); setEditPlan(null); load(); } finally { setEditSaving(false); } };
+  const doAction = async () => { if (!modalPlan) return; setSubLoading(true); setSubError(''); try { if (modalEdit) await api.updateBillingSubscription(modalEdit.id, qty); else await api.createBillingSubscription({ plan_id: modalPlan.id, commitment_type: commitType, committed_quantity: qty }); setModalPlan(null); setModalEdit(null); refetchPlans(); refetchSubs(); } catch (err: any) { setSubError(err.message || 'Subscription failed'); } finally { setSubLoading(false); } };
+  const doCancel = async (id: number) => { if (confirm('Cancel this subscription?')) { await api.cancelBillingSubscription(id); refetchPlans(); refetchSubs(); } };
+  const doEditSave = async () => { if (!editPlan) return; setEditSaving(true); try { await api.updateBillingPlan(editPlan.id, { name: editName, unit_price_monthly: editMonthly, unit_price_annual: editAnnual }); setEditPlan(null); refetchPlans(); refetchSubs(); } finally { setEditSaving(false); } };
   const basePlans = plans.filter(p => !p.is_addon);
   const addonPlans = plans.filter(p => p.is_addon);
   if (loading) return <SharedSpinner />;
@@ -308,14 +301,13 @@ export function BillingPlan() {
 
 // ═══════════════════════ BILLING HISTORY ═══════════════════════
 export function BillingHistory() {
-  const [invoices, setInvoices] = useState<InvoiceData[]>([]);
+  const { data: invoicesData, isLoading } = useQuery({ queryKey: ['billingInvoices'], queryFn: () => api.getBillingInvoices().catch(() => ({ invoices: [] })) });
+  const invoices = (invoicesData as any)?.invoices || [];
   const [selected, setSelected] = useState<InvoiceData | null>(null);
   const [lines, setLines] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
   const [detailLoading, setDetailLoading] = useState(false);
-  useEffect(() => { api.getBillingInvoices().then(r => { setInvoices(r.invoices || []); setLoading(false); }); }, []);
   const loadDetail = async (inv: InvoiceData) => { setSelected(inv); setDetailLoading(true); try { const r = await api.getBillingInvoiceDetail(inv.id); setLines(r.line_items || []); } finally { setDetailLoading(false); } };
-  if (loading) return <SharedSpinner />;
+  if (isLoading) return <SharedSpinner />;
   return (
     <div className="space-y-6">
       {/* DD: Contact text */}
@@ -329,7 +321,7 @@ export function BillingHistory() {
       ) : (
         <div className="grid grid-cols-3 gap-6">
           <div className="col-span-1 space-y-2 max-h-[600px] overflow-y-auto pr-1">
-            {invoices.map(inv => (
+            {invoices.map((inv: any) => (
               <button key={inv.id} onClick={() => loadDetail(inv)} className={`w-full text-left p-4 rounded-lg border transition-all ${selected?.id === inv.id ? 'border-accent-info ring-2 ring-accent-info-bg bg-accent-info-bg/30' : 'border-border bg-bg-elevated hover:border-border-strong hover:shadow-sm'}`}>
                 <div className="flex justify-between items-start mb-1.5"><span className="text-xs text-fg-tertiary font-mono">{inv.period_start} – {inv.period_end}</span><StatusBadge status={inv.status} /></div>
                 <p className="text-lg font-bold text-fg-primary">{fmt(inv.total)}</p>
@@ -361,21 +353,20 @@ export function BillingHistory() {
 
 // ═══════════════════════ USAGE ═══════════════════════
 export function BillingUsagePage() {
-  const [usage, setUsage] = useState<any[]>([]);
+  const { data: usageData, isLoading } = useQuery({ queryKey: ['billingUsage'], queryFn: () => api.getBillingUsage() });
+  const usage = (usageData as any)?.products || [];
   const [selected, setSelected] = useState('');
-  const [hourly, setHourly] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [chartLoading, setChartLoading] = useState(false);
-  useEffect(() => { api.getBillingUsage().then(r => { const p = r.products || []; setUsage(p); if (p.length > 0) setSelected(p[0].product_key); setLoading(false); }).catch(() => setLoading(false)); }, []);
-  useEffect(() => { if (!selected) return; setChartLoading(true); api.getBillingHourlyUsage(selected).then(r => setHourly(r.records || [])).finally(() => setChartLoading(false)); }, [selected]);
-  if (loading) return <SharedSpinner />;
+  useEffect(() => { if (usage.length > 0 && selected === '') setSelected(usage[0].product_key); }, [usage, selected]);
+  const { data: hourlyData, isLoading: chartLoading } = useQuery({ queryKey: ['billingHourlyUsage', selected], queryFn: () => api.getBillingHourlyUsage(selected), enabled: !!selected });
+  const hourly = (hourlyData as any)?.records || [];
+  if (isLoading) return <SharedSpinner />;
   const quantities = hourly.map((d: any) => parseFloat(d.quantity) || 0);
   const stats = { total: quantities.reduce((a: number, b: number) => a + b, 0), max: Math.max(...quantities, 0), avg: quantities.length ? quantities.reduce((a: number, b: number) => a + b, 0) / quantities.length : 0, p99: [...quantities].sort((a, b) => a - b)[Math.floor(quantities.length * 0.99)] || 0 };
   const display = hourly.slice(-48); const barMax = Math.max(...display.map((d: any) => parseFloat(d.quantity) || 0), 1);
   return (
     <div className="animate-fade-in space-y-6">
       <div><h2 className="text-xl font-bold text-fg-primary">Hourly Usage</h2><p className="text-sm text-fg-tertiary mt-1">Per-hour usage breakdown by product</p></div>
-      <div className="flex flex-wrap gap-2">{usage.map(p => (<button key={p.product_key} onClick={() => setSelected(p.product_key)} className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${selected === p.product_key ? 'bg-accent-info text-fg-inverse shadow-md' : 'bg-bg-elevated border-border text-fg-secondary hover:border-border-strong hover:bg-bg-subtle'}`}>{p.product_key}<span className={`ml-1.5 text-xs ${selected === p.product_key ? 'text-white/70' : 'text-fg-tertiary'}`}>{fmtShort(parseFloat(p.total_quantity))}</span></button>))}</div>
+      <div className="flex flex-wrap gap-2">{usage.map((p: any) => (<button key={p.product_key} onClick={() => setSelected(p.product_key)} className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${selected === p.product_key ? 'bg-accent-info text-fg-inverse shadow-md' : 'bg-bg-elevated border-border text-fg-secondary hover:border-border-strong hover:bg-bg-subtle'}`}>{p.product_key}<span className={`ml-1.5 text-xs ${selected === p.product_key ? 'text-white/70' : 'text-fg-tertiary'}`}>{fmtShort(parseFloat(p.total_quantity))}</span></button>))}</div>
       <div className="grid grid-cols-4 gap-3">{[{ l: 'Total', v: fmtShort(stats.total), c: 'text-accent-info' },{ l: 'Peak', v: fmtShort(stats.max), c: 'text-accent-warning' },{ l: '99th%ile', v: fmtShort(stats.p99), c: 'text-accent-primary' },{ l: 'Average', v: fmtShort(stats.avg), c: 'text-accent-info' }].map(s => (<div key={s.l} className="bg-bg-elevated border-border rounded-lg p-4"><p className="text-[11px] font-semibold text-fg-tertiary uppercase tracking-wider">{s.l}</p><p className={`text-xl font-bold ${s.c}`}>{s.v}</p></div>))}</div>
       <div className="bg-bg-elevated border-border rounded-lg p-6">{chartLoading ? <SharedSpinner /> : display.length === 0 ? <p className="text-center py-16 text-fg-disabled text-sm">No hourly data</p> : (<div className="flex items-end gap-[2px] h-48 overflow-x-auto pb-6">{display.map((d: any, i: number) => { const q = parseFloat(d.quantity) || 0; const h = Math.max((q / barMax) * 100, 2); return (<div key={i} className="flex-1 flex flex-col items-center min-w-[8px]" title={`${d.hour}: ${q}`}><div className={`w-full rounded-t-sm transition-all hover:opacity-80 ${q === stats.max ? 'bg-severity-warn' : 'bg-[#f0f7ff]0'}`} style={{ height: `${h}%` }} />{(i % 6 === 0) && <span className="text-[9px] text-fg-tertiary mt-1.5">{new Date(d.hour + 'Z').getUTCHours().toString().padStart(2, '0')}:00</span>}</div>);})}</div>)}</div>
     </div>

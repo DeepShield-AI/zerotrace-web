@@ -1,4 +1,5 @@
 import { useEffect, useState, useRef, useMemo, useCallback } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { Select, Button, Spin, Tooltip } from 'antd';
 import { ReloadOutlined, SearchOutlined, CopyOutlined, LinkOutlined, PlusOutlined } from '@ant-design/icons';
 import * as echarts from 'echarts/core';
@@ -116,46 +117,41 @@ export default function MetricsPage() {
   const { t } = useTranslation();
   const navigate = useNavigate();
 
-  const [metrics, setMetrics] = useState<MetricDef[]>([]);
-  const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [expandedCats, setExpandedCats] = useState<Record<string, boolean>>({});
   const [selected, setSelected] = useState<string | null>(null);
   const [range, setRange] = useState('1h');
-  const [points, setPoints] = useState<MetricPoint[]>([]);
-  const [chartLoading, setChartLoading] = useState(false);
-  const [chartError, setChartError] = useState('');
-  const [loadError, setLoadError] = useState('');
 
   const { start, end } = parseRange(range);
 
-  useEffect(() => {
-    setLoading(true);
-    setLoadError('');
-    api.getMetricsList().then(d => {
-      const all = d.metrics || [];
-      setMetrics(all);
-      if (all.length > 0 && !selected) setSelected(all[0].name);
-      // Expand all categories by default
-      const cats: Record<string, boolean> = {};
-      all.forEach(m => { cats[m.category] = true; });
-      setExpandedCats(cats);
-      setLoading(false);
-    }).catch(err => {
-      setLoadError(err.message || 'Failed to load metrics');
-      setLoading(false);
-    });
-  }, []);
+  // Metrics list
+  const { data: metricsListData, isLoading: loading, error: loadError } = useQuery({
+    queryKey: ['metrics-list'],
+    queryFn: () => api.getMetricsList(),
+  });
+  const metrics: MetricDef[] = metricsListData?.metrics || [];
 
+  // Initialize selected metric and expanded categories on first load
+  const initializedRef = useRef(false);
   useEffect(() => {
-    if (!selected) return;
-    setChartLoading(true);
-    setChartError('');
-    api.queryMetrics({ name: selected, start, end, interval: 60 })
-      .then(d => setPoints(d.points || []))
-      .catch(e => setChartError(e.message || 'Failed to load'))
-      .finally(() => setChartLoading(false));
-  }, [selected, start, end]);
+    if (metrics.length > 0 && !initializedRef.current) {
+      initializedRef.current = true;
+      if (!selected) setSelected(metrics[0].name);
+      const cats: Record<string, boolean> = {};
+      metrics.forEach(m => { cats[m.category] = true; });
+      setExpandedCats(cats);
+    }
+  }, [metrics, selected]);
+
+  // Metric points (chart data)
+  const pointsQuery = useQuery({
+    queryKey: ['metrics-points', selected, start, end],
+    queryFn: () => api.queryMetrics({ name: selected!, start, end, interval: 60 }),
+    enabled: !!selected,
+  });
+  const points: MetricPoint[] = pointsQuery.data?.points || [];
+  const chartLoading = pointsQuery.isLoading;
+  const chartError = pointsQuery.error ? (pointsQuery.error as Error).message || 'Failed to load' : '';
 
   // Group by category
   const groupedMetrics = useMemo(() => {
@@ -277,14 +273,7 @@ export default function MetricsPage() {
           <TimeRangePicker value={range} onChange={v => setRange(v)} />
           <Button
             icon={<ReloadOutlined />}
-            onClick={() => {
-              if (selected) {
-                setChartLoading(true);
-                api.queryMetrics({ name: selected, start, end, interval: 60 })
-                  .then(d => setPoints(d.points || []))
-                  .finally(() => setChartLoading(false));
-              }
-            }}
+            onClick={() => { if (selected) pointsQuery.refetch(); }}
             size="small"
             className="border-border"
           />
@@ -302,7 +291,7 @@ export default function MetricsPage() {
             </svg>
           </div>
           <p className="text-sm font-medium text-fg-secondary mb-1">Failed to load metrics</p>
-          <p className="text-xs text-fg-tertiary max-w-md">{loadError}</p>
+          <p className="text-xs text-fg-tertiary max-w-md">{loadError.message || 'Failed to load metrics'}</p>
           <button onClick={() => window.location.reload()} className="mt-4 px-4 py-2 text-xs font-medium bg-bg-muted hover:bg-bg-muted rounded-lg transition-colors">
             Retry
           </button>

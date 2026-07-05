@@ -1,4 +1,5 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { api } from '../api/client';
 
 const C = { purple: '#632CA6', green: '#2DB88D', orange: '#E2903C', red: '#E65C5C', gray: '#6C757D', muted: '#ADB5BD', border: '#DEE2E6', bg: '#F8F9FA', text: '#212529' };
@@ -69,20 +70,16 @@ function DurationHistogram({ data, onSelectRange }: { data: { latency_ms: number
 
 // ════════════════════════ SLOW REQUESTS TABLE ════════════════════════
 export function SlowRequestsPanel() {
-  const [data, setData] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
   const [threshold, setThreshold] = useState(100);
   const [detail, setDetail] = useState<any | null>(null);
 
-  const fetch = useCallback(async () => {
-    setLoading(true);
-    try {
-      const d = await api.getSlowRequests({ min_duration_us: threshold * 1000, limit: 100 });
-      setData(d.slow_requests || []);
-    } catch {} finally { setLoading(false); }
-  }, [threshold]);
+  const slowRequestsQuery = useQuery({
+    queryKey: ['apm', 'slowRequests', threshold],
+    queryFn: () => api.getSlowRequests({ min_duration_us: threshold * 1000, limit: 100 }),
+  });
 
-  useEffect(() => { fetch(); }, [fetch]);
+  const data = slowRequestsQuery.data?.slow_requests || [];
+  const loading = slowRequestsQuery.isLoading;
 
   return (
     <div className="space-y-3">
@@ -161,18 +158,13 @@ export function SlowRequestsPanel() {
 
 // ════════════════════════ ERROR ANALYSIS ════════════════════════
 export function ErrorAnalysisPanel() {
-  const [data, setData] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
+  const errorQuery = useQuery({
+    queryKey: ['apm', 'errorSummary'],
+    queryFn: () => api.getErrorSummary(),
+  });
 
-  const fetch = useCallback(async () => {
-    setLoading(true);
-    try {
-      const d = await api.getErrorSummary();
-      setData(d.errors || []);
-    } catch {} finally { setLoading(false); }
-  }, []);
-
-  useEffect(() => { fetch(); }, [fetch]);
+  const data = errorQuery.data?.errors || [];
+  const loading = errorQuery.isLoading;
 
   const totalErrors = data.reduce((s, e) => s + (parseInt(e.error_count) || 0), 0);
 

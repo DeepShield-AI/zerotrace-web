@@ -1,4 +1,5 @@
-import { useState, useEffect, useMemo, useCallback } from 'react';
+import { useState, useMemo } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { NavLink, Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { Button } from 'antd';
 import { ReloadOutlined, SearchOutlined } from '@ant-design/icons';
@@ -59,8 +60,6 @@ function generateMockAgents(): AgentItem[] {
 
 // ════════════════════════ FLEET VIEW COMPONENT ════════════════════════
 function FleetView() {
-  const [agents, setAgents] = useState<AgentItem[]>([]);
-  const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState<'all' | 'online' | 'stale' | 'offline'>('all');
   const [sortField, setSortField] = useState<string>('name');
@@ -68,25 +67,22 @@ function FleetView() {
   const [selectedAgent, setSelectedAgent] = useState<AgentItem | null>(null);
   const navigate = useNavigate();
 
-  const fetchAgents = useCallback(async () => {
-    setLoading(true);
-    try {
-      const d = await api.getAgentStatus();
-      const raw = d?.agents || d?.DATA || [];
-      if (raw.length > 0) {
-        setAgents(raw);
-      } else {
+  const { data: agentsData, isLoading: loading, refetch: fetchAgents } = useQuery({
+    queryKey: ['agent-status'],
+    queryFn: async () => {
+      try {
+        const d = await api.getAgentStatus();
+        const raw = d?.agents || d?.DATA || [];
+        if (raw.length > 0) return raw;
         // Use mock data if no real agents
-        setAgents(generateMockAgents());
+        return generateMockAgents();
+      } catch {
+        return generateMockAgents();
       }
-    } catch {
-      setAgents(generateMockAgents());
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  useEffect(() => { fetchAgents(); const interval = setInterval(fetchAgents, 15000); return () => clearInterval(interval); }, [fetchAgents]);
+    },
+    refetchInterval: 15000,
+  });
+  const agents: AgentItem[] = agentsData || [];
 
   const normalize = (a: AgentItem) => ({
     id: a.id ?? a.ID ?? 0,
@@ -191,7 +187,7 @@ function FleetView() {
         <button onClick={() => navigate('/agents/setup')} className="px-4 py-1.5 bg-accent-primary text-fg-inverse text-[12px] font-semibold rounded-md hover:bg-[#4a1d8a] transition-colors">
           + Install Agent
         </button>
-        <Button icon={<ReloadOutlined />} onClick={fetchAgents} size="small" />
+        <Button icon={<ReloadOutlined />} onClick={() => fetchAgents()} size="small" />
       </div>
 
       {/* Agents table */}

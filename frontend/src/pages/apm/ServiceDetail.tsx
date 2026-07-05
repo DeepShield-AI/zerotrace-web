@@ -1,4 +1,5 @@
-import { useEffect, useState, useCallback } from 'react';
+import { useState, useCallback } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { useParams, Link } from 'react-router-dom';
 import { Spin, Tooltip } from 'antd';
 import { ArrowLeftOutlined, WarningOutlined, ReloadOutlined } from '@ant-design/icons';
@@ -33,79 +34,79 @@ type Tab = 'overview' | 'resources' | 'errors';
 export default function ServiceDetailPage() {
   const { serviceName } = useParams<{ serviceName: string }>();
   const [tab, setTab] = useState<Tab>('overview');
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  // Service detail query
+  const detailQuery = useQuery({
+    queryKey: ['apm', 'serviceDetail', serviceName],
+    queryFn: () => api.getApmServiceDetail(serviceName!),
+    enabled: !!serviceName,
+  });
 
-  // Overview data
-  const [overview, setOverview] = useState<any>(null);
-  const [operations, setOperations] = useState<any[]>([]);
-  const [rate, setRate] = useState<any[]>([]);
-  const [depsDown, setDepsDown] = useState<any[]>([]);
-  const [depsUp, setDepsUp] = useState<any[]>([]);
-  const [topoNodes, setTopoNodes] = useState<TopologyNode[]>([]);
-  const [topoEdges, setTopoEdges] = useState<TopologyEdge[]>([]);
-  const [topoLoading, setTopoLoading] = useState(false);
+  // Dependencies query
+  const depsQuery = useQuery({
+    queryKey: ['apm', 'serviceDeps', serviceName],
+    queryFn: () => api.getApmServiceDependencies(serviceName!),
+    enabled: !!serviceName,
+  });
 
-  // Error traces
-  const [errorTraces, setErrorTraces] = useState<any[]>([]);
-  const [errorCount, setErrorCount] = useState(0);
+  // Topology query (errors handled gracefully)
+  const topoQuery = useQuery({
+    queryKey: ['apm', 'topology', serviceName],
+    queryFn: () => api.getApmTopology({ service: serviceName! }).catch(() => ({ nodes: [], edges: [] })),
+    enabled: !!serviceName,
+  });
 
-  const fetchData = useCallback(async () => {
-    if (!serviceName) return;
-    setLoading(true);
-    setError(null);
-    try {
-      const [detail, deps, topo] = await Promise.all([
-        api.getApmServiceDetail(serviceName),
-        api.getApmServiceDependencies(serviceName),
-        api.getApmTopology({ service: serviceName }).catch(() => ({ nodes: [], edges: [] })),
-      ]);
-      setOverview((detail.overview || [])[0] || null);
-      setOperations(detail.operations || []);
-      setRate(detail.rate || []);
-      setDepsDown(deps.downstream || []);
-      setDepsUp(deps.upstream || []);
-      setTopoNodes(topo.nodes || []);
-      setTopoEdges(topo.edges || []);
-    } catch (err: any) {
-      setError(err.message || 'Failed to load service data');
-    } finally {
-      setLoading(false);
+  // Error traces query (only when tab is 'errors')
+  const errorQuery = useQuery({
+    queryKey: ['apm', 'errorTraces', serviceName],
+    queryFn: () => api.getApmTraces({ service: serviceName!, status: 'error', limit: 20, offset: 0 }),
+    enabled: !!serviceName && tab === 'errors',
+  });
+
+  // Derived state from queries
+  const d = detailQuery.data as any;
+  const overview = (d?.overview || [])[0] || null;
+  const operations: any[] = d?.operations || [];
+  const rate: any[] = d?.rate || [];
+
+  const depsDown: any[] = (depsQuery.data as any)?.downstream || [];
+  const depsUp: any[] = (depsQuery.data as any)?.upstream || [];
+
+  const topoNodes: TopologyNode[] = (topoQuery.data as any)?.nodes || [];
+  const topoEdges: TopologyEdge[] = (topoQuery.data as any)?.edges || [];
+
+  const errorTraces: any[] = (errorQuery.data as any)?.traces || [];
+  const errorCount = (errorQuery.data as any)?.total || 0;
+
+  const loading = detailQuery.isLoading || depsQuery.isLoading;
+  const fetchError = detailQuery.error || depsQuery.error;
+  const topoLoading = topoQuery.isFetching;
+
+  const handleRefresh = useCallback(() => {
+    detailQuery.refetch();
+    depsQuery.refetch();
+    topoQuery.refetch();
+    if (tab === 'errors') {
+      errorQuery.refetch();
     }
-  }, [serviceName]);
+  }, [detailQuery, depsQuery, topoQuery, errorQuery, tab]);
 
-  const fetchErrors = useCallback(async () => {
-    if (!serviceName) return;
-    try {
-      const d = await api.getApmTraces({ service: serviceName, status: 'error', limit: 20, offset: 0 });
-      setErrorTraces(d.traces || []);
-      setErrorCount(d.total || 0);
-    } catch { /* ignore */ }
-  }, [serviceName]);
-
-  useEffect(() => { fetchData(); }, [fetchData]);
-  useEffect(() => { if (tab === 'errors') fetchErrors(); }, [tab, fetchErrors]);
-
-  const handleTopoRefresh = useCallback(async () => {
-    if (!serviceName) return;
-    setTopoLoading(true);
-    try {
-      const topo = await api.getApmTopology({ service: serviceName });
-      setTopoNodes(topo.nodes || []);
-      setTopoEdges(topo.edges || []);
-    } catch { /* ignore */ } finally { setTopoLoading(false); }
-  }, [serviceName]);
+  const handleTopoRefresh = useCallback(() => {
+    topoQuery.refetch();
+  }, [topoQuery]);
 
   // ════════════════════════ LOADING / ERROR ════════════════════════
   if (loading) return <div className="flex items-center justify-center py-32"><Spin size="large" /></div>;
-  if (error) return (
-    <div className="flex flex-col items-center justify-center py-32 text-center">
-      <WarningOutlined className="text-accent-danger text-2xl mb-4" />
-      <h3 className="text-lg font-semibold text-fg-primary mb-1">Failed to load service</h3>
-      <p className="text-sm text-fg-secondary mb-4">{error}</p>
-      <Link to="/apm" className="text-accent-primary hover:underline text-sm">&larr; Back to APM</Link>
-    </div>
-  );
+  if (fetchError) {
+    const errorMsg = fetchError instanceof Error ? fetchError.message : 'Failed to load service data';
+    return (
+      <div className="flex flex-col items-center justify-center py-32 text-center">
+        <WarningOutlined className="text-accent-danger text-2xl mb-4" />
+        <h3 className="text-lg font-semibold text-fg-primary mb-1">Failed to load service</h3>
+        <p className="text-sm text-fg-secondary mb-4">{errorMsg}</p>
+        <Link to="/apm" className="text-accent-primary hover:underline text-sm">&larr; Back to APM</Link>
+      </div>
+    );
+  }
 
   // ════════════════════════ RENDER ════════════════════════
   return (
@@ -118,7 +119,7 @@ export default function ServiceDetailPage() {
         <span className="text-fg-disabled text-sm">/</span>
         <h2 className="text-sm font-bold text-fg-primary font-mono">{serviceName}</h2>
         <div className="flex-1" />
-        <Tooltip title="Refresh"><button onClick={fetchData} className="text-fg-tertiary hover:text-fg-secondary"><ReloadOutlined /></button></Tooltip>
+        <Tooltip title="Refresh"><button onClick={handleRefresh} className="text-fg-tertiary hover:text-fg-secondary"><ReloadOutlined /></button></Tooltip>
       </div>
 
       {/* Tabs */}

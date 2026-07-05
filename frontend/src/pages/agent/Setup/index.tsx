@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { api } from '../../../api/client';
@@ -25,11 +26,9 @@ export default function AgentSetup() {
   const { t } = useTranslation();
   const [platform, setPlatform] = useState<Platform>('linux');
   const [apiKey, setApiKey] = useState('');
-  const [apiKeys, setApiKeys] = useState<any[]>([]);
   const [newKeyData, setNewKeyData] = useState<{ id: number; key: string; source: 'created' | 'revealed' } | null>(null);
   const [keyCreating, setKeyCreating] = useState(false);
   const [keyError, setKeyError] = useState('');
-  const [agents, setAgents] = useState<any[]>([]);
   const [tags, setTags] = useState('');
   const [activeTab, setActiveTab] = useState<'setup' | 'rules' | 'errors'>('setup');
   const [copied, setCopied] = useState(false);
@@ -42,22 +41,15 @@ export default function AgentSetup() {
   const navigate = useNavigate();
 
   // Load API keys and agents
+  const { data: apiKeysData, refetch: refetchApiKeys } = useQuery({ queryKey: ['apiKeys'], queryFn: () => api.listApiKeys() });
+  const apiKeys = (apiKeysData as any)?.api_keys || [];
+  // Auto-select first API key prefix on load
   useEffect(() => {
-    api.listApiKeys().then((d: any) => {
-      const keys = d?.api_keys || [];
-      setApiKeys(keys);
-      if (keys.length > 0) {
-        if (!apiKey) setApiKey(keys[0].key_prefix + '...');
-      }
-    }).catch(() => {});
+    if (apiKeys.length > 0 && !apiKey) setApiKey(apiKeys[0].key_prefix + '...');
+  }, [apiKeys, apiKey]);
 
-    const loadAgents = () => {
-      api.getAgentStatus().then((d: any) => { setAgents(d?.agents || d?.DATA || []); }).catch(() => {});
-    };
-    loadAgents();
-    const interval = setInterval(loadAgents, 10000);
-    return () => clearInterval(interval);
-  }, []);
+  const { data: agentsData } = useQuery({ queryKey: ['agentStatus'], queryFn: () => api.getAgentStatus(), refetchInterval: 10000 });
+  const agents = (agentsData as any)?.agents || (agentsData as any)?.DATA || [];
 
   // Step completion tracking
   const step1Done = true; // Platform is always selected (default: linux)
@@ -75,7 +67,7 @@ export default function AgentSetup() {
       if (created?.id && created?.key) {
         // createApiKey returns the full key — no need for a second reveal call
         setNewKeyData({ id: created.id, key: created.key, source: 'created' });
-        setApiKeys(prev => [...prev, created]);
+        refetchApiKeys();
       }
     } catch (err: any) {
       setKeyError(err?.message || 'Failed to create API key');

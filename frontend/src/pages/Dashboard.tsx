@@ -1,4 +1,5 @@
-import { useEffect, useState, useCallback } from 'react';
+import { useState, useCallback } from 'react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { createPortal } from 'react-dom';
 import { NavLink, Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { Button, Table, Modal, Form, Input, message, Tag, Tooltip } from 'antd';
@@ -176,11 +177,18 @@ function Sidebar() {
 
 function ApiKeysPage() {
   const { t } = useTranslation();
-  const [apiKeys, setApiKeys] = useState<ApiKeyItem[]>([]); const [loading, setLoading] = useState(true); const [modalOpen, setModalOpen] = useState(false); const [newKey, setNewKey] = useState<string | null>(null); const [form] = Form.useForm();
-  const loadKeys = useCallback(async () => { setLoading(true); try { const data = await api.listApiKeys(); setApiKeys(data.api_keys); } catch (err: any) { message.error(err.message); } finally { setLoading(false); } }, []);
-  useEffect(() => { loadKeys(); }, [loadKeys]);
-  const handleCreate = async (values: { name: string }) => { try { const data = await api.createApiKey({ name: values.name, scopes: ['*'] }); setNewKey(data.api_key.key); setModalOpen(false); form.resetFields(); loadKeys(); } catch (err: any) { message.error(err.message); } };
-  const handleRevoke = async (id: number) => { Modal.confirm({ title: t('dashboard.revokeConfirm'), content: t('dashboard.revokeConfirmDesc'), okText: t('dashboard.revokeKey'), okButtonProps: { danger: true }, onOk: async () => { try { await api.revokeApiKey(id); message.success(t('dashboard.keyRevoked')); loadKeys(); } catch (err: any) { message.error(err.message); } } }); };
+  const [modalOpen, setModalOpen] = useState(false); const [newKey, setNewKey] = useState<string | null>(null); const [form] = Form.useForm();
+  const queryClient = useQueryClient();
+  const { data: apiKeysData, isLoading: loading } = useQuery({
+    queryKey: ['api-keys'],
+    queryFn: () => api.listApiKeys(),
+  });
+  const apiKeys: ApiKeyItem[] = apiKeysData?.api_keys || [];
+  const refetchKeys = useCallback(() => {
+    queryClient.invalidateQueries({ queryKey: ['api-keys'] });
+  }, [queryClient]);
+  const handleCreate = async (values: { name: string }) => { try { const data = await api.createApiKey({ name: values.name, scopes: ['*'] }); setNewKey(data.api_key.key); setModalOpen(false); form.resetFields(); refetchKeys(); } catch (err: any) { message.error(err.message); } };
+  const handleRevoke = async (id: number) => { Modal.confirm({ title: t('dashboard.revokeConfirm'), content: t('dashboard.revokeConfirmDesc'), okText: t('dashboard.revokeKey'), okButtonProps: { danger: true }, onOk: async () => { try { await api.revokeApiKey(id); message.success(t('dashboard.keyRevoked')); refetchKeys(); } catch (err: any) { message.error(err.message); } } }); };
   const columns = [
     { title: t('dashboard.name'), dataIndex: 'name', key: 'name', render: (v: string) => <span className="font-medium text-fg-primary">{v}</span> },
     { title: t('dashboard.keyPrefix'), dataIndex: 'key_prefix', key: 'key_prefix', render: (prefix: string) => <code className="text-xs font-mono bg-bg-muted text-fg-secondary px-2 py-1 rounded-md">{prefix}</code> },

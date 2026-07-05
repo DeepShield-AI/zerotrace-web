@@ -1,4 +1,5 @@
 import { useState, useMemo, useCallback, useEffect, useRef } from 'react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Spin, Select, Button, message } from 'antd';
 import { ReloadOutlined, CloseOutlined } from '@ant-design/icons';
 import { useTranslation } from 'react-i18next';
@@ -88,14 +89,12 @@ function KeyboardHint({ visible, shortcut, label }: { visible: boolean; shortcut
 export default function Infrastructure() {
   const { t } = useTranslation();
   const searchRef = useRef<HTMLInputElement>(null);
+  const queryClient = useQueryClient();
 
   const saved = useMemo(() => loadView(), []);
 
   // Restore saved view state
-  const [data, setData] = useState<DataOverviewResponse | null>(null);
-  const [loading, setLoading] = useState(true);
   const [range, setRange] = useState(saved.range || '30m');
-  const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
   const [selectedHost, setSelectedHost] = useState('');
   const [detailHost, setDetailHost] = useState<AgentItem | null>(null);
   const [detailOpen, setDetailOpen] = useState(false);
@@ -106,13 +105,34 @@ export default function Infrastructure() {
   const [infraView, setInfraView] = useState<'table' | 'map'>((saved.infraView as any) || 'table');
   const [keyboardHint, setKeyboardHint] = useState<string | null>(null);
   const hintTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
-  const [refreshInterval, setRefreshInterval] = useState(10000);
   const [activeNav, setActiveNav] = useState<'hosts' | 'containers' | 'processes'>('hosts');
-  const [processes, setProcesses] = useState<any[]>([]);
-  const [hostsData, setHostsData] = useState<any[]>([]);
 
   const { start, end } = parseRange(range);
+
+  // Adaptive polling: slow down when tab is hidden
+  const [pollingInterval, setPollingInterval] = useState(10000);
+  useEffect(() => {
+    const handler = () => setPollingInterval(document.hidden ? 30000 : 10000);
+    document.addEventListener('visibilitychange', handler);
+    return () => document.removeEventListener('visibilitychange', handler);
+  }, []);
+
+  // Data queries
+  const { data, isLoading: loading } = useQuery({
+    queryKey: ['infrastructure-overview', start, end],
+    queryFn: () => api.getDataOverview({ start, end }),
+    refetchInterval: pollingInterval,
+  });
+  const { data: hostsResp } = useQuery({
+    queryKey: ['infrastructure-hosts', start, end],
+    queryFn: () => api.getInfraHosts({ start, end }).catch(() => ({ hosts: [] })),
+  });
+  const { data: procsResp } = useQuery({
+    queryKey: ['infrastructure-processes', start, end],
+    queryFn: () => api.getInfraProcesses({ start, end }).catch(() => ({ processes: [] })),
+  });
+  const hostsData = hostsResp?.hosts || [];
+  const processes = procsResp?.processes || [];
 
   // Persist view state
   useEffect(() => {
@@ -126,39 +146,9 @@ export default function Infrastructure() {
     hintTimer.current = setTimeout(() => setKeyboardHint(null), 2000);
   }, []);
 
-  const fetch = useCallback(async () => {
-    try {
-      const [overview, hosts, procs] = await Promise.all([
-        api.getDataOverview({ start, end }),
-        api.getInfraHosts({ start, end }).catch(() => ({ hosts: [] })),
-        api.getInfraProcesses({ start, end }).catch(() => ({ processes: [] })),
-      ]);
-      setData(overview);
-      setHostsData(hosts.hosts || []);
-      setProcesses(procs.processes || []);
-      setLastUpdated(new Date());
-    } catch { /* keep previous data */ }
-    finally { setLoading(false); }
-  }, [start, end]);
-
-  useEffect(() => { fetch(); }, [fetch]);
-
-  // Adaptive polling: slow down when tab is hidden
-  useEffect(() => {
-    const updateInterval = () => {
-      setRefreshInterval(document.hidden ? 30000 : 10000);
-    };
-    document.addEventListener('visibilitychange', updateInterval);
-    return () => document.removeEventListener('visibilitychange', updateInterval);
-  }, []);
-
-  useEffect(() => {
-    if (intervalRef.current) clearInterval(intervalRef.current);
-    intervalRef.current = setInterval(() => {
-      api.getDataOverview({ start, end }).then(d => { setData(d); setLastUpdated(new Date()); }).catch(() => {});
-    }, refreshInterval);
-    return () => { if (intervalRef.current) clearInterval(intervalRef.current); };
-  }, [start, end, refreshInterval]);
+  const handleRefresh = useCallback(() => {
+    queryClient.invalidateQueries({ queryKey: ['infrastructure'] });
+  }, [queryClient]);
 
   // ── Keyboard Shortcuts ──
   useEffect(() => {
@@ -179,7 +169,7 @@ export default function Infrastructure() {
         case 'r':
           if (!e.metaKey && !e.ctrlKey) {
             e.preventDefault();
-            fetch();
+            handleRefresh();
             showHint('R', 'Refresh data');
           }
           break;
@@ -194,7 +184,7 @@ export default function Infrastructure() {
     };
     window.addEventListener('keydown', handleKey);
     return () => window.removeEventListener('keydown', handleKey);
-  }, [fetch, detailOpen, showHint]);
+  }, [handleRefresh, detailOpen, showHint]);
 
   // Use hostsData from GET /infra/hosts (enriched with metrics) when available,
   // fall back to getDataOverview's agent list for backward compatibility
@@ -302,7 +292,7 @@ export default function Infrastructure() {
             options={[{ value: 'default', label: 'Default View' }, { value: 'cpu', label: 'High CPU' }, { value: 'memory', label: 'High Memory' }]}
             size="small" className="w-40" />
           <TimeRangePicker value={range} onChange={v => setRange(v)} />
-          <Button icon={<ReloadOutlined />} onClick={fetch} size="small" className="border-border" />
+          <Button icon={<ReloadOutlined />} onClick={handleRefresh} size="small" className="border-border" />
         </div>
       </div>
 
