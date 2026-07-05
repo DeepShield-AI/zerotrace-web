@@ -1,5 +1,5 @@
 import { useState, useMemo, useCallback, useEffect, useRef } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueries } from '@tanstack/react-query';
 import { Button, Tooltip } from 'antd';
 import { ReloadOutlined, SearchOutlined, CopyOutlined, LinkOutlined, PlusOutlined, CloseOutlined } from '@ant-design/icons';
 import ReactECharts from 'echarts-for-react';
@@ -61,15 +61,15 @@ export default function MetricsPage() {
   });
   const primaryPoints: MetricPoint[] = primaryData?.points || [];
 
-  // Overlay metrics (up to 3)
-  const overlayQueries = overlay.slice(0, 3).map(name => ({
-    name,
-    query: useQuery({
-      queryKey: ['metrics-points', name, start, end],
-      queryFn: () => api.queryMetrics({ name, start, end, interval: 60 }),
-      enabled: !!name,
-    }),
-  }));
+  // Overlay metrics (up to 3) — useQueries for stable hook count
+  const overlayResults = useQueries({
+    queries: ['__overlay_0__', '__overlay_1__', '__overlay_2__'].map((slot, i) => ({
+      queryKey: ['metrics-points', overlay[i] || slot, start, end],
+      queryFn: () => api.queryMetrics({ name: overlay[i]!, start, end, interval: 60 }),
+      enabled: !!overlay[i],
+    })),
+  });
+  const overlayQueries = overlay.map((name, i) => ({ name, query: overlayResults[i] }));
 
   // Group by category
   const groupedMetrics = useMemo(() => {
@@ -202,9 +202,11 @@ export default function MetricsPage() {
                       <svg className={`w-3 h-3 transition-transform ${expandedCats[cat] ? 'rotate-180' : ''}`} viewBox="0 0 12 12" fill="currentColor"><path d="M6 8L2 4h8z" /></svg>
                     </button>
                     {expandedCats[cat] !== false && list.map(m => (
-                      <button key={m.name}
+                      <div key={m.name}
                         onClick={() => setSelected(m.name)}
-                        className={`w-full text-left px-3 py-2.5 transition-colors border-b border-border-subtle ${
+                        role="button" tabIndex={0}
+                        onKeyDown={e => { if (e.key === 'Enter') setSelected(m.name); }}
+                        className={`w-full text-left px-3 py-2.5 transition-colors border-b border-border-subtle cursor-pointer ${
                           selected === m.name ? 'bg-accent-primary/10 border-l-[3px] border-l-accent-primary' : 'hover:bg-bg-subtle border-l-[3px] border-l-transparent'
                         }`}
                       >
@@ -214,13 +216,13 @@ export default function MetricsPage() {
                         </div>
                         <p className="text-[10px] text-fg-tertiary font-mono mt-0.5 truncate">{m.name}</p>
                         {/* Compare toggle */}
-                        <button
+                        <span
                           onClick={e => { e.stopPropagation(); toggleOverlay(m.name); }}
-                          className={`mt-1.5 text-[10px] font-medium transition-colors ${overlay.includes(m.name) ? 'text-accent-primary' : 'text-fg-tertiary hover:text-fg-secondary'}`}
+                          className={`mt-1.5 text-[10px] font-medium transition-colors cursor-pointer ${overlay.includes(m.name) ? 'text-accent-primary' : 'text-fg-tertiary hover:text-fg-secondary'}`}
                         >
                           {overlay.includes(m.name) ? '✓ Comparing' : '+ Compare'}
-                        </button>
-                      </button>
+                        </span>
+                      </div>
                     ))}
                   </div>
                 ))
