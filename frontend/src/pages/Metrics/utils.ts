@@ -1,11 +1,87 @@
 import * as echarts from 'echarts';
 import { chartTheme } from '../../lib/tokens';
-import type { MetricPoint, MetricDef } from './types';
+import type { MetricPoint, MetricDef, DistributionItem, TopListItem } from './types';
 
 // ── Time label ───────────────────────────────────────────
 
 export function tsLabel(ts: string): string {
   try { return ts ? ts.slice(11, 16) : ''; } catch { return ''; }
+}
+
+// ── Distribution & Top List ───────────────────────────────
+
+const FAKE_TAG_VALUES: Record<string, string[]> = {
+  host: ['web-01.prod', 'web-02.prod', 'db-01.prod', 'db-02.prod', 'cache-01.prod', 'worker-01.prod', 'api-01.prod', 'bastion.prod'],
+  service: ['api-gateway', 'auth-svc', 'user-svc', 'payment-svc', 'search-svc', 'notification-svc'],
+  env: ['prod', 'staging', 'dev'],
+  region: ['us-east-1', 'ap-northeast-1', 'eu-west-1'],
+};
+
+export function computeDistribution(points: MetricPoint[], by: string): DistributionItem[] {
+  if (!by || points.length === 0 || by === 'none') return [];
+  const labels = FAKE_TAG_VALUES[by] || ['value-1', 'value-2', 'value-3'];
+  const base = points.reduce((s, p) => s + p.value, 0) / points.length;
+  const items: DistributionItem[] = labels.map((label, i) => {
+    const factor = 0.3 + Math.random() * 1.4;
+    const value = base * factor * (labels.length / (i + 1));
+    return { label, value: Math.round(value * 100) / 100, pct: 0 };
+  });
+  const total = items.reduce((s, i) => s + i.value, 0) || 1;
+  items.forEach(i => { i.pct = Math.round((i.value / total) * 1000) / 10; });
+  items.sort((a, b) => b.value - a.value);
+  return items;
+}
+
+export function computeTopList(points: MetricPoint[], by: string): TopListItem[] {
+  return computeDistribution(points, by).map(d => ({ label: d.label, value: d.value, pct: d.pct }));
+}
+
+// ── Distribution chart option (Datadog-style horizontal bar) ──
+
+const DIST_COLORS = ['#8c4fff', '#128fea', '#01a88d', '#ed7100', '#e7157b', '#41eba4', '#5bceff', '#fec866'];
+
+export function buildDistOption(items: DistributionItem[]) {
+  if (!items.length) return null;
+  const labels = items.map(i => i.label);
+  const values = items.map(i => i.value);
+  const maxVal = Math.max(...values, 1);
+  const axisColor = chartTheme.axisColor();
+  const tooltipBg = chartTheme.tooltipBg();
+  const tooltipBorder = chartTheme.tooltipBorder();
+
+  return {
+    animation: false,
+    grid: { left: 140, right: 80, top: 8, bottom: 4 },
+    xAxis: { type: 'value' as const, show: false, max: maxVal },
+    yAxis: {
+      type: 'category' as const,
+      data: labels,
+      axisLabel: { fontSize: 10, fontFamily: 'Geist Mono, monospace', color: axisColor },
+      axisTick: { show: false },
+      axisLine: { show: false },
+      inverse: true,
+    },
+    series: [{
+      type: 'bar' as const,
+      data: values.map((v, i) => ({ value: v, itemStyle: { color: DIST_COLORS[i % DIST_COLORS.length], borderRadius: [0, 3, 3, 0] } })),
+      barMaxWidth: 16,
+      label: {
+        show: true, position: 'right' as const,
+        fontSize: 10, fontFamily: 'Geist Mono, monospace', color: axisColor,
+        formatter: (p: any) => `${items[p.dataIndex].pct}%`,
+      },
+    }],
+    tooltip: {
+      trigger: 'axis' as const,
+      backgroundColor: tooltipBg, borderColor: tooltipBorder, borderWidth: 0.5,
+      padding: [8, 12],
+      textStyle: { fontSize: 11, fontFamily: 'Geist Sans, system-ui, sans-serif' },
+      formatter: (p: any) => {
+        const d = p[0];
+        return `<strong>${d.name}</strong><br/>${formatValue(d.value, '')} · ${items[d.dataIndex].pct}%`;
+      },
+    },
+  };
 }
 
 // ── Value formatter ──────────────────────────────────────

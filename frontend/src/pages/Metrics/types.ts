@@ -14,8 +14,14 @@ export interface MetricPoint {
   value: number;
 }
 
-export interface OverlaySeries {
-  metric: MetricDef;
-  points: MetricPoint[];
-  color: string;
+export interface DistributionItem {
+  label: string;
+  value: number;
+  pct: number;
+}
+
+export interface TopListItem {
+  label: string;
+  value: number;
+  pct: number;
 }
