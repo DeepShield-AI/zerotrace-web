@@ -1,10 +1,10 @@
 import { useState } from 'react';
-import type { ProductNavItem, PricingPlan, ProductSection } from './ZerotracePricing/data';
+import type { ProductNavItem, PricingPlan, ProductSection } from './data';
 import {
   productNavItems, infrastructurePlans, devsecopsPlans, infraFeaturesTable,
   CheckIcon, ZerotraceLogo, StarIcon, HexagonIcon, AppIcon, DataIcon,
   DigitalIcon, DeliveryIcon, SecurityIcon, ServiceIcon, categoryIcons,
-} from './ZerotracePricing/data';
+} from './data';
 
 
 // ─────────────────── Sub-Components ───────────────────
@@ -480,7 +480,7 @@ const productSections: ProductSection[] = [
   },
 ];
 
-export default function ZerotracePricing() {
+export default function PricingPage() {
   const [activeProduct, setActiveProduct] = useState('infrastructure');
 
   const handleProductSelect = (categoryId: string, _item?: string) => {

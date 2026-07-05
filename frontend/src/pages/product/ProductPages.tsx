@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { DataTable, StatusBadge, KpiCard, Spinner } from '../components/Components';
+import { DataTable, StatusBadge, KpiCard, Spinner } from '../../components/Components';
 
 /* ═══════════════════ DASHBOARDS ═══════════════════ */
 const MOCK_DASHBOARDS = [

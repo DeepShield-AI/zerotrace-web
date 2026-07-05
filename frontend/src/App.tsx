@@ -4,26 +4,26 @@ import { useTranslation } from 'react-i18next';
 import { AuthProvider, useAuth } from './hooks/useAuth';
 import { PageContextProvider } from './hooks/usePageContext';
 import { ThemeProvider } from './hooks/useTheme';
-import Login from './pages/Login';
-import Register from './pages/Register';
+import Login from './pages/auth/Login';
+import Register from './pages/auth/Register';
 import DashboardLayout, { ApiKeysPage } from './pages/Dashboard';
-import { AgentMgmtLayout } from './pages/AgentMgmt';
-import AgentSetup from './pages/AgentSetup';
-import APMServiceSetup from './pages/APMServiceSetup';
+import { AgentMgmtLayout } from './pages/agent';
+import AgentSetup from './pages/agent/Setup';
+import APMServiceSetup from './pages/apm/ServiceSetup';
 import { OrgLayout, UsersPage, SettingsPage } from './pages/Organization';
 import Infrastructure from './pages/Infrastructure';
-import APMPage from './pages/APM';
-import APMSettingsPage, { IngestionControlPage, RetentionFiltersPage, GenerateMetricsPage, RecommendationsPage } from './pages/APMSettings';
-import TraceDetailPage from './pages/TraceDetail';
-import ServiceDetailPage from './pages/ServiceDetail';
-import ZerotracePricing from './pages/ZerotracePricing';
-import { BillingLayout, BillingOverview, BillingPlan, BillingHistory, BillingUsagePage } from './pages/PlanAndUsage';
-import { BillingSeats, TrialManagement, UsageAttribution } from './pages/BillingAddons';
+import APMPage from './pages/apm';
+import APMSettingsPage, { IngestionControlPage, RetentionFiltersPage, GenerateMetricsPage, RecommendationsPage } from './pages/apm/Settings';
+import TraceDetailPage from './pages/apm/TraceDetail';
+import ServiceDetailPage from './pages/apm/ServiceDetail';
+import PricingPage from './pages/Pricing';
+import { BillingLayout, BillingOverview, BillingPlan, BillingHistory, BillingUsagePage } from './pages/billing/PlanAndUsage';
+import { BillingSeats, TrialManagement, UsageAttribution } from './pages/billing/Addons';
 import Monitors from './pages/Monitors';
 import MetricsPage from './pages/Metrics';
-import { EventsPage, IncidentsPage, WatchdogPage, SLOsPage, ErrorTrackingPage, ProfilingPage } from './pages/CorePages';
-import { DashboardsPage, DigitalExperiencePage, SoftwareDeliveryPage, CloudCostPage, AutomationPage, DataObservabilityPage, AIObservabilityPage, SecurityPage } from './pages/ProductPages';
-import { LogsExplorerPage, TriggeredMonitorsPage, MonitorCreatePage, DowntimeManagementPage, APMSettingsPage as SubAPMSettings, IntegrationsPage } from './pages/SubPages';
+import { EventsPage, IncidentsPage, WatchdogPage, SLOsPage, ErrorTrackingPage, ProfilingPage } from './pages/product/CorePages';
+import { DashboardsPage, DigitalExperiencePage, SoftwareDeliveryPage, CloudCostPage, AutomationPage, DataObservabilityPage, AIObservabilityPage, SecurityPage } from './pages/product/ProductPages';
+import { LogsExplorerPage, TriggeredMonitorsPage, MonitorCreatePage, DowntimeManagementPage, APMSettingsPage as SubAPMSettings, IntegrationsPage } from './pages/product/SubPages';
 import GuardianPanel from './components/GuardianPanel';
 
 function PageLoader() {
@@ -37,7 +37,7 @@ function AppRoutes() {
   return (<Routes>
     <Route path="/login" element={<GuestRoute><Login/></GuestRoute>}/>
     <Route path="/register" element={<GuestRoute><Register/></GuestRoute>}/>
-    <Route path="/pricing" element={<ZerotracePricing/>}/>
+    <Route path="/pricing" element={<PricingPage/>}/>
     <Route element={<ProtectedRoute><DashboardLayout/></ProtectedRoute>}>
       <Route index element={<Navigate to="/infrastructure" replace/>}/>
       {/* Infrastructure */}

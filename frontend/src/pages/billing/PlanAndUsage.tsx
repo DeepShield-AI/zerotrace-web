@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { NavLink, Outlet } from 'react-router-dom';
-import { api } from '../api/client';
-import { KpiCard, StatusBadge, DataTable, Spinner as SharedSpinner } from '../components/Components';
+import { api } from '../../api/client';
+import { KpiCard, StatusBadge, DataTable, Spinner as SharedSpinner } from '../../components/Components';
 
 // ── Types ──
 interface Plan { id: number; product_key: string; name: string; description: string; billing_dimension: string; aggregation_method: string; unit_price_monthly: number; unit_price_annual: number; is_addon: boolean; parent_product_key: string | null; }

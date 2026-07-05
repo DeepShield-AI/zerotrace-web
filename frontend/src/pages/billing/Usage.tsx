@@ -1,5 +1,5 @@
 import { useEffect, useState, useMemo } from 'react';
-import { api } from '../api/client';
+import { api } from '../../api/client';
 
 interface HourlyPoint { hour: string; quantity: string; }
 interface UsageProduct { product_key: string; total_quantity: string; hourly_count: number; }

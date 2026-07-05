@@ -1,10 +1,10 @@
 import { useEffect, useState, useCallback, useMemo } from 'react';
 import { Spin, Tag } from 'antd';
 import { useTranslation } from 'react-i18next';
-import { api } from '../api/client';
-import { BillingKPI, UsageBar, ProductUsageRow, ProductFamilySection } from './BillingComponents';
-import type { ProductUsageRowData } from './BillingComponents';
-import { useAuth } from '../hooks/useAuth';
+import { api } from '../../api/client';
+import { BillingKPI, UsageBar, ProductUsageRow, ProductFamilySection } from './Components';
+import type { ProductUsageRowData } from './Components';
+import { useAuth } from '../../hooks/useAuth';
 
 interface BillingSummary {
   org_id: number;

@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback } from 'react';
-import { api } from '../api/client';
+import { api } from '../../api/client';
 
 interface Invoice {
   id: number; period_start: string; period_end: string;

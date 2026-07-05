@@ -1,9 +1,9 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { api } from '../api/client';
-import { ALL_CARDS, SSI_LANGUAGES, getInstallCmd } from './AgentSetup/data';
-import type { Platform, CardInfo } from './AgentSetup/data';
+import { api } from '../../../api/client';
+import { ALL_CARDS, SSI_LANGUAGES, getInstallCmd } from './data';
+import type { Platform, CardInfo } from './data';
 
 // ════════════════════════ STEP CIRCLE COMPONENT ════════════════════════
 function StepCircle({ num, active, done }: { num: number; active: boolean; done: boolean }) {

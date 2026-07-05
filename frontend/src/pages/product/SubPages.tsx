@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { DataTable, StatusBadge, KpiCard } from '../components/Components';
+import { DataTable, StatusBadge, KpiCard } from '../../components/Components';
 
 function PageShell({ title, desc, children }: { title: string; desc: string; children?: React.ReactNode }) {
   return (

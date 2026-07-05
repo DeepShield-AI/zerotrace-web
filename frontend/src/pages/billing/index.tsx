@@ -1,8 +1,8 @@
 import { useEffect, useState, useCallback } from 'react';
 import { Button, Card, Spin, Tag, message, Modal, InputNumber, Select, Input, Switch, Slider } from 'antd';
 import { useTranslation } from 'react-i18next';
-import { api } from '../api/client';
-import { useAuth } from '../hooks/useAuth';
+import { api } from '../../api/client';
+import { useAuth } from '../../hooks/useAuth';
 
 interface Plan {
   id: number;

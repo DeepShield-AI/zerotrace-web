@@ -4,8 +4,8 @@ import { Spin, Tooltip } from 'antd';
 import { ArrowLeftOutlined, WarningOutlined, ReloadOutlined } from '@ant-design/icons';
 import ReactECharts from 'echarts-for-react';
 import * as echarts from 'echarts';
-import { api } from '../api/client';
-import TopologyMap, { TopologyNode, TopologyEdge } from '../components/TopologyMap';
+import { api } from '../../api/client';
+import TopologyMap, { TopologyNode, TopologyEdge } from '../../components/TopologyMap';
 
 // ════════════════════════ HELPERS ════════════════════════
 const num = (v: number | string | undefined): number => {

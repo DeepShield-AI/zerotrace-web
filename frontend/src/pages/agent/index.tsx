@@ -3,7 +3,7 @@ import { NavLink, Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { Button } from 'antd';
 import { ReloadOutlined, SearchOutlined } from '@ant-design/icons';
 import { useTranslation } from 'react-i18next';
-import { api } from '../api/client';
+import { api } from '../../api/client';
 
 // ════════════════════════ TYPES ════════════════════════
 interface AgentItem {
