@@ -23,8 +23,8 @@ const CAT_COLORS: Record<string, string> = {
   custom: 'var(--fg-tertiary)', apm: 'var(--accent-primary)',
 };
 
-const COMPARE_COLORS = ['#3b82f6', '#22c55e', '#f59e0b'];
-const DIFF_COLORS = ['#3b82f6', '#22c55e', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899'];
+const COMPARE_COLORS = ['var(--chart-2)', 'var(--chart-3)', 'var(--chart-4)'];
+const TAG_CHART_COLORS = ['#8c4fff', '#128fea', '#01a88d', '#ed7100', '#e7157b', '#41eba4', '#5bceff', '#fec866', '#c925d1'];
 
 // ── Tag distribution chart option ─────────────────────────
 
@@ -41,22 +41,23 @@ function buildTagChartOption(tags: Array<{ key: string; values: Array<{ value: s
     xAxis: { type: 'value' as const, show: false },
     yAxis: {
       type: 'category' as const,
-      data: top15.map(i => i.value).reverse(),
+      data: top15.map(i => `${i.tag}: ${i.value}`).reverse(),
       axisLabel: { fontSize: 10, fontFamily: 'Geist Mono, monospace', color: chartTheme.axisColor() },
       axisTick: { show: false },
       axisLine: { show: false },
     },
     series: [{
       type: 'bar' as const,
-      data: top15.map((i, idx) => ({ value: i.count, itemStyle: { color: DIFF_COLORS[idx % DIFF_COLORS.length] } })).reverse(),
-      barMaxWidth: 14,
+      data: top15.map((i, idx) => ({ value: i.count, itemStyle: { color: TAG_CHART_COLORS[idx % TAG_CHART_COLORS.length] } })).reverse(),
+      barMaxWidth: 12,
+      barGap: '30%',
     }],
     tooltip: {
       trigger: 'item' as const,
       backgroundColor: chartTheme.tooltipBg(),
       borderColor: chartTheme.tooltipBorder(),
       textStyle: { fontSize: 11, color: getComputedStyle(document.documentElement).getPropertyValue('--fg-primary').trim() || '#1c2b34' },
-      formatter: (p: any) => `<strong>${p.name}</strong><br/>Count: ${p.value.toLocaleString()}`,
+      formatter: (p: any) => `<span style="font-size:10px;color:${chartTheme.axisColor()}">${p.name.split(': ')[0]}</span><br/><strong>${p.name.split(': ')[1] || p.name}</strong><br/>Count: ${p.value.toLocaleString()}`,
     },
   };
 }
@@ -155,7 +156,7 @@ export default function MetricsPage() {
       if (groups.length > 0) {
         // Grouped by tag — each group is a series
         groups.forEach((g, i) => {
-          s.push({ name: g, data: primaryPoints.map(p => ({ ...p, value: p.value * (0.5 + Math.random() * 0.5) })), color: DIFF_COLORS[i % DIFF_COLORS.length] });
+          s.push({ name: g, data: primaryPoints.map(p => ({ ...p, value: p.value * (0.5 + Math.random() * 0.5) })), color: TAG_CHART_COLORS[i % TAG_CHART_COLORS.length] });
         });
       } else {
         s.push({ name: selectedDef.display_name, data: primaryPoints, color: 'var(--accent-primary)', unit: selectedDef.unit });
@@ -229,16 +230,16 @@ export default function MetricsPage() {
                 Array.from(filteredGroups.entries()).map(([cat, list]) => (
                   <div key={cat}>
                     <button onClick={() => setExpandedCats(p => ({ ...p, [cat]: !p[cat] }))}
-                      className="w-full flex items-center gap-2 px-3 py-2 text-[11px] font-semibold text-fg-tertiary uppercase tracking-wider hover:bg-bg-subtle transition-colors sticky top-0 bg-bg-elevated border-b border-border-subtle">
-                      <span className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: CAT_COLORS[cat] || 'var(--fg-tertiary)' }} />
+                      className="w-full flex items-center gap-2 pl-3 pr-2.5 py-1.5 text-[10.5px] font-semibold text-fg-tertiary hover:text-fg-secondary uppercase tracking-wider hover:bg-bg-subtle transition-colors sticky top-0 bg-bg-elevated border-b border-border-subtle">
+                      <span className="w-1.5 h-1.5 rounded-full shrink-0" style={{ backgroundColor: CAT_COLORS[cat] || 'var(--fg-tertiary)' }} />
                       <span className="flex-1 text-left">{cat}</span>
-                      <span className="text-[10px] text-fg-tertiary font-mono">{list.length}</span>
-                      <svg className={`w-3 h-3 transition-transform ${expandedCats[cat] ? 'rotate-180' : ''}`} viewBox="0 0 12 12" fill="currentColor"><path d="M6 8L2 4h8z" /></svg>
+                      <span className="text-[9px] text-fg-tertiary font-mono">{list.length}</span>
+                      <svg className={`w-3 h-3 transition-transform text-fg-tertiary ${expandedCats[cat] ? 'rotate-180' : ''}`} viewBox="0 0 12 12" fill="currentColor"><path d="M6 8L2 4h8z" /></svg>
                     </button>
                     {expandedCats[cat] !== false && list.map(m => (
                       <div key={m.name} onClick={() => setSelected(m.name)} role="button" tabIndex={0}
                         onKeyDown={e => { if (e.key === 'Enter') setSelected(m.name); }}
-                        className={`w-full text-left px-3 py-2.5 transition-colors border-b border-border-subtle cursor-pointer ${selected === m.name ? 'bg-accent-primary/10 border-l-[3px] border-l-accent-primary' : 'hover:bg-bg-subtle border-l-[3px] border-l-transparent'}`}>
+                        className={`w-full text-left pl-3 pr-2.5 py-2 transition-colors cursor-pointer ${selected === m.name ? 'bg-accent-primary/8 border-l-[2px] border-l-accent-primary' : 'hover:bg-bg-subtle border-l-[2px] border-l-transparent'}`}>
                         <div className="flex items-center gap-2">
                           <span className="text-[12px] font-medium text-fg-primary truncate flex-1">{m.display_name}</span>
                           <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-bg-muted text-fg-tertiary font-mono">{m.type}</span>

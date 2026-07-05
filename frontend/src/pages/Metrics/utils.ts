@@ -33,14 +33,14 @@ function cssVar(name: string, fallback: string): string {
 // ── Chart option builder ─────────────────────────────────
 
 const CHART_COLORS = [
-  'var(--accent-primary)',
-  'var(--accent-info)',
-  'var(--accent-success)',
-  'var(--accent-warning)',
-  'var(--accent-danger)',
-  'var(--chart-1)',
-  'var(--chart-2)',
-  'var(--chart-3)',
+  'var(--chart-1)',  // purple
+  'var(--chart-2)',  // blue
+  'var(--chart-3)',  // teal
+  'var(--chart-4)',  // orange
+  'var(--chart-5)',  // pink
+  'var(--chart-6)',  // mint
+  'var(--chart-7)',  // sky
+  'var(--chart-8)',  // amber
 ];
 
 function resolveColor(colorVar: string): string {
@@ -69,22 +69,25 @@ export function buildChartOption(seriesList: ChartSeries[], _def?: MetricDef) {
 
   return {
     animation: false,
-    grid: { left: 56, right: 24, top: 16, bottom: 28 },
+    grid: { left: 60, right: 28, top: 20, bottom: seriesList.length > 1 ? 36 : 28 },
     xAxis: {
       type: 'category' as const,
       data: allTimestamps,
-      axisLine: { lineStyle: { color: gridColor } },
+      axisLine: { show: false },
       axisTick: { show: false },
       axisLabel: {
         fontSize: 10, color: axisColor,
         fontFamily: 'Geist Mono, monospace',
-        interval: Math.max(1, Math.floor(allTimestamps.length / 8)) - 1,
+        interval: Math.max(1, Math.floor(allTimestamps.length / 10)) - 1,
+        margin: 12,
       },
     },
     yAxis: {
       type: 'value' as const,
-      splitLine: { lineStyle: { color: gridColor } },
-      axisLabel: { fontSize: 10, color: axisColor, fontFamily: 'Geist Mono, monospace' },
+      splitLine: { lineStyle: { color: gridColor, type: 'dashed' as const, width: 0.5 } },
+      axisLabel: { fontSize: 10, color: axisColor, fontFamily: 'Geist Mono, monospace', margin: 12 },
+      axisLine: { show: false },
+      axisTick: { show: false },
     },
     series: seriesList.map((s, i) => {
       const hex = resolveColor(s.color || CHART_COLORS[i % CHART_COLORS.length]);
@@ -94,11 +97,11 @@ export function buildChartOption(seriesList: ChartSeries[], _def?: MetricDef) {
         data: s.data.map(p => p.value),
         smooth: true,
         symbol: 'none' as const,
-        lineStyle: { color: hex, width: 2 },
+        lineStyle: { color: hex, width: 1.5 },
         areaStyle: seriesList.length === 1 ? {
           color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
-            { offset: 0, color: hex + '20' },
-            { offset: 1, color: hex + '00' },
+            { offset: 0, color: hex + '28' },
+            { offset: 1, color: hex + '02' },
           ]),
         } : undefined,
       };
@@ -107,11 +110,17 @@ export function buildChartOption(seriesList: ChartSeries[], _def?: MetricDef) {
       trigger: 'axis' as const,
       backgroundColor: tooltipBg,
       borderColor: tooltipBorder,
+      borderWidth: 0.5,
+      padding: [8, 12],
       textStyle: { fontSize: 11, color: cssVar('--fg-primary', '#1c2b34'), fontFamily: 'Geist Sans, system-ui, sans-serif' },
+      extraCssText: 'border-radius: 6px; box-shadow: 0 4px 12px rgba(0,0,0,0.08);',
     },
     legend: seriesList.length > 1 ? {
       bottom: 0,
-      textStyle: { fontSize: 10, color: axisColor },
+      itemWidth: 8,
+      itemHeight: 8,
+      itemGap: 16,
+      textStyle: { fontSize: 11, color: axisColor, fontFamily: 'Geist Sans, system-ui, sans-serif' },
     } : undefined,
   };
 }
