@@ -167,19 +167,19 @@ export function buildChartOption(seriesList: ChartSeries[], _def?: MetricDef) {
     },
     series: seriesList.map((s, i) => {
       const hex = resolveColor(s.color || CHART_COLORS[i % CHART_COLORS.length]);
+      const isMulti = seriesList.length > 1;
       return {
         name: s.name,
         type: 'line' as const,
         data: s.data.map(p => p.value),
         smooth: true,
         symbol: 'none' as const,
-        lineStyle: { color: hex, width: 1.5 },
-        areaStyle: seriesList.length === 1 ? {
-          color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
-            { offset: 0, color: hex + '28' },
-            { offset: 1, color: hex + '02' },
-          ]),
-        } : undefined,
+        lineStyle: { color: hex, width: isMulti ? 1 : 1.5 },
+        stack: isMulti ? 'total' : undefined,
+        areaStyle: {
+          color: hex + (isMulti ? '40' : '28'),
+          opacity: isMulti ? 0.7 : 1,
+        },
       };
     }),
     tooltip: {
