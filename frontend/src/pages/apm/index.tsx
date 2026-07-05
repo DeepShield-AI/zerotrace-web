@@ -12,7 +12,7 @@ import DurationHistogram from '../../components/apm/DurationHistogram';
 import TraceScenarioPanels from '../../components/apm/TraceScenarioPanels';
 import ExampleQueries from '../../components/search/ExampleQueries';
 import SyntaxSearch from '../../components/search/SyntaxSearch';
-import ApmServicesView from '../../components/apm/ApmServicesView';
+import ServicesView from '../../components/apm/ServicesView';
 import { TableSkeleton, EmptyState } from '../../components/ui';
 
 // Helpers
@@ -197,7 +197,7 @@ export default function APMPage() {
         {/* Search bar only shown in Traces view (not in tab bar) */}
       </div>
 
-      {view==='services' && <ApmServicesView services={services} svcState={svcState} onRetry={() => svcQuery.refetch()} range={range}/>}
+      {view==='services' && <ServicesView services={services} svcState={svcState} onRetry={() => svcQuery.refetch()} range={range}/>}
 
       {view==='traces' && (<>
         {/* Search bar + quick filters (Datadog style) */}
