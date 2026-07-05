@@ -37,26 +37,54 @@ export function genMetricsList() {
   return { metrics: METRICS_DB };
 }
 
-export function genMetricPoints(metricName: string, count = 60) {
+export function genMetricPoints(metricName: string, count = 60, _agg?: string, by?: string) {
   const def = METRICS_DB.find((m) => m.name === metricName);
   const unit = def?.unit ?? '';
   const display_name = def?.display_name ?? metricName;
 
-  // Use different initial values per metric for visual variety
   const initials: Record<string, number> = {
-    'system.cpu.usage': 45,
-    'system.mem.pct_usage': 72,
-    'apm.request.count': 2500,
-    'apm.error.rate': 2,
-    'apm.request.latency_p95': 120,
-    'system.net.bytes_rcvd': 500,
+    'system.cpu.usage': 45, 'system.mem.pct_usage': 72,
+    'apm.request.count': 2500, 'apm.error.rate': 2,
+    'apm.request.latency_p95': 120, 'system.net.bytes_rcvd': 500,
   };
   const initial = initials[metricName] ?? 50;
 
-  return {
-    metric: metricName,
-    display_name,
-    unit,
+  const result: any = {
+    metric: metricName, display_name, unit,
     points: genTimeSeries(count, initial, initial > 100 ? initial * 0.02 : 3),
+  };
+
+  // If grouping by a tag (e.g. "host", "service"), generate grouped series
+  if (by) {
+    const groups = by === 'host'
+      ? ['web-01.prod', 'web-02.prod', 'db-01.prod', 'cache-01.prod']
+      : by === 'service' ? ['api-gateway', 'auth-svc', 'payment-svc']
+        : by === 'env' ? ['prod', 'staging']
+          : [by + '-1', by + '-2', by + '-3'];
+    result.groups = groups;
+  }
+
+  return result;
+}
+
+const TAG_VALUES: Record<string, string[]> = {
+  host: ['web-01.prod', 'web-02.prod', 'db-01.prod', 'db-02.prod', 'cache-01.prod', 'worker-01.prod', 'api-01.prod', 'bastion.prod'],
+  service: ['api-gateway', 'auth-svc', 'user-svc', 'payment-svc', 'search-svc', 'notification-svc'],
+  env: ['prod', 'staging', 'dev'],
+  region: ['us-east-1', 'ap-northeast-1', 'eu-west-1'],
+  deployment: ['canary', 'stable', 'latest'],
+};
+
+export function genMetricTags(_metricName: string) {
+  // Return 2-4 tag keys with values + counts
+  const keys = faker.helpers.shuffle(Object.keys(TAG_VALUES)).slice(0, faker.number.int({ min: 2, max: 4 }));
+  return {
+    tags: keys.map(key => ({
+      key,
+      values: TAG_VALUES[key].map(v => ({
+        value: v,
+        count: faker.number.int({ min: 100, max: 50000 }),
+      })),
+    })),
   };
 }

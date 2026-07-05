@@ -3,7 +3,7 @@ import { faker } from '@faker-js/faker';
 import {
   genApmService, genApmServices, genApmTrace, genApmSpan, genSpanTree, genApmTopology, genApmServiceDetail, genApmStats,
   genDataOverview, genInfraHost, genInfraProcess,
-  genLogEntry, genMetricsList, genMetricPoints,
+  genLogEntry, genMetricsList, genMetricPoints, genMetricTags,
   genMonitor, genMonitorHistory,
   genBillingSummary, genBillingPlans, genBillingSubscriptions,
   genBillingUsage, genBillingHourlyUsage, genBillingInvoices,
@@ -152,7 +152,15 @@ export const handlers = [
   http.get(`${BASE}/metrics/query`, async ({ request }) => {
     const url = new URL(request.url);
     const name = url.searchParams.get('name') ?? 'system.cpu.usage';
-    return respond(genMetricPoints(name));
+    const agg = url.searchParams.get('agg') || undefined;
+    const by = url.searchParams.get('by') || undefined;
+    return respond(genMetricPoints(name, 60, agg, by));
+  }),
+
+  http.get(`${BASE}/metrics/tags`, async ({ request }) => {
+    const url = new URL(request.url);
+    const name = url.searchParams.get('name') ?? '';
+    return respond(genMetricTags(name));
   }),
 
   // ═══════════════════ Billing ═══════════════════

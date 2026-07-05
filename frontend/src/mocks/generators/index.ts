@@ -4,7 +4,7 @@ export { genDataOverview, genInfraHost, genInfraProcess } from './infra';
 export type { InfraHost, InfraProcess } from './infra';
 export { genLogEntry } from './logs';
 export type { LogEntry } from './logs';
-export { genMetricsList, genMetricPoints } from './metrics';
+export { genMetricsList, genMetricPoints, genMetricTags } from './metrics';
 export { genMonitor, genMonitorHistory } from './monitors';
 export type { Monitor } from './monitors';
 export { genBillingSummary, genBillingPlans, genBillingSubscriptions, genBillingUsage, genBillingHourlyUsage, genBillingInvoices, genBillingInvoiceDetail, genBillingEstimatedCost, genBillingAlerts } from './billing';
