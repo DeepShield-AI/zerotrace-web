@@ -162,4 +162,4 @@ UNION ALL
 SELECT p.id, 'apm_ingested_spans', 150, 'per_host' FROM plans p WHERE p.product_key = 'apm_enterprise'
 UNION ALL
 SELECT p.id, 'apm_indexed_spans', 1, 'per_host' FROM plans p WHERE p.product_key = 'apm_enterprise';
--- tier_level column added (already present in DB)
+ALTER TABLE plans ADD COLUMN tier_level INT NOT NULL DEFAULT 0 AFTER is_addon;

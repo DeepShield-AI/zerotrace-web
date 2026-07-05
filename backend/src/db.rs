@@ -1,9 +1,16 @@
 use sqlx::{MySqlPool, mysql::MySqlPoolOptions};
+use std::time::Duration;
 
 pub type DbPool = MySqlPool;
 
 pub async fn init_pool(database_url: &str) -> Result<DbPool, sqlx::Error> {
-    let pool = MySqlPoolOptions::new().max_connections(10).connect(database_url).await?;
+    let pool = MySqlPoolOptions::new()
+        .max_connections(10)
+        .idle_timeout(Duration::from_secs(30))
+        .max_lifetime(Duration::from_secs(300))
+        .acquire_timeout(Duration::from_secs(10))
+        .connect(database_url)
+        .await?;
 
     tracing::info!("Connected to MySQL database");
     Ok(pool)
