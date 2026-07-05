@@ -1,4 +1,5 @@
 import type { SpanData, SpanNode } from './types';
+import { chartColors } from '../../../lib/tokens';
 
 // ── Number coercion ─────────────────────────────────────
 
@@ -29,19 +30,13 @@ export function fmtDurationExact(us?: number | string): string {
 
 // ── Service colors ───────────────────────────────────────
 
-const DD_COLORS = [
-  '#632CA6', '#4799EB', '#DB3888', '#E2903C', '#2DB88D',
-  '#8B5CF6', '#06B6D4', '#F472B6', '#F59E0B', '#10B981',
-  '#6366F1', '#0EA5E9', '#EC4899', '#F97316', '#22C55E',
-];
-
 export const colorForService = (() => {
   const map = new Map<string, string>();
   let idx = 0;
   return (name: string): string => {
-    if (!name) return '#a1a1aa';
+    if (!name) return 'var(--fg-disabled)';
     if (map.has(name)) return map.get(name)!;
-    const c = DD_COLORS[idx % DD_COLORS.length];
+    const c = chartColors[idx % chartColors.length];
     map.set(name, c); idx++;
     return c;
   };

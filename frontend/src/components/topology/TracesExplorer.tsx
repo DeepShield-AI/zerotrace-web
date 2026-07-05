@@ -191,7 +191,7 @@ export default function TracesExplorer(props: Props) {
                         <span className="text-2xs font-mono px-1.5 py-0.5 rounded border border-border bg-bg-muted text-fg-secondary">{t.root_operation?.split(' ')[0] || '—'}</span>
                       </td>
                       <td className="px-3 py-3">
-                        <span className={`inline-flex items-center gap-1 text-2xs font-semibold px-2 py-0.5 rounded ${isOk ? 'bg-accent-success-bg text-accent-success border border-emerald-200' : 'bg-accent-danger-bg text-accent-danger border border-red-200'}`}>
+                        <span className={`inline-flex items-center gap-1 text-2xs font-semibold px-2 py-0.5 rounded ${isOk ? 'bg-accent-success-bg text-accent-success border border-accent-success/20' : 'bg-accent-danger-bg text-accent-danger border border-accent-danger/20'}`}>
                           <StatusDot status={isOk ? 'online' : 'error'} />{isOk ? '200' : 'ERR'}
                         </span>
                       </td>

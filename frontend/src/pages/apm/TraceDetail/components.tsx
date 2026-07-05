@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowLeftOutlined, WarningOutlined, CloseOutlined } from '@ant-design/icons';
+import { useTranslation } from 'react-i18next';
 import type { TraceData, SpanNode } from './types';
 import { num, fmtDuration, fmtDurationExact, colorForService, parseTimeUs } from './utils';
 
@@ -8,15 +8,17 @@ import { num, fmtDuration, fmtDurationExact, colorForService, parseTimeUs } from
 
 const ROW_H = 36;
 const INDENT_W = 14;
-const DEPTH_LINE_W = 1;
 
 // ── TraceHeader ──────────────────────────────────────────
 
 export function TraceHeader({ trace, services }: { trace: TraceData; services: string[] }) {
+  const { t } = useTranslation();
   return (
     <div className="mb-4">
       <div className="flex items-center gap-2.5 mb-3">
-        <button onClick={() => window.history.back()} className="text-fg-tertiary hover:text-fg-secondary"><ArrowLeftOutlined className="text-xs" /></button>
+        <button onClick={() => window.history.back()} className="text-fg-tertiary hover:text-fg-secondary p-0.5">
+          <svg className="w-4 h-4" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M10 3L5 8l5 5"/></svg>
+        </button>
         <span className="text-fg-disabled text-xs">/</span>
         <Link to="/apm?view=traces" className="text-xs text-fg-secondary hover:text-fg-secondary">Traces</Link>
         <span className="text-fg-disabled text-xs">/</span>
@@ -25,12 +27,12 @@ export function TraceHeader({ trace, services }: { trace: TraceData; services: s
         </span>
         <button onClick={() => { navigator.clipboard.writeText(trace.trace_id); }}
           className="text-[10px] text-fg-tertiary hover:text-fg-secondary bg-bg-muted hover:bg-bg-muted px-2 py-0.5 rounded border border-border transition-colors"
-          title="Copy trace ID">Copy ID</button>
+          title={t('apm.copyId')}>{t('apm.copyId')}</button>
       </div>
 
       <div className="flex flex-wrap items-center gap-3">
         <span className={`inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1 rounded-full ${
-          trace.status === 'ok' ? 'bg-accent-success-bg text-accent-success border border-emerald-200' : 'bg-accent-danger-bg text-accent-danger border border-red-200'
+          trace.status === 'ok' ? 'bg-accent-success-bg text-accent-success border border-accent-success/20' : 'bg-accent-danger-bg text-accent-danger border border-accent-danger/20'
         }`}>
           <span className={`w-2 h-2 rounded-full ${trace.status === 'ok' ? 'bg-severity-ok' : 'bg-severity-alert'}`} />
           {trace.status === 'ok' ? 'OK' : `${trace.error_count} error${trace.error_count !== 1 ? 's' : ''}`}
@@ -47,9 +49,10 @@ export function TraceHeader({ trace, services }: { trace: TraceData; services: s
       {services.filter(Boolean).length > 0 && (
         <div className="flex flex-wrap gap-1.5 mt-3 pt-3 border-t border-border-subtle">
           {services.filter(Boolean).map(svc => (
-            <span key={svc} className="inline-flex items-center gap-1.5 text-[11px] text-fg-secondary bg-bg-elevated border border-border rounded-full px-2.5 py-0.5">
+            <Link key={svc} to={`/apm/services/${encodeURIComponent(svc)}`}
+              className="inline-flex items-center gap-1.5 text-[11px] text-fg-secondary bg-bg-elevated border border-border rounded-full px-2.5 py-0.5 hover:border-accent-primary hover:text-accent-primary transition-colors cursor-pointer">
               <span className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: colorForService(svc) }} />{svc}
-            </span>
+            </Link>
           ))}
         </div>
       )}
@@ -62,6 +65,7 @@ export function TraceHeader({ trace, services }: { trace: TraceData; services: s
 export function WaterfallView({ spanNodes, selectedId, onSelect }: {
   spanNodes: SpanNode[]; selectedId: string | null; onSelect: (id: string | null) => void;
 }) {
+  const { t } = useTranslation();
   const timeline = useMemo(() => {
     if (!spanNodes.length) return { totalUs: 0, spans: [] as { node: SpanNode; offsetUs: number; widthUs: number }[] };
     let earliestUs = Number.MAX_SAFE_INTEGER;
@@ -91,9 +95,9 @@ export function WaterfallView({ spanNodes, selectedId, onSelect }: {
   return (
     <div className="bg-bg-elevated border border-border rounded-lg overflow-hidden">
       <div className="flex items-center h-9 border-b border-border bg-bg-subtle text-[10.5px] font-semibold text-fg-secondary uppercase tracking-wider">
-        <div className="shrink-0 px-4 w-[400px]">Service &amp; Operation</div>
+        <div className="shrink-0 px-4 w-[400px]">{t('apm.service')} &amp; {t('apm.operations')}</div>
         <div className="flex-1 px-4 relative h-full flex items-center">
-          Duration
+          {t('apm.duration')}
           {markers.map((m, i) => (
             <span key={i} className="absolute top-6 text-[9px] text-fg-tertiary font-mono leading-none" style={{ left: `${m.pct}%`, transform: 'translateX(-50%)' }}>{m.label}</span>
           ))}
@@ -101,7 +105,7 @@ export function WaterfallView({ spanNodes, selectedId, onSelect }: {
       </div>
       <div>
         {spanNodes.length === 0 ? (
-          <div className="py-20 text-center text-sm text-fg-tertiary">No spans found</div>
+          <div className="py-20 text-center text-sm text-fg-tertiary">{t('apm.noSpansFound')}</div>
         ) : (
           timeline.spans.map(({ node, offsetUs, widthUs }, idx) => {
             const isSelected = selectedId === node.span_id;
@@ -114,22 +118,26 @@ export function WaterfallView({ spanNodes, selectedId, onSelect }: {
             return (
               <div key={`${node.span_id}-${idx}`}
                 className={`flex items-center cursor-pointer transition-colors group border-b border-border-subtle last:border-b-0 ${
-                  isSelected ? 'bg-purple-50/70' : isError ? 'bg-accent-danger-bg/30 hover:bg-accent-danger-bg/50' : idx % 2 === 0 ? 'bg-bg-elevated hover:bg-bg-subtle' : 'bg-bg-subtle/50 hover:bg-bg-subtle'
+                  isSelected ? 'bg-accent-primary/8' : isError ? 'bg-accent-danger-bg/30 hover:bg-accent-danger-bg/50' : idx % 2 === 0 ? 'bg-bg-elevated hover:bg-bg-subtle' : 'bg-bg-subtle/50 hover:bg-bg-subtle'
                 }`}
                 style={{ height: ROW_H, minHeight: ROW_H }}
                 onClick={() => onSelect(isSelected ? null : node.span_id)}>
                 <div className="shrink-0 px-4 flex items-center gap-2 overflow-hidden" style={{ width: 400 }}>
                   {Array.from({ length: node.depth }).map((_, i) => (
                     <span key={i} className="shrink-0 flex items-center justify-center" style={{ width: INDENT_W }}>
-                      <span className="block" style={{ width: DEPTH_LINE_W, height: ROW_H, background: i === node.depth - 1 ? '#d4d4d8' : 'transparent' }} />
+                      <span className="block" style={{ width: 1, height: ROW_H, background: i === node.depth - 1 ? 'var(--border-default)' : 'transparent' }} />
                     </span>
                   ))}
-                  {hasChildren ? <span className="shrink-0 text-fg-tertiary" style={{ fontSize: 8 }}>▼</span> : <span className="shrink-0" style={{ width: 8 }} />}
+                  {hasChildren ? <span className="shrink-0 text-fg-tertiary text-[8px]">▼</span> : <span className="shrink-0" style={{ width: 8 }} />}
                   <span className="shrink-0 rounded-full" style={{ width: 8, height: 8, backgroundColor: color }} />
                   <span className="text-xs font-semibold text-fg-primary truncate max-w-[130px]">{node.service_name || <span className="text-fg-tertiary italic">unknown</span>}</span>
                   <span className="text-fg-disabled text-xs shrink-0">·</span>
                   <span className="text-xs text-fg-secondary font-mono truncate flex-1 min-w-0">{node.operation_name || <span className="text-fg-tertiary italic">—</span>}</span>
-                  {isError && <span className="shrink-0 text-accent-danger" title={node.error_message || 'Error'}><WarningOutlined className="text-[11px]" /></span>}
+                  {isError && (
+                    <span className="shrink-0 text-accent-danger" title={node.error_message || 'Error'}>
+                      <svg className="w-3 h-3" viewBox="0 0 12 12" fill="currentColor"><path d="M6 1l5 9H1z"/><text x="6" y="9.5" textAnchor="middle" fill="white" fontSize="8" fontWeight="bold">!</text></svg>
+                    </span>
+                  )}
                   {node.status_code != null && node.status_code !== '' && node.status_code !== 0 && (
                     <span className={`shrink-0 text-[10px] font-mono font-medium px-1.5 py-0.5 rounded ${
                       num(node.status_code) >= 500 ? 'bg-accent-danger-bg text-accent-danger' : num(node.status_code) >= 400 ? 'bg-accent-warning-bg text-accent-warning' : 'bg-accent-success-bg text-accent-success'
@@ -150,9 +158,9 @@ export function WaterfallView({ spanNodes, selectedId, onSelect }: {
         )}
       </div>
       <div className="border-t border-border bg-bg-subtle px-4 py-2 flex items-center gap-4 text-[10px] text-fg-tertiary">
-        <span>{spanNodes.length} spans</span><span>&middot;</span><span>Max depth: {maxDepth}</span><span>&middot;</span>
-        <span className="flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-severity-alert" /> Error</span>
-        <span className="flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-severity-ok" /> OK</span>
+        <span>{spanNodes.length} {t('apm.spans')}</span><span>&middot;</span><span>{t('apm.maxDepth')}: {maxDepth}</span><span>&middot;</span>
+        <span className="flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-severity-alert" /> {t('apm.errors')}</span>
+        <span className="flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-severity-ok" /> {t('apm.ok')}</span>
       </div>
     </div>
   );
@@ -163,11 +171,12 @@ export function WaterfallView({ spanNodes, selectedId, onSelect }: {
 export function SpanListView({ spanNodes, selectedId, onSelect }: {
   spanNodes: SpanNode[]; selectedId: string | null; onSelect: (id: string | null) => void;
 }) {
+  const { t } = useTranslation();
   return (
     <div className="bg-bg-elevated border border-border rounded-lg overflow-hidden">
-      <div className="divide-y divide-zinc-50">
+      <div className="divide-y divide-border-subtle">
         {spanNodes.length === 0 ? (
-          <div className="py-20 text-center text-sm text-fg-tertiary">No spans found</div>
+          <div className="py-20 text-center text-sm text-fg-tertiary">{t('apm.noSpansFound')}</div>
         ) : (
           spanNodes.map((node) => {
             const isSelected = selectedId === node.span_id;
@@ -176,7 +185,7 @@ export function SpanListView({ spanNodes, selectedId, onSelect }: {
             return (
               <button key={node.span_id}
                 className={`w-full text-left px-4 py-3 flex items-center gap-3 transition-colors ${
-                  isSelected ? 'bg-purple-50/80' : isError ? 'bg-accent-danger-bg/30 hover:bg-accent-danger-bg/60' : 'hover:bg-bg-subtle'
+                  isSelected ? 'bg-accent-primary/8' : isError ? 'bg-accent-danger-bg/30 hover:bg-accent-danger-bg/50' : 'hover:bg-bg-subtle'
                 }`}
                 onClick={() => onSelect(isSelected ? null : node.span_id)}>
                 <span style={{ width: node.depth * INDENT_W }} className="shrink-0" />
@@ -185,11 +194,18 @@ export function SpanListView({ spanNodes, selectedId, onSelect }: {
                   <span className="text-sm font-semibold text-fg-secondary">{node.service_name || 'unknown'}</span>
                   <span className="text-fg-tertiary text-xs">·</span>
                   <span className="text-xs text-fg-secondary font-mono truncate">{node.operation_name || '—'}</span>
-                  {isError && <span className="shrink-0 text-accent-danger"><WarningOutlined className="text-[11px]" /></span>}
+                  {isError && (
+                    <span className="shrink-0 text-accent-danger">
+                      <svg className="w-3 h-3" viewBox="0 0 12 12" fill="currentColor"><path d="M6 1l5 9H1z"/></svg>
+                    </span>
+                  )}
                 </div>
                 <div className="flex items-center gap-2 shrink-0">
                   <div className="w-24 h-1.5 bg-bg-muted rounded-full overflow-hidden">
-                    <div className="h-full rounded-full" style={{ width: `${Math.min((num(node.duration_us) / Math.max(...spanNodes.map(s => num(s.duration_us)), 1)) * 100, 100)}%`, backgroundColor: color }} />
+                    <div className="h-full rounded-full" style={{
+                      width: `${Math.min((num(node.duration_us) / Math.max(...spanNodes.map(s => num(s.duration_us)), 1)) * 100, 100)}%`,
+                      backgroundColor: color,
+                    }} />
                   </div>
                   <div className="text-right w-20">
                     <p className="text-xs font-mono text-fg-primary font-semibold">{fmtDurationExact(node.duration_us)}</p>
@@ -208,6 +224,7 @@ export function SpanListView({ spanNodes, selectedId, onSelect }: {
 // ── SpanDetailSidebar ────────────────────────────────────
 
 export function SpanDetailSidebar({ span, onClose }: { span: SpanNode; onClose: () => void }) {
+  const { t } = useTranslation();
   const color = colorForService(span.service_name);
   const attrs: [string, string][] = [];
   if (span.attribute_names && span.attribute_values) {
@@ -216,22 +233,43 @@ export function SpanDetailSidebar({ span, onClose }: { span: SpanNode; onClose: 
     }
   }
   const infoGroups = [
-    { label: 'Span Info', items: [['Service', span.app_service_name || span.service_name], ['Operation', span.operation_name], ['Duration', fmtDurationExact(span.duration_us)], ['Start Time', span.start_time], ['Span Kind', span.span_kind || '—'], ['Request Type', span.request_type || '—'], ['Status', span.span_status], ['Status Code', span.status_code != null ? String(span.status_code) : null]] },
-    { label: 'IDs', items: [['Span ID', span.span_id], ['Parent Span ID', span.parent_span_id || '—'], ['Trace ID', span.trace_id]] },
+    { label: t('apm.spanInfo'), items: [
+      [t('apm.service'), span.app_service_name || span.service_name],
+      [t('apm.operations'), span.operation_name],
+      [t('apm.duration'), fmtDurationExact(span.duration_us)],
+      [t('apm.startTime'), span.start_time],
+      [t('apm.spanKind'), span.span_kind || '—'],
+      [t('apm.requestType'), span.request_type || '—'],
+      [t('apm.status'), span.span_status],
+      [t('apm.statusCode'), span.status_code != null ? String(span.status_code) : null],
+    ]},
+    { label: t('apm.ids'), items: [
+      ['Span ID', span.span_id],
+      [t('apm.parentSpanId'), span.parent_span_id || '—'],
+      ['Trace ID', span.trace_id],
+    ]},
   ];
 
   return (
-    <div className="bg-bg-elevated border-l border-border w-[340px] shrink-0 overflow-y-auto max-h-[calc(100vh-180px)]">
+    <div className="w-[340px] shrink-0 border-l border-border bg-bg-elevated overflow-y-auto max-h-[calc(100vh-180px)]">
       <div className="sticky top-0 bg-bg-elevated border-b border-border-subtle px-5 py-3.5 flex items-center justify-between z-10">
         <div className="flex items-center gap-2.5 min-w-0">
-          <span className="w-3 h-3 rounded-full shrink-0 ring-2 ring-offset-1" style={{ backgroundColor: color, boxShadow: `0 0 0 2px ${color}22` }} />
-          <div className="min-w-0"><h3 className="text-sm font-semibold text-fg-primary truncate">{span.service_name || 'Unknown Service'}</h3><p className="text-[11px] text-fg-tertiary font-mono truncate">{span.operation_name || '—'}</p></div>
+          <span className="w-3 h-3 rounded-full shrink-0 ring-2 ring-offset-1 ring-border-subtle" style={{ backgroundColor: color }} />
+          <div className="min-w-0">
+            <h3 className="text-sm font-semibold text-fg-primary truncate">{span.service_name || 'Unknown Service'}</h3>
+            <p className="text-[11px] text-fg-tertiary font-mono truncate">{span.operation_name || '—'}</p>
+          </div>
         </div>
-        <button onClick={onClose} className="text-fg-tertiary hover:text-fg-secondary transition-colors p-1 rounded hover:bg-bg-muted"><CloseOutlined className="text-xs" /></button>
+        <button onClick={onClose} className="text-fg-tertiary hover:text-fg-secondary p-1 rounded hover:bg-bg-muted transition-colors">
+          <svg className="w-3.5 h-3.5" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2"><path d="M4 4l8 8M12 4l-8 8"/></svg>
+        </button>
       </div>
       {span.span_status === 'error' && span.error_message && (
-        <div className="mx-4 mt-4 bg-accent-danger-bg border border-red-200 rounded-lg p-3">
-          <p className="text-xs font-semibold text-accent-danger mb-1 flex items-center gap-1.5"><WarningOutlined /> Error</p>
+        <div className="mx-4 mt-4 bg-accent-danger-bg border border-accent-danger/20 rounded-lg p-3">
+          <p className="text-xs font-semibold text-accent-danger mb-1 flex items-center gap-1.5">
+            <svg className="w-3 h-3" viewBox="0 0 12 12" fill="currentColor"><path d="M6 1l5 9H1z"/></svg>
+            {t('apm.errors')}
+          </p>
           <p className="text-[11px] text-accent-danger font-mono break-all leading-relaxed">{span.error_message}</p>
         </div>
       )}
@@ -255,7 +293,7 @@ export function SpanDetailSidebar({ span, onClose }: { span: SpanNode; onClose: 
         ))}
         {attrs.length > 0 && (
           <div>
-            <p className="text-[10px] font-semibold text-fg-tertiary uppercase tracking-wider mb-2.5">Attributes ({attrs.length})</p>
+            <p className="text-[10px] font-semibold text-fg-tertiary uppercase tracking-wider mb-2.5">{t('apm.attributes')} ({attrs.length})</p>
             <div className="space-y-1.5">
               {attrs.map(([k, v]) => (
                 <div key={k} className="bg-bg-subtle rounded-lg px-3 py-2 flex items-start gap-2">

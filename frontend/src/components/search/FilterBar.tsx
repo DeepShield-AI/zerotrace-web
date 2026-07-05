@@ -53,7 +53,7 @@ export default function FilterBar({
           onChange={e => handleChange(e.target.value)}
           placeholder={`${t('infrastructure.filterHostsPlaceholder')}  (${totalCount})`}
           className="w-full h-9 pl-9 pr-8 text-[13px] border border-border rounded-md bg-bg-elevated
-            placeholder:text-fg-disabled focus:outline-none focus:border-purple-300 focus:ring-2 focus:ring-purple-50 transition-all"
+            placeholder:text-fg-disabled focus:outline-none focus:border-accent-primary focus:ring-2 focus:ring-accent-primary/5 transition-all"
         />
         {localQuery && (
           <button

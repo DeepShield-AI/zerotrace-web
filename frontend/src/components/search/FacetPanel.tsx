@@ -135,7 +135,7 @@ export default function FacetPanel({
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           placeholder="Filter facets…"
-          className="w-full pl-7 pr-2.5 py-1.5 text-xs border border-border rounded-md bg-bg-elevated placeholder:text-fg-disabled focus:outline-none focus:border-purple-300 focus:ring-1 focus:ring-purple-200 transition-all"
+          className="w-full pl-7 pr-2.5 py-1.5 text-xs border border-border rounded-md bg-bg-elevated placeholder:text-fg-disabled focus:outline-none focus:border-accent-primary focus:ring-1 focus:ring-accent-primary/20 transition-all"
         />
       </div>
 
@@ -147,7 +147,7 @@ export default function FacetPanel({
             onClick={() => onStatusChange(item.key)}
             className={`w-full text-left px-2.5 py-1.5 rounded-md text-xs transition-colors flex items-center gap-2.5 ${
               selectedStatus === item.key
-                ? 'bg-accent-primary/10 text-accent-primary font-medium border border-purple-100'
+                ? 'bg-accent-primary/10 text-accent-primary font-medium border border-accent-primary/20'
                 : 'text-fg-secondary hover:bg-bg-subtle border border-transparent'
             }`}
           >
@@ -172,7 +172,7 @@ export default function FacetPanel({
               onClick={() => onDurationChange?.(item.query)}
               className={`w-full text-left px-2.5 py-1.5 rounded-md text-xs transition-colors border ${
                 selectedDuration === item.query
-                  ? 'bg-accent-primary/10 text-accent-primary font-medium border-purple-100'
+                  ? 'bg-accent-primary/10 text-accent-primary font-medium border-accent-primary/20'
                   : 'text-fg-secondary hover:bg-bg-subtle border-transparent'
               }`}
             >
@@ -200,7 +200,7 @@ export default function FacetPanel({
                 onClick={() => onServiceChange(selectedService === s.service_name ? '' : s.service_name)}
                 className={`w-full text-left px-2.5 py-1.5 rounded-md text-xs transition-colors flex items-center gap-2 border ${
                   selectedService === s.service_name
-                    ? 'bg-accent-primary/10 text-accent-primary font-medium border-purple-100'
+                    ? 'bg-accent-primary/10 text-accent-primary font-medium border-accent-primary/20'
                     : 'text-fg-secondary hover:bg-bg-subtle border-transparent'
                 }`}
               >

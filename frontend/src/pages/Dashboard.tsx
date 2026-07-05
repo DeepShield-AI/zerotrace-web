@@ -7,6 +7,7 @@ import { useTranslation } from 'react-i18next';
 import { useAuth } from '../hooks/useAuth';
 import { api } from '../api/client';
 import CommandPalette from '../components/layout/CommandPalette';
+import LanguageSwitcher from '../components/layout/LanguageSwitcher';
 
 /* ── Types ── */
 interface ApiKeyItem { id: number; name: string; key_prefix: string; scopes: string; last_used_at: string | null; status: string; created_at: string; }
@@ -151,6 +152,9 @@ function Sidebar() {
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className={`shrink-0 ${collapsed ? 'w-[16px] h-[16px]' : 'w-3 h-3'}`}><rect x="3" y="5" width="18" height="14" rx="2"/><line x1="3" y1="10" x2="21" y2="10"/><line x1="12" y1="10" x2="12" y2="19"/></svg>
           {!collapsed && <span className="text-[10px] font-medium">Plan &amp; Usage</span>}
         </NavLink>
+        <div className="mx-1 mt-1 mb-1">
+          <LanguageSwitcher collapsed={collapsed} />
+        </div>
         {!collapsed && (
           <div className="flex gap-1 mx-1 mt-1">
             {[{ l:'Invite', a:()=>navigate('/organization-settings/users/invite'), d:'M16 21v-2a4 4 0 00-4-4H6a4 4 0 00-4 4v2 M9 7a4 4 0 100-8 4 4 0 000 8 M19 8v6 M22 11h-6' },{ l:'Support', a:()=>window.open('mailto:support@zerotrace.com'), d:'M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z' },{ l:'Help', a:()=>navigate('/help'), d:'M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z M9.09 9a3 3 0 015.83 1c0 2-3 3-3 3 M12 17h.01', accent:true }].map((t,i)=>(

@@ -1,85 +1,119 @@
-# 指标浏览器（Metrics Explorer）
+# Metrics Explorer — Datadog 截图精确分析（vision 工具验证版）
 
-**路径**：`/metrics`
-**Datadog 原始 URL**：`https://app.datadoghq.com/metric/explorer`
-**参考说明**：基于 Datadog Metrics Explorer 公开文档和产品截图分析。
+**截图**：`datadog-capture/outputs/screenshots/metrics-explorer-viewport-2026-07-05T05-50-36-408Z.png`
+**全页截图**：`datadog-capture/outputs/screenshots/metrics-full-2026-07-05T05-43-20-982Z.png`
+**分析方法**：`node tools/vision/vision.js` 逐区域描述
+**分辨率**：2880×1800 (2x DPR, 逻辑 1440×900)
 
-## 精确布局
+## 页面完整布局
 
-Datadog Metrics Explorer 是左右两栏布局：
+### 区域 A：顶部全局导航栏（Datadog 全局，非页面内容）
+
+- 深色背景
+- 左：Datadog logo + "Upgrade" 按钮 + "5 days left in your free trial"
+- 中：全局搜索框 "Search Datadog" + `Ctrl K` 快捷键提示
+- 右："Ask Bits" 紫色 AI 按钮
+
+### 区域 B：页面头部
+
+- **标签页**：`Overview` | `Explorer`（Explorer 选中，加粗 + 下划线）
+- **标题**：`Metrics`（左侧，带折线图小图标）
+- **时间选择器**：右侧，`Past 1 Hour` 下拉
+- 时间选择器右侧：暂停/播放按钮、快进按钮、全屏/更多选项图标
+
+### 区域 C：左侧全局图标导航栏（Datadog 全局，非页面内容）
+
+- 垂直图标列：Dashboards、Logs、Traces、APM、Network、Cloud Cost、Security、Incidents、Users、Notebooks、Watchdog、Bits Chat、Help
+- 宽度很窄，仅图标
+- **注意：这不是指标浏览器侧边栏！Datadog Metrics Explorer 页面没有专用的指标侧边栏。**
+
+### 区域 D：Query Builder（查询构建器）
+
+单行横向排列，紧凑：
 
 ```
-┌──────────────────────────────────────────────────────────┐
-│ Metrics Explorer                  [时间选择器]  [刷新]    │  A: header
-├──────────────┬───────────────────────────────────────────┤
-│ [🔍 搜索]    │  system.cpu.usage                         │  B: metric-browser
-│              │  gauge · 指标描述                          │  C: metric-info
-│ ▾ system(3)  │                                           │
-│   cpu.usage   │  Agg: [avg ▼] by  [host ▼]              │  D: agg-controls
-│   mem.used    │  ┌───────────────────────────────────┐   │
-│   disk.free   │  │       Timeseries Chart             │   │  E: chart
-│ ▸ network(2) │  │       (line + area fill)           │   │
-│ ▸ apm(3)     │  └───────────────────────────────────┘   │
-│ ▸ custom(1)  │                                           │
-│              │  ┌───────────────────────────────────┐   │
-│              │  │  Distribution                     │   │  F: distribution
-│              │  │  host:web-01  ████████  45.2%     │   │
-│              │  │  host:db-01   ██████    32.1%     │   │
-│              │  │  host:cache   ████      12.8%     │   │
-│              │  └───────────────────────────────────┘   │
-│              │                                           │
-│              │  ┌───────────────────────────────────┐   │
-│              │  │  Top Values (when grouped)        │   │  G: top-list
-│              │  │  web-01.prod   1,234   45.2%      │   │
-│              │  │  db-01.prod      876   32.1%      │   │
-│              │  └───────────────────────────────────┘   │
-└──────────────┴───────────────────────────────────────────┘
+a  [Metrics ▾]  [system.cpu.user]  from [everywhere ▾]  [avg ▾]  by [everything ▾]  [Σ Modify]  [✨]  [</>]  [🎨]  [as...]
 ```
 
-| # | 名称 | 内容 | Datadog 精确行为 |
-|---|---|---|---|
-| A | header | 页面标题 + 时间选择器 + 刷新 | 无额外操作按钮 |
-| B | metric-browser | 搜索 + 分类折叠树 | **无 Compare 按钮**。每项仅显示名称+类型标签 |
-| C | metric-info | 指标名 + 路径 + 类型 + 描述 | **无 Copy/Dashboard 按钮**。纯信息展示 |
-| D | agg-controls | 聚合下拉 + by 下拉 | 无 "Time Series" 大写标题。直接接图表 |
-| E | chart | 时序折线图 area fill | 按"by"分组时显示多条线 |
-| F | distribution | 水平柱状图 Tag 值分布 | **Datadog 核心面板**。每行 = tag值 + 百分比条 + 占比数字 |
-| G | top-list | 分组后的 Top 值表格 | 仅当选择 "by" 维度时显示 |
+关键元素：
+- **a** — 查询标签，深蓝色，等宽字体，bold
+- **[Metrics ▾]** — 数据源类型下拉
+- **[system.cpu.user]** — 指标名输入框（带 autocomplete）
+- **from [everywhere ▾]** — 作用域过滤
+- **[avg ▾] by [everything ▾]** — 聚合函数 + 分组维度
+- **[Σ Modify]** — 修改聚合逻辑按钮
+- **[✨]** — 魔法棒，智能建议
+- **[</>]** — 代码模式切换（显示原始查询语句编辑）
+- **[🎨]** — 颜色方案
+- **[as...]** — 别名设置
 
-## 与上一版的差异
+下方按钮行：
+- `+ Add Query`（蓝色边框）
+- `+ Add Formula`（灰色边框）
 
-| 上一版 | 本版（对齐 Datadog） |
-|--------|---------------------|
-| 有 "+ Compare" 对比按钮 | **去掉**。Datadog 无此功能 |
-| 有 Copy/Dashboard 按钮 | **去掉** |
-| 有 "Time Series" 大写标题 | **去掉** |
-| 有 "Tag Distribution" 独立面板 | 改为 Distribution（精确样式） |
-| 无 Top List | **新增**：按 by 分组时显示 |
+### 区域 E：Display 选项
 
-## 组件清单
+```
+Display [Lines ▾]  Style [Solid ▾]  Stroke [Normal ▾]
+```
 
-| 区块 | 组件 | 状态 |
-|------|------|------|
-| A | TimeRangePicker | 已有 |
-| B | MetricBrowser | 重写（去掉 Compare 按钮） |
-| C | MetricInfoBar | 重写（仅展示，无按钮） |
-| D | AggregationControls | 改造成紧凑一行 |
-| E | TimeseriesChart | 已有 ReactECharts + buildChartOption |
-| F | DistributionPanel | **新建**：水平条 + 百分比 |
-| G | TopListTable | **新建**：分组值表格 |
+仅三组下拉：显示类型、线型、线宽。无 Color、Order by、Reverse、Split Graph 等额外选项。
 
-## 交互
+### 区域 F：图表
 
-- 左侧点击指标 → 右侧更新全部面板
-- 搜索过滤 → 实时过滤左侧列表
-- 聚合/by 改变 → 图表/分布/top list 重取
-- 时间范围改变 → 全部重取
-- **无"对比"交互**
+- **标题**：左上角显示查询表达式 `avg:system.cpu.user{*}`
+- **右上角**：导出图标 + 全屏图标
+- **图表类型**：简单折线图（单条蓝色线，不是 stacked area）
+- **Y 轴**：Percent，刻度 0-25，间隔 5
+- **X 轴**：时间，12:55 ~ 13:50，间隔 5 分钟
+- **背景网格**：浅灰色水平虚线
+- **图例**：图表左下角，`■ avg:system.cpu.user{*}`
 
-## Parity Checklist
+### 区域 G：图表下方
 
-| 检查项 | 
-|--------|
-| L1 布局: 左260px + 右自适应，无多余 UI |
-| L2 Token: 全链路语义 token |
-| L3 交互: 点击指标同步更新 3 个面板（图表+分布+top list） |
+- **没有 Summary 表**
+- **没有 Distribution 面板**
+- **没有 Top List 面板**
+- **没有 Stat Cards**
+
+### 区域 H：页面底部
+
+- Datadog 全局 footer：版权声明、Master Subscription Agreement、Privacy Policy、Cookie Policy、系统状态 `● All Systems Operational`
+
+---
+
+## 与当前实现的差异（2026-07-05 校正版）
+
+| # | 差异 | Datadog | 当前实现 | 状态 |
+|---|------|---------|----------|------|
+| 1 | 下拉框组件 | pill 风格紧凑下拉 | CompactSelect（已自建）| ✅ 已修复 |
+| 2 | 查询表达式显示 | 图表标题 `avg:system.cpu.user{*}` | 图表上方 code 标签显示 | ✅ 已修复 |
+| 3 | 图例 | 图表底部始终显示 | legend 已改为始终显示 | ✅ 已修复 |
+| 4 | Display 选项 | 仅 Lines/Solid/Normal 三组 | 同，已简化 | ✅ 已修复 |
+| 5 | 图表默认类型 | 折线图 (Lines) | 折线图 (line)，可选 Area | ✅ 已修复 |
+| 6 | 指标选择方式 | query builder 中的 autocomplete 输入框 | MetricSelector 下拉（功能一致）| ✅ |
+| 7 | `</>` 代码切换 | 有 | 有 | ✅ |
+| 8 | 左侧指标浏览器 | ❌ 没有（不是页面一部分）| ❌ 没有 | ✅ 正确 |
+| 9 | Summary 表 | ❌ 没有 | ❌ 没有 | ✅ 正确 |
+| 10 | Distribution/TopList | ❌ 不在 Explorer 主视图 | ❌ 没有 | ✅ 正确 |
+
+---
+
+## 已确认不需要的功能
+
+以下功能经 vision 工具验证**不在 Datadog Metrics Explorer 主视图中**：
+- ~~左侧指标浏览器侧边栏~~（Datadog 左侧是全局图标导航）
+- ~~Summary 数据表~~
+- ~~Distribution 面板~~
+- ~~Top List 面板~~
+- ~~"Graph your data [sum ▾] by [host ▾] over [1m ▾]" 聚合行~~
+- ~~Color / Order by / Reverse / Split Graph~~（这些选项不在 Datadog Explorer 的基本视图里）
+
+---
+
+## 优化方向（正确版）
+
+1. **保持简洁** — Datadog Explorer 本质上就是：query builder + 简洁 display 选项 + 图表
+2. **不需要加侧边栏** — 指标选择通过 metric name 输入框的 autocomplete 完成
+3. **不需要加 Summary/Distribution/TopList** — 这些是 Dashboard widgets 的功能，不属于 Explorer
+4. **继续打磨细节**：CompactSelect pill 风格、等宽字体查询表达式、图例位置、间距对齐

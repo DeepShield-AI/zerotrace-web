@@ -24,9 +24,11 @@ function genTimeSeries(n = 60, initial = 50, drift = 3) {
   return Array.from({ length: n }, (_, i) => {
     v = Math.max(0, Math.min(100, v + faker.number.float({ min: -drift, max: drift })));
     const wave = Math.sin(i * (Math.PI * 2 / 24)) * 10;
+    // Occasional anomaly spike (every ~15 points)
+    const spike = (i % 17 === 3) ? faker.number.float({ min: 20, max: 40 }) * (faker.number.int({ min: 0, max: 1 }) ? 1 : -1) : 0;
     return {
       ts: new Date(Date.now() - (n - i) * 60_000).toISOString(),
-      value: parseFloat(Math.max(0, v + wave).toFixed(2)),
+      value: parseFloat(Math.max(0, v + wave + spike).toFixed(2)),
     };
   });
 }

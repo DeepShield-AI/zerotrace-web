@@ -8,13 +8,17 @@ import TopologySidebar from '../../components/topology/TopologySidebar';
 import TimeRangePicker, { parseRange } from '../../components/shared/TimeRangePicker';
 import { useDebounce } from '../../hooks/useDebounce';
 import type { ApmServiceItem, ApmTraceItem, ApmStats } from '../../api/types';
-import { SlowRequestsPanel, ErrorAnalysisPanel } from '../../components/apm/ApmDemos';
+import DurationHistogram from '../../components/apm/DurationHistogram';
+import TraceScenarioPanels from '../../components/apm/TraceScenarioPanels';
+import ExampleQueries from '../../components/search/ExampleQueries';
+import SyntaxSearch from '../../components/search/SyntaxSearch';
 import ApmServicesView from '../../components/apm/ApmServicesView';
-import { TableSkeleton, Badge, EmptyState, SearchInput, FilterBar, StatusDot } from '../../components/ui';
+import { TableSkeleton, EmptyState } from '../../components/ui';
 
 // Helpers
 const num = (v: number | string | undefined): number => { if (v === undefined || v === null) return 0; const n = typeof v === 'string' ? parseFloat(v) : v; return isNaN(n) ? 0 : n; };
 function ago(s: string): string { if (!s) return '—'; try { const d = Date.now() - new Date(s.replace(' ', 'T') + '+08:00').getTime(); const m = Math.floor(d / 60000); if (m < 1) return 'now'; if (m < 60) return m + 'm'; const h = Math.floor(m / 60); if (h < 24) return h + 'h'; return Math.floor(h / 24) + 'd'; } catch { return ''; } }
+function parseQuery(raw: string): Record<string, string> { const p: Record<string, string> = {}; raw.split(/\s+/).filter(Boolean).forEach(part => { const i = part.indexOf(':'); if (i > 0) p[part.slice(0, i)] = part.slice(i + 1); }); return p; }
 
 const INTRO_NAV = [{ key:'setup',label:'Set up APM',icon:'gear'},{ key:'rules',label:'Instrumentation Rules',icon:'file'},{ key:'errors',label:'Instrumentation Errors',icon:'warn' }];
 const LANGUAGES = ['☕ Java','🐍 Python','🔷 .NET','💎 Ruby','🐘 PHP','🔵 Go','⬢ Node.js','⚙ C++'];
@@ -26,18 +30,38 @@ export default function APMPage() {
   const navigate = useNavigate(); const location = useLocation();
   const isIntro = location.pathname === '/apm/intro';
   const [range, setRange] = useState('1h');
-  const [rawQuery, setRawQuery] = useState('');
+  const [rawQuery, setRawQuery] = useState(searchParams.get('q') || '');
   const query = useDebounce(rawQuery, 300);
   const [facetStatus, setFacetStatus] = useState('');
   const [facetService, setFacetService] = useState('');
   const [facetDuration, setFacetDuration] = useState('');
+
+  // Sync facet states FROM rawQuery (so typing/pasting queries updates facet UI)
+  useEffect(() => {
+    const p = parseQuery(rawQuery);
+    if (p.status) setFacetStatus(p.status);
+    else if (!rawQuery.includes('status:')) setFacetStatus('');
+    if (p.duration) setFacetDuration(p.duration);
+    else if (!rawQuery.includes('duration:')) setFacetDuration('');
+    if (p.service) setFacetService(p.service);
+    else if (!rawQuery.includes('service:')) setFacetService('');
+  }, [rawQuery]);
+
+  const [searchScope, setSearchScope] = useState('All Traces');
   const [topoSizing, setTopoSizing] = useState<'requests'|'latency'|'errors'>('requests');
   const [topoLayout, setTopoLayout] = useState<'force'|'circular'>('force');
   const [topoHighlighted, setTopoHighlighted] = useState<string|undefined>();
   const [activeNav, setActiveNav] = useState('setup');
-  const [demoView, setDemoView] = useState<'traces'|'slow'|'errors'>('traces');
 
   useEffect(() => { const v=searchParams.get('view') as any; if(v==='traces'||v==='topology') setView(v); else if(!v) setView('services'); },[searchParams]);
+  // Sync search query to URL params (Datadog-style shareable state)
+  useEffect(() => {
+    if (view !== 'traces') return;
+    const params = new URLSearchParams(searchParams);
+    params.set('view', 'traces'); // Ensure view param is always preserved
+    if (rawQuery) params.set('q', rawQuery); else params.delete('q');
+    setSearchParams(params, { replace: true });
+  }, [rawQuery]);
   const { start, end } = parseRange(range);
   const qp = useMemo(() => ({ query: query||undefined, start, end }),[query,start,end]);
   const TRACE_LIMIT = 20;
@@ -56,16 +80,27 @@ export default function APMPage() {
   const svcState = svcQuery.isLoading ? 'loading' : services.length === 0 ? 'empty' : 'data';
   const svcError = svcQuery.error instanceof Error ? svcQuery.error.message : '';
 
-  // Traces query
+  // Parse raw query to extract facet values for API call
+  const parsedQuery = useMemo(() => {
+    const p: Record<string, string> = {};
+    const parts = query.split(/\s+/).filter(Boolean);
+    for (const part of parts) {
+      const idx = part.indexOf(':');
+      if (idx > 0) p[part.slice(0, idx)] = part.slice(idx + 1);
+    }
+    return p;
+  }, [query]);
+
+  // Traces query — uses BOTH explicit facets AND parsed rawQuery values
   const trQuery = useQuery({
-    queryKey: ['apm', 'traces', qp, facetStatus, facetService, facetDuration],
+    queryKey: ['apm', 'traces', qp, facetStatus, facetService, facetDuration, parsedQuery.status, parsedQuery.duration],
     queryFn: () => api.getApmTraces({
       ...qp,
       limit: TRACE_LIMIT,
       offset: 0,
-      status: facetStatus || undefined,
-      service: facetService || undefined,
-      query: facetDuration || qp.query,
+      status: facetStatus || parsedQuery.status || undefined,
+      service: facetService || parsedQuery.service || undefined,
+      query: facetDuration || parsedQuery.duration || qp.query,
     }),
     enabled: view === 'traces',
   });
@@ -159,59 +194,115 @@ export default function APMPage() {
             {k==='services'?'Services':k==='traces'?'Traces':k==='topology'?'Service Map':'Settings'}
           </button>
         ))}
-        <div className="flex-1 ml-auto max-w-[360px]"><SearchInput value={rawQuery} onChange={setRawQuery} placeholder="Search traces… service:name status:error duration:>500ms"/></div>
+        {/* Search bar only shown in Traces view (not in tab bar) */}
       </div>
-
-      {view==='traces' && (
-        <FilterBar items={[{key:'',label:'All'},{key:'duration:>500ms',label:'Slow >500ms'},{key:'duration:>1s',label:'Slow >1s'},{key:'status:error',label:'Errors'}]}
-          value={rawQuery} onChange={setRawQuery}/>
-      )}
 
       {view==='services' && <ApmServicesView services={services} svcState={svcState} onRetry={() => svcQuery.refetch()} range={range}/>}
 
       {view==='traces' && (<>
-        <div className="flex items-center gap-1 mt-3 mb-3">
-          {[{k:'traces'as const,l:'All Traces'},{k:'slow'as const,l:'Slow Requests'},{k:'errors'as const,l:'Error Analysis'}].map(t=>(
-            <button key={t.k} onClick={()=>setDemoView(t.k)} className={`px-3 py-1.5 text-xs font-medium rounded-full border transition-colors ${demoView===t.k?'bg-accent-primary text-fg-inverse border-accent-primary':'bg-bg-elevated text-fg-secondary border-border hover:border-border-strong'}`}>{t.l}</button>
-          ))}
+        {/* Search bar + quick filters (Datadog style) */}
+        <div className="space-y-3 mb-4">
+          <SyntaxSearch
+            value={rawQuery}
+            onChange={setRawQuery}
+            scope={searchScope}
+            scopeOptions={['All Traces', 'Error Traces', 'Slow Traces']}
+            onScopeChange={v => {
+              setSearchScope(v);
+              if (v === 'Error Traces') setFacetStatus('error');
+              else if (v === 'Slow Traces') setFacetDuration('duration:>500ms');
+              else { setFacetStatus(''); setFacetDuration(''); }
+            }}
+          />
+          <div className="flex items-center gap-1.5 flex-wrap">
+            <ExampleQueries
+              onSelect={q => setRawQuery(q)}
+              services={services.map((s: any) => s.service_name).filter(Boolean)}
+              operations={traces.map((t: any) => t.root_operation).filter(Boolean)}
+            />
+          </div>
         </div>
-        {demoView==='traces' && (
-          <div className="flex gap-4">
-            <div className="w-[200px] shrink-0"><div className="bg-bg-elevated border border-border rounded-lg p-3">
-              <h4 className="text-h6 mb-2">Facets</h4>
-              {[{k:'',l:'All'},{k:'ok',l:'OK'},{k:'error',l:'Error'}].map(f=>(
-                <button key={f.k} onClick={()=>{setFacetStatus(facetStatus===f.k?'':f.k);}}
-                  className={`w-full text-left px-2.5 py-1.5 text-xs rounded flex items-center gap-2 transition-colors ${facetStatus===f.k?'bg-accent-primary/10 text-accent-primary font-medium':'text-fg-secondary hover:bg-bg-subtle'}`}>
-                  <StatusDot status={f.k==='error'?'error':'online'}/><span className="flex-1">{f.l}</span>
-                </button>
-              ))}
-              <div className="mt-3 pt-3 border-t border-border-lighter"><h5 className="text-h6 mb-1">Duration</h5>
-                {[{l:'<10ms',q:'duration:<10ms'},{l:'10-100ms',q:'duration:>10ms duration:<100ms'},{l:'100ms-1s',q:'duration:>100ms duration:<1s'},{l:'>1s',q:'duration:>1s'}].map(d=>(
-                  <button key={d.l} onClick={()=>{setFacetDuration(facetDuration===d.q?'':d.q);}}
-                    className={`w-full text-left px-2.5 py-1 text-xs rounded transition-colors ${facetDuration===d.q?'bg-accent-primary/10 text-accent-primary font-medium':'text-fg-secondary hover:bg-bg-subtle'}`}>{d.l}</button>
+
+        {/* Main content: Facets + (Histogram + Table) */}
+        <div className="flex gap-4">
+          {/* Facet sidebar */}
+          <div className="w-[190px] shrink-0">
+            <div className="bg-bg-elevated border border-border rounded-lg p-3 sticky top-4">
+              <h4 className="text-[10px] font-semibold text-fg-tertiary uppercase tracking-wider mb-2">Facets</h4>
+              <div className="mb-3">
+                <p className="text-[10px] font-medium text-fg-tertiary mb-1">Status</p>
+                {[{k:'',l:'All'},{k:'ok',l:'OK'},{k:'error',l:'Error'}].map(f=>(
+                  <button key={f.k} onClick={()=>{
+                    const newStatus = facetStatus===f.k?'':f.k;
+                    setFacetStatus(newStatus);
+                    const parts: string[] = [];
+                    if (newStatus) parts.push(`status:${newStatus}`);
+                    if (facetDuration) parts.push(facetDuration);
+                    setRawQuery(parts.join(' '));
+                  }}
+                    className={`w-full text-left px-2 py-1 text-[11px] rounded flex items-center gap-2 transition-colors ${facetStatus===f.k?'bg-accent-primary/10 text-accent-primary font-medium':'text-fg-secondary hover:bg-bg-subtle'}`}>
+                    <span className={`w-1.5 h-1.5 rounded-full ${f.k==='error'?'bg-accent-danger':f.k==='ok'?'bg-accent-success':'bg-fg-tertiary'}`}/>{f.l}
+                  </button>
                 ))}
               </div>
-            </div></div>
-            <div className="flex-1"><div className="bg-bg-elevated border border-border rounded-lg overflow-hidden">
+              <div>
+                <p className="text-[10px] font-medium text-fg-tertiary mb-1">Duration</p>
+                {[{l:'<10ms',q:'duration:<10ms'},{l:'10-100ms',q:'duration:>10ms duration:<100ms'},{l:'100ms-1s',q:'duration:>100ms duration:<1s'},{l:'>1s',q:'duration:>1s'}].map(d=>(
+                  <button key={d.l} onClick={()=>{
+                    const newDur = facetDuration===d.q?'':d.q;
+                    setFacetDuration(newDur);
+                    const parts: string[] = [];
+                    if (facetStatus) parts.push(`status:${facetStatus}`);
+                    if (newDur) parts.push(newDur);
+                    setRawQuery(parts.join(' '));
+                  }}
+                    className={`w-full text-left px-2 py-1 text-[11px] rounded transition-colors ${facetDuration===d.q?'bg-accent-primary/10 text-accent-primary font-medium':'text-fg-secondary hover:bg-bg-subtle'}`}>{d.l}</button>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* Traces table + histogram */}
+          <div className="flex-1 space-y-3 min-w-0">
+            {traces.length > 0 && (
+              <DurationHistogram
+                data={traces.map(t => ({ latency_ms: num(t.duration_us) / 1000 }))}
+                onSelectRange={(min, max) => {
+                  const rangeQ = `duration:>${min}ms duration:<${max}ms`;
+                  setFacetDuration(rangeQ);
+                  const parts: string[] = [rangeQ];
+                  if (facetStatus) parts.unshift(`status:${facetStatus}`);
+                  setRawQuery(parts.join(' '));
+                }}
+              />
+            )}
+            <TraceScenarioPanels rawQuery={rawQuery} traces={traces} />
+            <div className="bg-bg-elevated border border-border rounded-lg overflow-hidden">
               {trState==='loading' ? <TableSkeleton cols={5} rows={6}/> :
                trState==='error' ? <EmptyState icon="search" title="Failed to load traces" description={trError}/> :
                traces.length===0 ? <EmptyState icon="search" title="No traces found" description="Try adjusting your time range or filters."/> : (
                 <table className="w-full text-xs">
-                  <thead><tr className="border-b border-border-light text-left text-h6 bg-bg-subtle">{['DATE','SERVICE','RESOURCE','DURATION','STATUS'].map(h=><th key={h} className="px-3 py-2.5">{h}</th>)}</tr></thead>
+                  <thead><tr className="border-b border-border-subtle text-left bg-bg-subtle">{['DATE','SERVICE','RESOURCE','DURATION','STATUS'].map(h=><th key={h} className="px-3 py-2.5 text-[10px] font-semibold text-fg-tertiary uppercase tracking-wider">{h}</th>)}</tr></thead>
                   <tbody>{traces.map(t=>{ const d=num(t.duration_us)/1000; const ok=t.status==='ok';
-                    return(<tr key={t.trace_id} onClick={()=>navigate('/apm/traces/'+t.trace_id)} className="border-b border-border-lighter hover:bg-accent-primary/5/50 cursor-pointer transition-colors">
-                      <td className="px-3 py-2 font-mono text-2xs text-fg-tertiary w-[120px]">{t.start_time?.slice(11,19)}</td>
+                    return(<tr key={t.trace_id} onClick={()=>navigate('/apm/traces/'+t.trace_id)} className="border-b border-border-subtle hover:bg-bg-subtle cursor-pointer transition-colors">
+                      <td className="px-3 py-2 font-mono text-[11px] text-fg-tertiary">{t.start_time?.slice(11,19)}</td>
                       <td className="px-3 py-2 font-medium text-accent-primary">{t.root_service||'—'}</td>
-                      <td className="px-3 py-2 font-mono text-2xs text-fg-secondary truncate max-w-[200px]">{t.root_operation||'—'}</td>
-                      <td className="px-3 py-2"><div className="flex items-center gap-2"><div className="w-12 h-1 rounded-full bg-edge-lighter"><div className={`h-full rounded-full ${ok ? 'bg-accent-primary' : 'bg-accent-danger'}`} style={{width:`${Math.min((d/maxDuration)*100,100)}%`}}/></div><span className="text-2xs font-mono text-fg-secondary">{d>=1000?(d/1000).toFixed(2)+'s':d.toFixed(0)+'ms'}</span></div></td>
-                      <td className="px-3 py-2"><Badge label={ok?'200':'ERR'} variant={ok?'success':'error'}/></td>
+                      <td className="px-3 py-2 font-mono text-[11px] text-fg-secondary truncate max-w-[200px]">{t.root_operation||'—'}</td>
+                      <td className="px-3 py-2">
+                        <div className="flex items-center gap-2">
+                          <div className="w-12 h-1 rounded-full bg-bg-muted"><div className={`h-full rounded-full ${ok?'bg-accent-primary':'bg-accent-danger'}`} style={{width:`${Math.min((d/maxDuration)*100,100)}%`}}/></div>
+                          <span className="text-[11px] font-mono text-fg-secondary">{d>=1000?(d/1000).toFixed(2)+'s':d.toFixed(0)+'ms'}</span>
+                        </div>
+                      </td>
+                      <td className="px-3 py-2"><span className={`inline-flex text-[10px] font-medium px-1.5 py-0.5 rounded-full ${ok?'bg-accent-success-bg text-accent-success':'bg-accent-danger-bg text-accent-danger'}`}>{ok?'OK':'ERR'}</span></td>
                     </tr>);
                   })}</tbody></table>)}
-            </div></div>
+              <div className="border-t border-border-subtle bg-bg-subtle px-4 py-2 text-[10px] text-fg-tertiary">
+                Showing {traces.length} of {traceTotal} traces
+              </div>
+            </div>
           </div>
-        )}
-        {demoView==='slow' && <SlowRequestsPanel/>}
-        {demoView==='errors' && <ErrorAnalysisPanel/>}
+        </div>
       </>)}
 
       {view==='topology' && (

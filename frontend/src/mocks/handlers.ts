@@ -104,8 +104,19 @@ export const handlers = [
     respond(genApmStats())
   ),
 
-  http.get(`${BASE}/apm/traces`, async () => {
-    const traces = Array.from({ length: 50 }, () => genApmTrace());
+  http.get(`${BASE}/apm/traces`, async ({ request }) => {
+    const url = new URL(request.url);
+    const statusFilter = url.searchParams.get('status') || '';
+    const serviceFilter = url.searchParams.get('service') || '';
+    const queryFilter = url.searchParams.get('query') || '';
+
+    // Generate traces — enforce status filter at generation time
+    const genTrace = () => {
+      if (statusFilter === 'error') return genApmTrace({ status: 'error' });
+      if (statusFilter === 'ok') return genApmTrace({ status: 'ok' });
+      return genApmTrace();
+    };
+    const traces = Array.from({ length: 50 }, genTrace);
     const total = faker.number.int({ min: 200, max: 500 });
     const errorTotal = traces.filter((t) => t.status === 'error').length;
     return respond({ traces, total, ok_total: total - errorTotal, error_total: errorTotal, limit: 50, offset: 0 });
