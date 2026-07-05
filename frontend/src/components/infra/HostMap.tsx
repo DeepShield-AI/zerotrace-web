@@ -1,7 +1,7 @@
 import { useMemo, useState, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
-import type { AgentItem } from '../api/types';
-import { isOnline, isStale } from '../utils/format';
+import type { AgentItem } from '../../api/types';
+import { isOnline, isStale } from '../../utils/format';
 
 /* ── Types ── */
 

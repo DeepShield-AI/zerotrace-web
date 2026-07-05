@@ -2,7 +2,7 @@ import { useState, useEffect, useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { NavLink, Outlet } from 'react-router-dom';
 import { api } from '../../api/client';
-import { KpiCard, StatusBadge, DataTable, Spinner as SharedSpinner } from '../../components/Components';
+import { KpiCard, StatusBadge, DataTable, Spinner as SharedSpinner } from '../../components/shared/Components';
 
 // ── Types ──
 interface Plan { id: number; product_key: string; name: string; description: string; billing_dimension: string; aggregation_method: string; unit_price_monthly: number; unit_price_annual: number; is_addon: boolean; parent_product_key: string | null; }
@@ -26,7 +26,7 @@ const FAMILIES: Record<string, { label: string; order: number }> = {
 };
 const familyOf = (key: string) => { for (const [p, f] of Object.entries(FAMILIES)) if (key.startsWith(p)) return f.label; return 'Other'; };
 
-/* Using shared KpiCard, StatusBadge, Spinner from ../components/Components */
+/* Using shared KpiCard, StatusBadge, Spinner from ../components/shared/Components */
 
 // ═══════════════════════ BILLING LAYOUT ═══════════════════════
 export function BillingLayout() {

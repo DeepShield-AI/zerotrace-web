@@ -1,8 +1,8 @@
 import { useState, useMemo } from 'react';
 import { SearchOutlined } from '@ant-design/icons';
 import { useTranslation } from 'react-i18next';
-import type { AgentItem } from '../api/types';
-import { ago, isOnline, isStale } from '../utils/format';
+import type { AgentItem } from '../../api/types';
+import { ago, isOnline, isStale } from '../../utils/format';
 
 /* ── Status checkbox item ── */
 function StatusFilterItem({

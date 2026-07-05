@@ -2,8 +2,8 @@ import { useState, useMemo, useCallback, useRef, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { CloseOutlined } from '@ant-design/icons';
 import { message } from 'antd';
-import type { AgentItem, L4Stats, L7Stats, FlowRatePoint, L4BandwidthPoint, L7RatePoint } from '../api/types';
-import { ago, fmtN, fmtB, isOnline } from '../utils/format';
+import type { AgentItem, L4Stats, L7Stats, FlowRatePoint, L4BandwidthPoint, L7RatePoint } from '../../api/types';
+import { ago, fmtN, fmtB, isOnline } from '../../utils/format';
 
 /* ── Types ── */
 

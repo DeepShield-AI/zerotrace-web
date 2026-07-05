@@ -3,13 +3,13 @@ import { useQuery } from '@tanstack/react-query';
 import { Link, useNavigate, useSearchParams, useLocation } from 'react-router-dom';
 import ReactECharts from 'echarts-for-react';
 import { api } from '../../api/client';
-import TopologyMap, { TopologyNode, TopologyEdge } from '../../components/TopologyMap';
-import TopologySidebar from '../../components/TopologySidebar';
-import TimeRangePicker, { parseRange } from '../../components/TimeRangePicker';
+import TopologyMap, { TopologyNode, TopologyEdge } from '../../components/topology/TopologyMap';
+import TopologySidebar from '../../components/topology/TopologySidebar';
+import TimeRangePicker, { parseRange } from '../../components/shared/TimeRangePicker';
 import { useDebounce } from '../../hooks/useDebounce';
 import type { ApmServiceItem, ApmTraceItem, ApmStats } from '../../api/types';
-import { SlowRequestsPanel, ErrorAnalysisPanel } from '../../components/ApmDemos';
-import ApmServicesView from '../../components/ApmServicesView';
+import { SlowRequestsPanel, ErrorAnalysisPanel } from '../../components/apm/ApmDemos';
+import ApmServicesView from '../../components/apm/ApmServicesView';
 import { TableSkeleton, Badge, EmptyState, SearchInput, FilterBar, StatusDot } from '../../components/ui';
 
 // Helpers

@@ -2,9 +2,9 @@ import { useState, useMemo, useCallback, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { SearchOutlined, DownOutlined, RightOutlined } from '@ant-design/icons';
 import ReactECharts from 'echarts-for-react';
-import type { ApmServiceItem, ApmTraceItem, ApmHistBucket } from '../api/types';
-import TimeRangePicker from '../components/TimeRangePicker';
-import { StatusDot } from './ui';
+import type { ApmServiceItem, ApmTraceItem, ApmHistBucket } from '../../api/types';
+import TimeRangePicker from '../shared/TimeRangePicker';
+import { StatusDot } from '../ui';
 
 const num = (v: any) => { if (v == null) return 0; const n = typeof v === 'string' ? parseFloat(v) : v; return isNaN(n) ? 0 : n; };
 function fmtDurationUs(us?: number | string): string { const v = num(us) / 1000; if (v >= 1000) return (v / 1000).toFixed(2) + 's'; if (v >= 1) return Math.round(v) + 'ms'; return Math.round(v * 1000) + 'μs'; }

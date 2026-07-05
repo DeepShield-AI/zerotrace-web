@@ -30,53 +30,11 @@ interface MetricPoint {
   value: number;
 }
 
-import TimeRangePicker, { parseRange } from '../components/TimeRangePicker';
+import TimeRangePicker, { parseRange } from '../components/shared/TimeRangePicker';
+import StatCard from '../components/StatCard';
 
 function tsLabel(ts: string): string {
   try { return ts ? ts.slice(11, 16) : ''; } catch { return ''; }
-}
-
-/* ── Sparkline ── */
-
-function MiniSparkline({ data, color = 'var(--accent-primary)', width = 70, height = 24 }: {
-  data: number[]; color?: string; width?: number; height?: number;
-}) {
-  if (!data || data.length < 2) return <div style={{ width, height }} />;
-  const max = Math.max(...data, 1);
-  const min = Math.min(...data, 0);
-  const range = max - min || 1;
-  const pts = data.map((v, i) => {
-    const x = 2 + (i / (data.length - 1)) * (width - 4);
-    const y = 2 + (1 - (v - min) / range) * (height - 4);
-    return `${x},${y}`;
-  }).join(' ');
-
-  return (
-    <svg width={width} height={height} viewBox={`0 0 ${width} ${height}`} className="block shrink-0">
-      <polyline points={pts} fill="none" stroke={color} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-    </svg>
-  );
-}
-
-/* ── Stat Card ── */
-
-function StatCard({ label, value, sub, color = '#632CA6', sparkline }: {
-  label: string; value: string; sub?: string; color?: string; sparkline?: number[];
-}) {
-  return (
-    <div className="bg-bg-elevated border border-border rounded-lg p-4 hover:shadow-sm transition-shadow group cursor-pointer">
-      <p className="text-[11px] text-fg-tertiary font-medium uppercase tracking-wider mb-2">{label}</p>
-      <div className="flex items-end justify-between gap-2">
-        <p className="text-2xl font-bold text-fg-primary font-mono tracking-tight" style={{ color }}>
-          {value}
-        </p>
-        {sparkline && sparkline.length >= 2 && (
-          <MiniSparkline data={sparkline} color={color} />
-        )}
-      </div>
-      {sub && <p className="text-[11px] text-fg-tertiary mt-1">{sub}</p>}
-    </div>
-  );
 }
 
 /* ── Format value ── */

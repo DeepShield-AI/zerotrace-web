@@ -1,7 +1,7 @@
 import { useState, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
-import type { TopEndpoint, TopTalker } from '../api/types';
-import { fmtN, fmtLatency } from '../utils/format';
+import type { TopEndpoint, TopTalker } from '../../api/types';
+import { fmtN, fmtLatency } from '../../utils/format';
 
 /* ── Types ── */
 

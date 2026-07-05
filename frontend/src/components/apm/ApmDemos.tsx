@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { api } from '../api/client';
+import { api } from '../../api/client';
 
 const C = { purple: '#632CA6', green: '#2DB88D', orange: '#E2903C', red: '#E65C5C', gray: '#6C757D', muted: '#ADB5BD', border: '#DEE2E6', bg: '#F8F9FA', text: '#212529' };
 

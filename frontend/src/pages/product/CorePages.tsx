@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { DataTable, StatusBadge, TimeRangeSelector, Spinner, EmptyState, KpiCard, Tabs } from '../../components/Components';
+import { DataTable, StatusBadge, TimeRangeSelector, Spinner, EmptyState, KpiCard, Tabs } from '../../components/shared/Components';
 
 /* ═══════════════════ EVENTS ═══════════════════ */
 const MOCK_EVENTS = [

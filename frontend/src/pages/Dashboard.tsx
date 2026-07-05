@@ -6,7 +6,7 @@ import { Button, Table, Modal, Form, Input, message, Tag, Tooltip } from 'antd';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../hooks/useAuth';
 import { api } from '../api/client';
-import CommandPalette from '../components/CommandPalette';
+import CommandPalette from '../components/layout/CommandPalette';
 
 /* ── Types ── */
 interface ApiKeyItem { id: number; name: string; key_prefix: string; scopes: string; last_used_at: string | null; status: string; created_at: string; }

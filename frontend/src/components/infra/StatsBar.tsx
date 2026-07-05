@@ -1,7 +1,7 @@
 import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
-import type { FlowRatePoint, L4BandwidthPoint, L7RatePoint } from '../api/types';
-import { fmtN, fmtB } from '../utils/format';
+import type { FlowRatePoint, L4BandwidthPoint, L7RatePoint } from '../../api/types';
+import { fmtN, fmtB } from '../../utils/format';
 
 /* ── Types ── */
 

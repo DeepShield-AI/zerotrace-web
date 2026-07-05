@@ -24,7 +24,7 @@ import MetricsPage from './pages/Metrics';
 import { EventsPage, IncidentsPage, WatchdogPage, SLOsPage, ErrorTrackingPage, ProfilingPage } from './pages/product/CorePages';
 import { DashboardsPage, DigitalExperiencePage, SoftwareDeliveryPage, CloudCostPage, AutomationPage, DataObservabilityPage, AIObservabilityPage, SecurityPage } from './pages/product/ProductPages';
 import { LogsExplorerPage, TriggeredMonitorsPage, MonitorCreatePage, DowntimeManagementPage, APMSettingsPage as SubAPMSettings, IntegrationsPage } from './pages/product/SubPages';
-import GuardianPanel from './components/GuardianPanel';
+import GuardianPanel from './components/layout/GuardianPanel';
 
 function PageLoader() {
   return (<div className="min-h-[100dvh] bg-bg-base flex items-center justify-center"><div className="space-y-6 w-full max-w-[400px] px-6"><div className="skeleton h-10 w-48 mx-auto rounded-xl"/><div className="skeleton h-5 w-64 mx-auto rounded-lg"/><div className="space-y-3 mt-8"><div className="skeleton h-12 w-full rounded-xl"/><div className="skeleton h-12 w-full rounded-xl"/><div className="skeleton h-11 w-full rounded-xl"/></div></div></div>);

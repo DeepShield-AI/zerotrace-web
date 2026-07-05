@@ -1,6 +1,6 @@
 import { useState, useCallback } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { api } from '../api/client';
+import { api } from '../../api/client';
 import { Button, Spin, Badge } from 'antd';
 
 // ---------------------------------------------------------------------------

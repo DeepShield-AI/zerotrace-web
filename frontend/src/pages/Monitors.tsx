@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react';
 import { Link } from 'react-router-dom';
-import { StatusBadge, TimeRangeSelector, Spinner, EmptyState, DataTable } from '../components/Components';
+import { StatusBadge, TimeRangeSelector, Spinner, EmptyState, DataTable } from '../components/shared/Components';
 
 interface Monitor {
   id: number;
