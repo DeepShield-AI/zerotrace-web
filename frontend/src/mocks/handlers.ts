@@ -107,19 +107,33 @@ export const handlers = [
   http.get(`${BASE}/apm/traces`, async ({ request }) => {
     const url = new URL(request.url);
     const statusFilter = url.searchParams.get('status') || '';
-    const serviceFilter = url.searchParams.get('service') || '';
+    const serviceFilter = url.searchParams.get('service') || ''; // comma-separated for multi-service
     const queryFilter = url.searchParams.get('query') || '';
 
-    // Generate traces — enforce status filter at generation time
+    // Generate traces — enforce status + service filters at generation time
+    const limit = parseInt(url.searchParams.get('limit') || '20');
+    const offset = parseInt(url.searchParams.get('offset') || '0');
+    const serviceList = serviceFilter ? serviceFilter.split(',') : [];
+
     const genTrace = () => {
-      if (statusFilter === 'error') return genApmTrace({ status: 'error' });
-      if (statusFilter === 'ok') return genApmTrace({ status: 'ok' });
-      return genApmTrace();
+      const overrides: any = {};
+      if (statusFilter === 'error') overrides.status = 'error';
+      else if (statusFilter === 'ok') overrides.status = 'ok';
+      // Pick one of the requested services (for multi-service OR filter)
+      if (serviceList.length > 0) overrides.root_service = serviceList[Math.floor(Math.random() * serviceList.length)];
+      return genApmTrace(overrides);
     };
-    const traces = Array.from({ length: 50 }, genTrace);
-    const total = faker.number.int({ min: 200, max: 500 });
-    const errorTotal = traces.filter((t) => t.status === 'error').length;
-    return respond({ traces, total, ok_total: total - errorTotal, error_total: errorTotal, limit: 50, offset: 0 });
+    // Generate consistent total based on filter params (seeded, not random per request)
+    const filterKey = `${statusFilter}|${serviceFilter}|${queryFilter}`;
+    let hash = 0; for (let i = 0; i < filterKey.length; i++) { hash = ((hash << 5) - hash) + filterKey.charCodeAt(i); hash |= 0; }
+    const baseTotal = 200 + Math.abs(hash % 300); // 200–500, stable per filter combination
+    const total = statusFilter === 'error' ? Math.floor(baseTotal * 0.12)
+      : statusFilter === 'ok' ? Math.floor(baseTotal * 0.85)
+      : baseTotal;
+    // Generate just enough for the requested page
+    const pageTraces = Array.from({ length: Math.min(limit, Math.max(0, total - offset)) }, genTrace);
+    const errorTotal = statusFilter === 'error' ? total : Math.floor(total * 0.18);
+    return respond({ traces: pageTraces, total, ok_total: total - errorTotal, error_total: errorTotal, limit, offset });
   }),
 
   http.get(`${BASE}/apm/traces/:traceId`, async ({ params }) => {
