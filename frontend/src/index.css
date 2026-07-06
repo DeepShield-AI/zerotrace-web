@@ -1,15 +1,180 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
 
+/* ── Content sources ── */
+@source "./index.html";
+@source "./src/**/*.{js,ts,jsx,tsx}";
+
+/* ── Dark mode (class strategy) ── */
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* ═══════════════════════════════════════════════════════════════
+   @theme — migrated from tailwind.config.js (v3 → v4)
+   ═══════════════════════════════════════════════════════════════ */
+@theme {
+  /* ── Font families ── */
+  --font-sans: "Geist Sans", system-ui, -apple-system, sans-serif;
+  --font-mono: "Geist Mono", "JetBrains Mono", ui-monospace, monospace;
+
+  /* ── Font sizes ── */
+  --text-h1: 24px;
+  --text-h1--line-height: 32px;
+  --text-h1--font-weight: 700;
+  --text-h2: 20px;
+  --text-h2--line-height: 28px;
+  --text-h2--font-weight: 600;
+  --text-h3: 16px;
+  --text-h3--line-height: 24px;
+  --text-h3--font-weight: 600;
+  --text-h4: 14px;
+  --text-h4--line-height: 22px;
+  --text-h4--font-weight: 600;
+  --text-h5: 13px;
+  --text-h5--line-height: 20px;
+  --text-h5--font-weight: 600;
+  --text-h6: 11px;
+  --text-h6--line-height: 16px;
+  --text-h6--font-weight: 600;
+  --text-h6--letter-spacing: 0.02em;
+
+  /* ═══════════════════════════════════════════════════════
+     Layer 2: SEMANTIC TOKENS — all reference tokens.css CSS variables.
+     Generates: bg-bg-base, text-fg-primary, border-border, etc.
+     Theme switching works automatically via .dark class on <html>.
+     ═══════════════════════════════════════════════════════ */
+
+  /* Backgrounds */
+  --color-bg-base: var(--bg-base);
+  --color-bg-subtle: var(--bg-subtle);
+  --color-bg-muted: var(--bg-muted);
+  --color-bg-elevated: var(--bg-elevated);
+  --color-bg-inverse: var(--bg-inverse);
+
+  /* Foregrounds */
+  --color-fg-primary: var(--fg-primary);
+  --color-fg-secondary: var(--fg-secondary);
+  --color-fg-tertiary: var(--fg-tertiary);
+  --color-fg-disabled: var(--fg-disabled);
+  --color-fg-inverse: var(--fg-inverse);
+
+  /* Borders */
+  --color-border: var(--border-default);
+  --color-border-subtle: var(--border-subtle);
+  --color-border-strong: var(--border-strong);
+  --color-border-focus: var(--border-focus);
+
+  /* Accents */
+  --color-accent-primary: var(--accent-primary);
+  --color-accent-brand: var(--accent-brand);
+  --color-accent-pink: var(--accent-pink);
+  --color-accent-success: var(--accent-success);
+  --color-accent-warning: var(--accent-warning);
+  --color-accent-danger: var(--accent-danger);
+  --color-accent-critical: var(--accent-critical);
+  --color-accent-info: var(--accent-info);
+
+  /* Accent backgrounds (半透明徽章底) */
+  --color-accent-success-bg: var(--accent-success-bg);
+  --color-accent-warning-bg: var(--accent-warning-bg);
+  --color-accent-danger-bg: var(--accent-danger-bg);
+  --color-accent-info-bg: var(--accent-info-bg);
+
+  /* Severity (monitor 专用色阶) */
+  --color-severity-ok: var(--severity-ok);
+  --color-severity-warn: var(--severity-warn);
+  --color-severity-alert: var(--severity-alert);
+  --color-severity-critical: var(--severity-critical);
+  --color-severity-no-data: var(--severity-no-data);
+  --color-severity-unknown: var(--severity-unknown);
+
+  /* Chart series (10 色，Datadog 生产 palette) */
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --color-chart-6: var(--chart-6);
+  --color-chart-7: var(--chart-7);
+  --color-chart-8: var(--chart-8);
+  --color-chart-9: var(--chart-9);
+  --color-chart-10: var(--chart-10);
+
+  /* Code block (component tokens) */
+  --color-code-bg: var(--code-bg);
+  --color-code-fg: var(--code-fg);
+  --color-code-border: var(--code-border);
+  --color-code-keyword: var(--code-keyword);
+  --color-code-string: var(--code-string);
+  --color-code-func: var(--code-func);
+  --color-code-comment: var(--code-comment);
+
+  /* Sidebar (component tokens) */
+  --color-sidebar-bg: var(--sidebar-bg);
+  --color-sidebar-fg: var(--sidebar-fg);
+  --color-sidebar-fg-muted: var(--sidebar-fg-muted);
+  --color-sidebar-item-hover-bg: var(--sidebar-item-hover-bg);
+  --color-sidebar-item-active-bg: var(--sidebar-item-active-bg);
+
+  /* ── Shadows ── */
+  --shadow: 0 1px 3px rgba(0, 0, 0, 0.04), 0 1px 2px rgba(0, 0, 0, 0.03);
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.04);
+  --shadow-md: 0 4px 12px -4px rgba(0, 0, 0, 0.08);
+  --shadow-lg: 0 8px 24px -8px rgba(0, 0, 0, 0.1);
+  --shadow-xl: 0 16px 40px -12px rgba(0, 0, 0, 0.12);
+  --shadow-modal: 0 20px 60px -15px rgba(0, 0, 0, 0.15);
+  --shadow-card: 0 1px 3px rgba(0, 0, 0, 0.04), 0 1px 2px rgba(0, 0, 0, 0.03);
+  --shadow-elevated: 0 4px 16px -8px rgba(0, 0, 0, 0.08), 0 2px 4px rgba(0, 0, 0, 0.04);
+
+  /* ── Animations ── */
+  --animate-fade-in: fade-in 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  --animate-slide-up: slide-up 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  --animate-shimmer: shimmer 2s infinite;
+  --animate-pulse-soft: pulse-soft 2s ease-in-out infinite;
+
+  /* ── Easing ── */
+  --ease-spring: cubic-bezier(0.16, 1, 0.3, 1);
+
+  /* ── Width ── */
+  --width-sidebar: 160px;
+
+  /* ── Z-index ── */
+  --z-index-sidebar: 30;
+  --z-index-overlay: 40;
+  --z-index-panel: 50;
+  --z-index-modal: 60;
+  --z-index-toast: 70;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   Keyframes (migrated from tailwind.config.js theme.extend.keyframes)
+   ═══════════════════════════════════════════════════════════════ */
+@keyframes fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@keyframes slide-up {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes shimmer {
+  from { transform: translateX(-100%); }
+  to { transform: translateX(100%); }
+}
+@keyframes pulse-soft {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.7; }
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   Base layer
+   ═══════════════════════════════════════════════════════════════ */
 :root {
-  --sidebar-bg: #292e39;
-  --sidebar-width: 160px;
-  --sidebar-collapsed-width: 52px;
-  --sidebar-nav-inactive: #babdbb;
-  --sidebar-nav-active: rgba(255, 255, 255, 0.76);
-  --sidebar-nav-hover-bg: rgba(255, 255, 255, 0.05);
-  --sidebar-nav-active-bg: rgba(255, 255, 255, 0.08);
+  /* Sidebar compat aliases — reference tokens.css Layer 3 variables */
+  --sidebar-nav-inactive: var(--sidebar-fg-muted);
+  --sidebar-nav-active: var(--sidebar-fg);
+  --sidebar-nav-hover-bg: var(--sidebar-item-hover-bg);
+  --sidebar-nav-active-bg: var(--sidebar-item-active-bg);
+  --sidebar-collapsed-width: var(--sidebar-width-collapsed);
+  /* Flyout (project-specific, not in tokens.css) */
   --flyout-bg: rgb(23, 25, 31);
   --flyout-width: 448px;
 }
@@ -21,10 +186,10 @@
     box-sizing: border-box;
   }
   body {
-    @apply font-sans bg-[#f9fafb] text-zinc-900 antialiased;
+    @apply font-sans bg-bg-base text-fg-primary antialiased;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
-    accent-color: #632CA6;
+    accent-color: var(--accent-primary);
   }
 
   /* Consistent focus ring */
@@ -34,13 +199,16 @@
   }
 }
 
+/* ═══════════════════════════════════════════════════════════════
+   Component layer
+   ═══════════════════════════════════════════════════════════════ */
 @layer components {
   /* Skeleton shimmer */
   .skeleton {
-    @apply relative overflow-hidden bg-zinc-200/50 rounded-lg;
+    @apply relative overflow-hidden bg-fg-disabled/15 rounded-lg;
   }
   .skeleton::after {
-    content: '';
+    content: "";
     @apply absolute inset-0 -translate-x-full;
     background-image: linear-gradient(
       90deg,
@@ -55,19 +223,19 @@
   .glass-panel {
     @apply bg-white/80 backdrop-blur-xl border border-white/20;
     box-shadow:
-      inset 0 1px 0 rgba(255,255,255,0.4),
-      0 20px 40px -15px rgba(0,0,0,0.06);
+      inset 0 1px 0 rgba(255, 255, 255, 0.4),
+      0 20px 40px -15px rgba(0, 0, 0, 0.06);
   }
 
-  /* Card surface — consistent Zerotrace-style cards */
+  /* Card surface */
   .card-surface {
-    @apply bg-white border border-gray-200;
+    @apply bg-bg-elevated border-border rounded;
     border-radius: 4px;
   }
 
   /* KPI stat card */
   .stat-card {
-    @apply bg-white border border-gray-200 px-4 py-3;
+    @apply bg-bg-elevated border-border px-4 py-3;
     border-radius: 4px;
   }
 
@@ -77,28 +245,27 @@
   }
 }
 
-/* ── Keyframes ── */
-@keyframes shimmer {
-  100% { transform: translateX(100%); }
-}
-@keyframes slideUp {
-  from { opacity: 0; transform: translateY(8px); }
-  to   { opacity: 1; transform: translateY(0); }
-}
-@keyframes pulseSoft {
-  0%, 100% { opacity: 1; }
-  50%      { opacity: 0.4; }
-}
-@keyframes flameTooltipIn {
-  from { opacity: 0; transform: translateY(4px); }
-  to   { opacity: 1; transform: translateY(0); }
-}
-
-/* ── Utilities ── */
+/* ═══════════════════════════════════════════════════════════════
+   Utilities
+   ═══════════════════════════════════════════════════════════════ */
 @layer utilities {
   .btn-tactile:active {
     transform: translateY(1px) scale(0.98);
   }
+}
+
+/* ── Keyframes (page-level) ── */
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes pulseSoft {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
+@keyframes flameTooltipIn {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
 /* ── Stagger cascade ── */
@@ -140,16 +307,16 @@
 
 /* ── Segmented control (pill-style toggle) ── */
 .segmented-control {
-  @apply flex items-center bg-zinc-100 rounded-lg p-0.5;
+  @apply flex items-center bg-bg-muted rounded-lg p-0.5;
 }
 .segmented-control button {
   @apply px-3 py-1.5 text-xs font-medium rounded-md transition-all duration-150;
 }
 .segmented-control button.active {
-  @apply bg-white text-zinc-800 shadow-sm;
+  @apply bg-bg-elevated text-fg-primary shadow-sm;
 }
 .segmented-control button:not(.active) {
-  @apply text-zinc-500 hover:text-zinc-700;
+  @apply text-fg-tertiary hover:text-fg-secondary;
 }
 
 /* ── Metric chip ── */
@@ -157,16 +324,16 @@
   @apply inline-flex items-center gap-1 px-2 py-0.5 text-[10px] font-medium rounded-full;
 }
 .metric-chip-green {
-  @apply bg-emerald-50 text-emerald-600;
+  @apply bg-accent-success-bg text-accent-success;
 }
 .metric-chip-amber {
-  @apply bg-amber-50 text-amber-600;
+  @apply bg-accent-warning-bg text-accent-warning;
 }
 .metric-chip-red {
-  @apply bg-red-50 text-red-600;
+  @apply bg-accent-danger-bg text-accent-danger;
 }
 .metric-chip-zinc {
-  @apply bg-zinc-100 text-zinc-500;
+  @apply bg-bg-muted text-fg-tertiary;
 }
 
 /* ── Stat tile hover lift ── */
@@ -187,8 +354,8 @@
 
 /* ── Gradient page header strip ── */
 .dd-container { max-width: 1400px; margin: 0 auto; }
-.dd-header { @apply text-xl font-bold text-gray-900; }
-.dd-subtitle { @apply text-sm text-gray-400 mt-1; }
+.dd-header { @apply text-xl font-bold text-fg-primary; }
+.dd-subtitle { @apply text-sm text-fg-tertiary mt-1; }
 
 /* ── Animate chevron ── */
 .chevron-animate {
@@ -212,44 +379,13 @@
   transition-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-/* ── Ant Design table overrides ── */
-.api-keys-table .ant-table { font-size: 13px; }
-.api-keys-table .ant-table-thead > tr > th {
-  @apply bg-zinc-50 text-xs font-medium text-zinc-500 uppercase tracking-wider border-b border-zinc-200;
-  padding: 12px 16px;
-}
-.api-keys-table .ant-table-tbody > tr > td {
-  padding: 12px 16px;
-  border-color: #f4f4f5;
-}
-.api-keys-table .ant-table-tbody > tr:hover > td {
-  @apply bg-zinc-50/80;
-}
-.api-keys-table .ant-table-tbody > tr {
-  transition: background 0.15s ease;
-}
-
-.apm-table .ant-table { font-size: 13px; }
-.apm-table .ant-table-thead > tr > th {
-  @apply bg-zinc-50 text-xs font-medium text-zinc-500 uppercase tracking-wider border-b border-zinc-200;
-  padding: 10px 16px;
-}
-.apm-table .ant-table-tbody > tr > td {
-  padding: 10px 16px;
-  border-color: #f4f4f5;
-}
-.apm-table .ant-table-tbody > tr:hover > td {
-  @apply bg-zinc-50/80;
-}
-.apm-table .ant-table-tbody > tr {
-  transition: background 0.15s ease;
-}
-
-/* ── Dark mode overrides ── */
+/* ═══════════════════════════════════════════════════════════════
+   Dark mode overrides (custom components)
+   ═══════════════════════════════════════════════════════════════ */
 .dark .card-surface,
 .dark .card-hover,
 .dark .stat-card {
-  @apply bg-zinc-900 border-zinc-800;
+  @apply bg-bg-elevated border-border;
 }
 
 .dark .host-row:hover {
@@ -257,11 +393,11 @@
 }
 
 .dark .host-row-selected {
-  background-color: #1E1035;
+  background-color: #1e1035;
 }
 
 .dark .skeleton {
-  @apply bg-zinc-800/50;
+  @apply bg-fg-disabled/10;
 }
 
 .dark .skeleton::after {
@@ -277,57 +413,9 @@
   transform: translateY(1px) scale(0.98);
 }
 
-/* Ant Design dark overrides */
-.dark .ant-select .ant-select-selector {
-  @apply bg-zinc-900 border-zinc-700 text-zinc-200;
-}
-
-.dark .ant-select-dropdown {
-  @apply bg-zinc-900 border-zinc-700;
-}
-
-.dark .ant-select-item {
-  @apply text-zinc-300;
-}
-
-.dark .ant-select-item:hover,
-.dark .ant-select-item-option-active {
-  @apply bg-zinc-800;
-}
-
-.dark .ant-btn {
-  @apply border-zinc-700 text-zinc-300 bg-zinc-900;
-}
-
-.dark .ant-btn:hover {
-  @apply border-zinc-600 text-zinc-100;
-}
-
-.dark .ant-message .ant-message-notice-content {
-  @apply bg-zinc-800 text-zinc-200 border border-zinc-700;
-}
-
-.dark .ant-modal-content {
-  @apply bg-zinc-900 border border-zinc-700;
-}
-
-.dark .ant-modal-header {
-  @apply bg-zinc-900 border-zinc-700;
-}
-
-.dark .ant-modal-title {
-  @apply text-zinc-200;
-}
-
-.dark .ant-input {
-  @apply bg-zinc-900 border-zinc-700 text-zinc-200;
-}
-
-.dark .ant-input:focus {
-  @apply border-brand-600;
-}
-
-/* Test mode: disable animations for reliable Playwright pixel comparison */
+/* ═══════════════════════════════════════════════════════════════
+   Test mode: disable animations for Playwright pixel comparison
+   ═══════════════════════════════════════════════════════════════ */
 [data-test-mode] .animate-fade-in,
 [data-test-mode] .animate-slide-up,
 [data-test-mode] .stagger-children > *,

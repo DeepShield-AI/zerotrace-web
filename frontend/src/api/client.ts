@@ -191,15 +191,21 @@ export const api = {
   getMetricsList: () =>
     request<{ metrics: Array<{ name: string; display_name: string; type: string; unit: string; description: string; category: string }> }>('/metrics/list'),
 
-  queryMetrics: (params: { name: string; start?: number; end?: number; interval?: number }) => {
+  queryMetrics: (params: { name: string; start?: number; end?: number; interval?: number; agg?: string; by?: string; filter?: string }) => {
     const qs = new URLSearchParams();
     qs.set('name', params.name);
     if (params.start) qs.set('start', String(params.start));
     if (params.end) qs.set('end', String(params.end));
     if (params.interval) qs.set('interval', String(params.interval));
+    if (params.agg) qs.set('agg', params.agg);
+    if (params.by) qs.set('by', params.by);
+    if (params.filter) qs.set('filter', params.filter);
     const s = qs.toString();
-    return request<{ metric: string; display_name: string; unit: string; points: Array<{ ts: string; value: number }> }>(`/metrics/query${s ? '?' + s : ''}`);
+    return request<{ metric: string; display_name: string; unit: string; points: Array<{ ts: string; value: number; tags?: Record<string, string> }>; groups?: string[] }>(`/metrics/query${s ? '?' + s : ''}`);
   },
+
+  getMetricTags: (name: string) =>
+    request<{ tags: Array<{ key: string; values: Array<{ value: string; count: number }> }> }>(`/metrics/tags?name=${encodeURIComponent(name)}`),
 
   // Billing
   getBillingSummary: () =>
@@ -285,4 +291,16 @@ export const api = {
 
   guardianStoryDetail: (id: string) =>
     request<any>(`/guardian/stories/${encodeURIComponent(id)}`),
+
+  // APM demos (slow requests & error summary)
+  getSlowRequests: (params?: { min_duration_us?: number; limit?: number }) => {
+    const qs = new URLSearchParams();
+    if (params?.min_duration_us) qs.set('min_duration_us', String(params.min_duration_us));
+    if (params?.limit) qs.set('limit', String(params.limit));
+    const s = qs.toString();
+    return request<{ slow_requests: any[] }>(`/apm/traces${s ? '?' + s : ''}`);
+  },
+
+  getErrorSummary: () =>
+    request<{ errors: any[] }>('/apm/traces?status=error&limit=50'),
 };

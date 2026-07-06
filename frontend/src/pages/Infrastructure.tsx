@@ -1,22 +1,17 @@
 import { useState, useMemo, useCallback, useEffect, useRef } from 'react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Spin, Select, Button, message } from 'antd';
-import {
-  ReloadOutlined,
-  CloseOutlined,
-  UnorderedListOutlined,
-  GlobalOutlined,
-  DownloadOutlined,
-} from '@ant-design/icons';
+import { ReloadOutlined, CloseOutlined } from '@ant-design/icons';
 import { useTranslation } from 'react-i18next';
 import { api } from '../api/client';
 import type { AgentItem, DataOverviewResponse, L4Stats, L7Stats, TopEndpoint, TopTalker, FlowRatePoint, L4BandwidthPoint, L7RatePoint } from '../api/types';
 import { isOnline, isStale } from '../utils/format';
-import InfrastructureDirectory from '../components/InfrastructureDirectory';
-import HostDetailPanel from '../components/HostDetailPanel';
-import StatsBar from '../components/StatsBar';
-import HostTable from '../components/HostTable';
-import HostMap from '../components/HostMap';
-import TopEndpoints from '../components/TopEndpoints';
+import InfrastructureDirectory from '../components/infra/InfrastructureDirectory';
+import HostDetailPanel from '../components/infra/HostDetailPanel';
+import StatsBar from '../components/infra/StatsBar';
+import HostTable from '../components/infra/HostTable';
+import HostMap from '../components/infra/HostMap';
+import TopEndpoints from '../components/infra/TopEndpoints';
 
 /* ── Saved Views persistence ── */
 const VIEW_STORAGE_KEY = 'infrastructure-view';
@@ -45,7 +40,7 @@ function saveView(view: Partial<SavedView>) {
   } catch {}
 }
 
-import TimeRangePicker, { parseRange } from '../components/TimeRangePicker';
+import TimeRangePicker, { parseRange } from '../components/shared/TimeRangePicker';
 
 /* ── Quick nav tabs ── */
 
@@ -58,16 +53,16 @@ function NavTabs({ active }: { active: string }) {
   ];
 
   return (
-    <div className="flex items-center gap-1 mb-4 border-b border-gray-200">
+    <div className="flex items-center gap-1 mb-4 border-b border-border">
       {tabs.map(tab => (
         <button
           key={tab.key}
           className={`flex items-center gap-1.5 px-4 py-2.5 text-[13px] font-medium transition-all relative
-            ${active === tab.key ? 'text-brand-600' : 'text-gray-500 hover:text-gray-700'}`}
+            ${active === tab.key ? 'text-accent-primary' : 'text-fg-tertiary hover:text-fg-secondary'}`}
         >
           {tab.label}
           {active === tab.key && (
-            <span className="absolute bottom-0 left-0 right-0 h-[2px] bg-brand-600 rounded-t" />
+            <span className="absolute bottom-0 left-0 right-0 h-[2px] bg-accent-primary rounded-t" />
           )}
         </button>
       ))}
@@ -75,109 +70,20 @@ function NavTabs({ active }: { active: string }) {
   );
 }
 
-/* ── Toolbar ── */
-
-function Toolbar({
-  searchQuery,
-  onSearchChange,
-  groupBy,
-  onGroupByChange,
-  infraView,
-  onViewChange,
-  onExport,
-  searchRef,
-}: {
-  searchQuery: string;
-  onSearchChange: (q: string) => void;
-  groupBy: string;
-  onGroupByChange: (g: string) => void;
-  infraView: 'table' | 'map';
-  onViewChange: (v: 'table' | 'map') => void;
-  timeRange: string;
-  onTimeRangeChange: (v: string) => void;
-  onExport: (format: 'csv' | 'json') => void;
-  searchRef: React.Ref<HTMLInputElement>;
-}) {
-  return (
-    <div className="flex items-center justify-between bg-white border border-gray-200 rounded-md px-3 py-1.5">
-      <div className="flex items-center gap-2">
-        <div className="relative">
-          <svg className="absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-400 w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-            <circle cx="11" cy="11" r="8" /><path d="m21 21-4.35-4.35" />
-          </svg>
-          <input
-            ref={searchRef}
-            type="text"
-            value={searchQuery}
-            onChange={e => onSearchChange(e.target.value)}
-            placeholder="Filter hosts..."
-            className="w-[260px] h-8 pl-8 pr-3 text-[13px] border border-gray-200 rounded bg-white
-              placeholder:text-gray-400 focus:outline-none focus:border-brand-500 focus:ring-1 focus:ring-brand-500/10 transition-all"
-          />
-        </div>
-        <div className="flex items-center rounded border border-gray-200 overflow-hidden">
-          <button onClick={() => onGroupByChange('none')}
-            className={`px-2.5 py-1 text-[11px] font-medium transition-colors ${groupBy === 'none' ? 'bg-gray-100 text-gray-800' : 'bg-white text-gray-500 hover:text-gray-700'}`}>
-            No Grouping
-          </button>
-          <button onClick={() => onGroupByChange('status')}
-            className={`px-2.5 py-1 text-[11px] font-medium border-l border-gray-200 transition-colors ${groupBy === 'status' ? 'bg-gray-100 text-gray-800' : 'bg-white text-gray-500 hover:text-gray-700'}`}>
-            Status
-          </button>
-        </div>
-      </div>
-
-      <div className="flex items-center gap-2">
-        <div className="relative group">
-          <button className="flex items-center gap-1 px-2.5 h-7 text-[11px] font-medium text-gray-500 hover:text-gray-700 border border-gray-200 rounded bg-white hover:bg-gray-50 transition-colors">
-            <DownloadOutlined style={{ fontSize: 12 }} />
-            Export
-            <svg className="w-3 h-3" viewBox="0 0 12 12" fill="currentColor"><path d="M6 8L2 4h8z" /></svg>
-          </button>
-          <div className="absolute right-0 top-full mt-1 bg-white border border-gray-200 rounded-md shadow-lg z-20 hidden group-hover:block py-1 min-w-[120px]">
-            <button onClick={() => onExport('csv')} className="w-full text-left px-3 py-1.5 text-[12px] text-gray-700 hover:bg-gray-50 transition-colors">Export CSV</button>
-            <button onClick={() => onExport('json')} className="w-full text-left px-3 py-1.5 text-[12px] text-gray-700 hover:bg-gray-50 transition-colors">Export JSON</button>
-          </div>
-        </div>
-
-        <div className="flex items-center rounded border border-gray-200 overflow-hidden">
-          <button onClick={() => onViewChange('table')}
-            className={`p-1.5 transition-colors ${infraView === 'table' ? 'bg-gray-100 text-gray-700' : 'bg-white text-gray-400 hover:text-gray-600'}`}
-            title="Table"><UnorderedListOutlined style={{ fontSize: 14 }} /></button>
-          <button onClick={() => onViewChange('map')}
-            className={`p-1.5 border-l border-gray-200 transition-colors ${infraView === 'map' ? 'bg-gray-100 text-gray-700' : 'bg-white text-gray-400 hover:text-gray-600'}`}
-            title="Map"><GlobalOutlined style={{ fontSize: 14 }} /></button>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-/* ── Keyboard shortcut hint ── */
-
-function KeyboardHint({ visible, shortcut, label }: { visible: boolean; shortcut: string; label: string }) {
-  if (!visible) return null;
-  return (
-    <div className="fixed bottom-6 left-1/2 -translate-x-1/2 bg-gray-900 text-white px-4 py-2 rounded-lg shadow-xl text-[12px] z-50 flex items-center gap-3 animate-fade-in">
-      <kbd className="bg-gray-700 text-gray-200 px-1.5 py-0.5 rounded text-[11px] font-mono">{shortcut}</kbd>
-      <span>{label}</span>
-    </div>
-  );
-}
+import InfraToolbar from '../components/infra/InfraToolbar';
+import KeyboardHint from '../components/layout/KeyboardHint';
 
 /* ── Main Page ── */
 
 export default function Infrastructure() {
   const { t } = useTranslation();
   const searchRef = useRef<HTMLInputElement>(null);
+  const queryClient = useQueryClient();
 
   const saved = useMemo(() => loadView(), []);
 
   // Restore saved view state
-  const [data, setData] = useState<DataOverviewResponse | null>(null);
-  const [loading, setLoading] = useState(true);
   const [range, setRange] = useState(saved.range || '30m');
-  const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
   const [selectedHost, setSelectedHost] = useState('');
   const [detailHost, setDetailHost] = useState<AgentItem | null>(null);
   const [detailOpen, setDetailOpen] = useState(false);
@@ -187,14 +93,35 @@ export default function Infrastructure() {
   const [groupBy, setGroupBy] = useState(saved.groupBy || 'none');
   const [infraView, setInfraView] = useState<'table' | 'map'>((saved.infraView as any) || 'table');
   const [keyboardHint, setKeyboardHint] = useState<string | null>(null);
-  const hintTimer = useRef<ReturnType<typeof setTimeout>>();
-  const intervalRef = useRef<ReturnType<typeof setInterval>>();
-  const [refreshInterval, setRefreshInterval] = useState(10000);
+  const hintTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [activeNav, setActiveNav] = useState<'hosts' | 'containers' | 'processes'>('hosts');
-  const [processes, setProcesses] = useState<any[]>([]);
-  const [hostsData, setHostsData] = useState<any[]>([]);
 
   const { start, end } = parseRange(range);
+
+  // Adaptive polling: slow down when tab is hidden
+  const [pollingInterval, setPollingInterval] = useState(10000);
+  useEffect(() => {
+    const handler = () => setPollingInterval(document.hidden ? 30000 : 10000);
+    document.addEventListener('visibilitychange', handler);
+    return () => document.removeEventListener('visibilitychange', handler);
+  }, []);
+
+  // Data queries
+  const { data, isLoading: loading } = useQuery({
+    queryKey: ['infrastructure-overview', start, end],
+    queryFn: () => api.getDataOverview({ start, end }),
+    refetchInterval: pollingInterval,
+  });
+  const { data: hostsResp } = useQuery({
+    queryKey: ['infrastructure-hosts', start, end],
+    queryFn: () => api.getInfraHosts({ start, end }).catch(() => ({ hosts: [] })),
+  });
+  const { data: procsResp } = useQuery({
+    queryKey: ['infrastructure-processes', start, end],
+    queryFn: () => api.getInfraProcesses({ start, end }).catch(() => ({ processes: [] })),
+  });
+  const hostsData = hostsResp?.hosts || [];
+  const processes = procsResp?.processes || [];
 
   // Persist view state
   useEffect(() => {
@@ -208,39 +135,9 @@ export default function Infrastructure() {
     hintTimer.current = setTimeout(() => setKeyboardHint(null), 2000);
   }, []);
 
-  const fetch = useCallback(async () => {
-    try {
-      const [overview, hosts, procs] = await Promise.all([
-        api.getDataOverview({ start, end }),
-        api.getInfraHosts({ start, end }).catch(() => ({ hosts: [] })),
-        api.getInfraProcesses({ start, end }).catch(() => ({ processes: [] })),
-      ]);
-      setData(overview);
-      setHostsData(hosts.hosts || []);
-      setProcesses(procs.processes || []);
-      setLastUpdated(new Date());
-    } catch { /* keep previous data */ }
-    finally { setLoading(false); }
-  }, [start, end]);
-
-  useEffect(() => { fetch(); }, [fetch]);
-
-  // Adaptive polling: slow down when tab is hidden
-  useEffect(() => {
-    const updateInterval = () => {
-      setRefreshInterval(document.hidden ? 30000 : 10000);
-    };
-    document.addEventListener('visibilitychange', updateInterval);
-    return () => document.removeEventListener('visibilitychange', updateInterval);
-  }, []);
-
-  useEffect(() => {
-    if (intervalRef.current) clearInterval(intervalRef.current);
-    intervalRef.current = setInterval(() => {
-      api.getDataOverview({ start, end }).then(d => { setData(d); setLastUpdated(new Date()); }).catch(() => {});
-    }, refreshInterval);
-    return () => { if (intervalRef.current) clearInterval(intervalRef.current); };
-  }, [start, end, refreshInterval]);
+  const handleRefresh = useCallback(() => {
+    queryClient.invalidateQueries({ queryKey: ['infrastructure'] });
+  }, [queryClient]);
 
   // ── Keyboard Shortcuts ──
   useEffect(() => {
@@ -261,7 +158,7 @@ export default function Infrastructure() {
         case 'r':
           if (!e.metaKey && !e.ctrlKey) {
             e.preventDefault();
-            fetch();
+            handleRefresh();
             showHint('R', 'Refresh data');
           }
           break;
@@ -276,7 +173,7 @@ export default function Infrastructure() {
     };
     window.addEventListener('keydown', handleKey);
     return () => window.removeEventListener('keydown', handleKey);
-  }, [fetch, detailOpen, showHint]);
+  }, [handleRefresh, detailOpen, showHint]);
 
   // Use hostsData from GET /infra/hosts (enriched with metrics) when available,
   // fall back to getDataOverview's agent list for backward compatibility
@@ -376,28 +273,28 @@ export default function Infrastructure() {
       {/* ── Page Header ── */}
       <div className="flex items-center justify-between mb-1">
         <div>
-          <h1 className="text-xl font-bold text-gray-900">Infrastructure</h1>
-          <p className="text-sm text-gray-400 mt-0.5">Host List</p>
+          <h1 className="text-xl font-bold text-fg-primary">Infrastructure</h1>
+          <p className="text-sm text-fg-tertiary mt-0.5">Host List</p>
         </div>
         <div className="flex items-center gap-2">
           <Select defaultValue="default"
             options={[{ value: 'default', label: 'Default View' }, { value: 'cpu', label: 'High CPU' }, { value: 'memory', label: 'High Memory' }]}
             size="small" className="w-40" />
           <TimeRangePicker value={range} onChange={v => setRange(v)} />
-          <Button icon={<ReloadOutlined />} onClick={fetch} size="small" className="border-gray-200" />
+          <Button icon={<ReloadOutlined />} onClick={handleRefresh} size="small" className="border-border" />
         </div>
       </div>
 
       {/* ── Nav Tabs ── */}
-      <div className="flex items-center gap-0 mb-3 border-b border-[#DEE2E6]">
+      <div className="flex items-center gap-0 mb-3 border-b border-border">
         {(['hosts', 'containers', 'processes'] as const).map(k => (
           <button key={k} onClick={() => setActiveNav(k)}
             className={`relative px-4 py-2.5 text-[13px] font-medium transition-colors ${
-              activeNav === k ? 'text-[#632CA6]' : 'text-[#6C757D] hover:text-[#212529]'
+              activeNav === k ? 'text-accent-primary' : 'text-fg-tertiary hover:text-fg-primary'
             }`}
           >
             {k === 'hosts' ? 'Hosts' : k === 'containers' ? 'Containers' : 'Processes'}
-            {activeNav === k && <span className="absolute bottom-0 left-0 right-0 h-[2px] bg-[#632CA6] rounded-t" />}
+            {activeNav === k && <span className="absolute bottom-0 left-0 right-0 h-[2px] bg-accent-primary rounded-t" />}
           </button>
         ))}
       </div>
@@ -407,30 +304,30 @@ export default function Infrastructure() {
 
       {/* ── Process view ── */}
       {activeNav === 'processes' && (
-        <div className="bg-white border border-[#DEE2E6] rounded-lg overflow-hidden mt-3">
-          <div className="px-5 py-3 border-b border-[#DEE2E6]">
-            <h2 className="text-sm font-semibold text-[#212529]">Processes</h2>
-            <p className="text-[12px] text-[#6C757D] mt-0.5">Processes discovered from L7 traffic (applications generating HTTP/gRPC requests)</p>
+        <div className="bg-bg-elevated border border-border rounded-lg overflow-hidden mt-3">
+          <div className="px-5 py-3 border-b border-border">
+            <h2 className="text-sm font-semibold text-fg-primary">Processes</h2>
+            <p className="text-[12px] text-fg-tertiary mt-0.5">Processes discovered from L7 traffic (applications generating HTTP/gRPC requests)</p>
           </div>
           {processes.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-16 text-center">
-              <svg className="w-12 h-12 text-[#DEE2E6] mx-auto mb-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8m-4-4v4"/></svg>
-              <p className="text-[13px] font-medium text-[#212529]">No process data</p>
-              <p className="text-[12px] text-[#6C757D] mt-1 max-w-md">Processes appear here when applications generate L7 traffic. Deploy a web service and the eBPF agent will discover it automatically.</p>
+              <svg className="w-12 h-12 text-fg-disabled mx-auto mb-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8m-4-4v4"/></svg>
+              <p className="text-[13px] font-medium text-fg-primary">No process data</p>
+              <p className="text-[12px] text-fg-tertiary mt-1 max-w-md">Processes appear here when applications generate L7 traffic. Deploy a web service and the eBPF agent will discover it automatically.</p>
             </div>
           ) : (
             <table className="w-full text-[12px]">
-              <thead><tr className="border-b border-[#DEE2E6] text-left text-[10px] font-semibold text-[#ADB5BD] uppercase tracking-wider">
+              <thead><tr className="border-b border-border text-left text-[10px] font-semibold text-fg-disabled uppercase tracking-wider">
                 <th className="px-4 py-2">Process</th><th className="px-4 py-2">Host ID</th><th className="px-4 py-2">Requests</th><th className="px-4 py-2">Avg Latency</th><th className="px-4 py-2">Errors</th>
               </tr></thead>
               <tbody>
                 {processes.map((p: any, i: number) => (
-                  <tr key={i} className="border-b border-[#F1F3F5] hover:bg-[#F8F9FA]">
-                    <td className="px-4 py-2 font-medium text-[#212529] font-mono">{p.process_name}</td>
-                    <td className="px-4 py-2 text-[#6C757D]">{p.host_id}</td>
-                    <td className="px-4 py-2 text-[#6C757D] tabular-nums">{p.request_count}</td>
-                    <td className="px-4 py-2 text-[#6C757D] tabular-nums">{parseFloat(p.avg_latency_ms||0).toFixed(1)}ms</td>
-                    <td className="px-4 py-2"><span className={`text-[11px] font-medium px-1.5 py-0.5 rounded ${parseInt(p.error_count||0) > 0 ? 'text-red-700 bg-red-50' : 'text-emerald-700 bg-emerald-50'}`}>{p.error_count}</span></td>
+                  <tr key={i} className="border-b border-border-subtle hover:bg-bg-subtle">
+                    <td className="px-4 py-2 font-medium text-fg-primary font-mono">{p.process_name}</td>
+                    <td className="px-4 py-2 text-fg-tertiary">{p.host_id}</td>
+                    <td className="px-4 py-2 text-fg-tertiary tabular-nums">{p.request_count}</td>
+                    <td className="px-4 py-2 text-fg-tertiary tabular-nums">{parseFloat(p.avg_latency_ms||0).toFixed(1)}ms</td>
+                    <td className="px-4 py-2"><span className={`text-[11px] font-medium px-1.5 py-0.5 rounded ${parseInt(p.error_count||0) > 0 ? 'text-accent-danger bg-accent-danger-bg' : 'text-accent-success bg-accent-success-bg'}`}>{p.error_count}</span></td>
                   </tr>
                 ))}
               </tbody>
@@ -441,11 +338,11 @@ export default function Infrastructure() {
 
       {/* ── Containers placeholder ── */}
       {activeNav === 'containers' && (
-        <div className="bg-white border border-[#DEE2E6] rounded-lg overflow-hidden mt-3">
+        <div className="bg-bg-elevated border border-border rounded-lg overflow-hidden mt-3">
           <div className="flex flex-col items-center justify-center py-20 text-center">
-            <svg className="w-16 h-16 text-[#DEE2E6] mx-auto mb-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="0.5"><rect x="1" y="1" width="22" height="22" rx="4"/><rect x="5" y="5" width="14" height="14" rx="2"/><circle cx="12" cy="12" r="3"/></svg>
-            <h3 className="text-base font-semibold text-[#212529] mb-1">No containers detected</h3>
-            <p className="text-sm text-[#6C757D] max-w-md">Connect a Kubernetes cluster to enable container monitoring. The eBPF agent will auto-discover pods, services, and deployments.</p>
+            <svg className="w-16 h-16 text-fg-disabled mx-auto mb-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="0.5"><rect x="1" y="1" width="22" height="22" rx="4"/><rect x="5" y="5" width="14" height="14" rx="2"/><circle cx="12" cy="12" r="3"/></svg>
+            <h3 className="text-base font-semibold text-fg-primary mb-1">No containers detected</h3>
+            <p className="text-sm text-fg-tertiary max-w-md">Connect a Kubernetes cluster to enable container monitoring. The eBPF agent will auto-discover pods, services, and deployments.</p>
           </div>
         </div>
       )}
@@ -458,20 +355,19 @@ export default function Infrastructure() {
         />
 
         <div className="flex-1 min-w-0 space-y-4">
-          <Toolbar
+          <InfraToolbar
             searchQuery={searchQuery} onSearchChange={setSearchQuery}
             groupBy={groupBy} onGroupByChange={setGroupBy}
             infraView={infraView} onViewChange={setInfraView}
-            timeRange={range} onTimeRangeChange={setRange}
             onExport={handleExport} searchRef={searchRef}
           />
 
           {selectedHost && (
             <div className="flex items-center gap-2">
-              <span className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-[#632CA6]/5 border border-[#632CA6]/10 rounded-md text-[12px] text-[#632CA6] font-medium">
-                <span className="w-1.5 h-1.5 rounded-full bg-[#632CA6]" />
+              <span className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-accent-primary/5 border border-accent-primary/10 rounded-md text-[12px] text-accent-primary font-medium">
+                <span className="w-1.5 h-1.5 rounded-full bg-accent-primary" />
                 <span className="font-mono font-semibold">{selectedHost}</span>
-                <button onClick={() => setSelectedHost('')} className="ml-1 text-[#632CA6]/50 hover:text-[#632CA6]"><CloseOutlined className="text-[10px]" /></button>
+                <button onClick={() => setSelectedHost('')} className="ml-1 text-accent-primary/50 hover:text-accent-primary"><CloseOutlined className="text-[10px]" /></button>
               </span>
             </div>
           )}
@@ -499,15 +395,15 @@ export default function Infrastructure() {
       </>)}  {/* close activeNav === hosts fragment */}
 
       {/* Footer with keyboard shortcut hint */}
-      <div className="flex items-center justify-between text-[10px] text-gray-400 mt-4 pb-8">
+      <div className="flex items-center justify-between text-[10px] text-fg-tertiary mt-4 pb-8">
         <div className="flex items-center gap-2">
-          <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 dot-live" />
+          <span className="w-1.5 h-1.5 rounded-full bg-severity-ok dot-live" />
           {t('infrastructure.autoRefresh')}
         </div>
-        <div className="flex items-center gap-3 text-gray-300">
-          <span><kbd className="bg-gray-100 text-gray-400 px-1 py-0.5 rounded text-[10px] font-mono">/</kbd> Search</span>
-          <span><kbd className="bg-gray-100 text-gray-400 px-1 py-0.5 rounded text-[10px] font-mono">R</kbd> Refresh</span>
-          <span><kbd className="bg-gray-100 text-gray-400 px-1 py-0.5 rounded text-[10px] font-mono">Esc</kbd> Close</span>
+        <div className="flex items-center gap-3 text-fg-disabled">
+          <span><kbd className="bg-bg-muted text-fg-tertiary px-1 py-0.5 rounded text-[10px] font-mono">/</kbd> Search</span>
+          <span><kbd className="bg-bg-muted text-fg-tertiary px-1 py-0.5 rounded text-[10px] font-mono">R</kbd> Refresh</span>
+          <span><kbd className="bg-bg-muted text-fg-tertiary px-1 py-0.5 rounded text-[10px] font-mono">Esc</kbd> Close</span>
         </div>
       </div>
 
@@ -523,7 +419,7 @@ export default function Infrastructure() {
 
       {/* Keyboard hint toast */}
       {keyboardHint && (
-        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 bg-gray-900 text-white px-4 py-2 rounded-lg shadow-xl text-[12px] z-50 animate-fade-in">
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 bg-bg-inverse text-fg-inverse px-4 py-2 rounded-lg shadow-xl text-[12px] z-50 animate-fade-in">
           {keyboardHint}
         </div>
       )}

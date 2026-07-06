@@ -13,14 +13,14 @@ export function num(v: number | string | undefined | null): number {
  * Format a count/number into a human-readable short form.
  *   - >= 1M → "1.2M"
  *   - >= 1K → "3.5K"
- *   - otherwise → raw string (or '--' when falsy and not zero)
+ *   - otherwise → 1 decimal (or '--' when falsy and not zero)
  */
 export function fmtN(n?: number | string | null): string {
   const v = num(n);
   if (!n && n !== 0) return '--';
   if (v >= 1e6) return (v / 1e6).toFixed(1) + 'M';
   if (v >= 1e3) return (v / 1e3).toFixed(1) + 'K';
-  return String(n);
+  return v.toFixed(1);
 }
 
 /**
@@ -48,7 +48,8 @@ export function fmtB(n?: number | string | null): string {
 export function fmtLatency(n?: number | string | null): string {
   const v = num(n);
   if (v >= 1000) return (v / 1000).toFixed(2) + 's';
-  if (v >= 1) return Math.round(v) + 'ms';
+  if (v >= 10) return v.toFixed(1) + 'ms';
+  if (v >= 1) return v.toFixed(2) + 'ms';
   return (v * 1000).toFixed(0) + 'μs';
 }
 
@@ -141,9 +142,9 @@ export function agentStatus(a: AgentLike): AgentStatus {
 
 export function agentStatusColor(status: AgentStatus): string {
   switch (status) {
-    case 'online': return '#22c55e';
-    case 'stale': return '#f59e0b';
-    case 'offline': return '#ef4444';
+    case 'online': return '#41c464';   // severity-ok
+    case 'stale': return '#deab3e';    // severity-warn
+    case 'offline': return '#eb364b';   // severity-alert
   }
 }
 

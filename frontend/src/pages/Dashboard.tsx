@@ -1,11 +1,13 @@
-import { useEffect, useState, useCallback } from 'react';
+import { useState, useCallback } from 'react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { createPortal } from 'react-dom';
 import { NavLink, Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { Button, Table, Modal, Form, Input, message, Tag, Tooltip } from 'antd';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../hooks/useAuth';
 import { api } from '../api/client';
-import CommandPalette from '../components/CommandPalette';
+import CommandPalette from '../components/layout/CommandPalette';
+import LanguageSwitcher from '../components/layout/LanguageSwitcher';
 
 /* ── Types ── */
 interface ApiKeyItem { id: number; name: string; key_prefix: string; scopes: string; last_used_at: string | null; status: string; created_at: string; }
@@ -18,11 +20,11 @@ function EmptyApiKeys({ onCreate }: { onCreate: () => void }) {
   const { t } = useTranslation();
   return (
     <div className="flex flex-col items-center justify-center py-20 text-center animate-fade-in">
-      <div className="w-16 h-16 rounded-2xl bg-zinc-100 flex items-center justify-center mb-6">
-        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" className="text-zinc-400"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4" /></svg>
+      <div className="w-16 h-16 rounded-2xl bg-bg-muted flex items-center justify-center mb-6">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" className="text-fg-tertiary"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4" /></svg>
       </div>
-      <h3 className="text-lg font-semibold text-zinc-800 mb-1">{t('dashboard.noApiKeys')}</h3>
-      <p className="text-sm text-zinc-500 max-w-sm mb-6">{t('dashboard.noApiKeysDesc')}</p>
+      <h3 className="text-lg font-semibold text-fg-primary mb-1">{t('dashboard.noApiKeys')}</h3>
+      <p className="text-sm text-fg-secondary max-w-sm mb-6">{t('dashboard.noApiKeysDesc')}</p>
       <Button type="primary" onClick={onCreate} className="h-10 font-medium btn-tactile">{t('dashboard.createFirstKey')}</Button>
     </div>
   );
@@ -31,12 +33,12 @@ function EmptyApiKeys({ onCreate }: { onCreate: () => void }) {
 function KeyReveal({ value, onDone }: { value: string; onDone: () => void }) {
   const { t } = useTranslation();
   return (
-    <div className="bg-amber-50 border border-amber-200 rounded-2xl p-6 animate-slide-up">
+    <div className="bg-accent-warning-bg border border-accent-warning/20 rounded-2xl p-6 animate-slide-up">
       <div className="flex items-start gap-3 mb-4">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" className="text-amber-600 mt-0.5 shrink-0"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" /><line x1="12" y1="9" x2="12" y2="13" /><line x1="12" y1="17" x2="12.01" y2="17" /></svg>
-        <div><h4 className="font-semibold text-amber-800 text-sm">{t('dashboard.storeSecurely')}</h4><p className="text-amber-700 text-xs mt-0.5">{t('dashboard.storeSecurelyDesc')}</p></div>
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" className="text-accent-warning mt-0.5 shrink-0"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" /><line x1="12" y1="9" x2="12" y2="13" /><line x1="12" y1="17" x2="12.01" y2="17" /></svg>
+        <div><h4 className="font-semibold text-accent-warning text-sm">{t('dashboard.storeSecurely')}</h4><p className="text-accent-warning text-xs mt-0.5">{t('dashboard.storeSecurelyDesc')}</p></div>
       </div>
-      <div className="bg-amber-100/60 rounded-xl p-3 mb-3"><code className="text-sm font-mono text-amber-900 break-all select-all">{value}</code></div>
+      <div className="bg-accent-warning-bg/60 rounded-xl p-3 mb-3"><code className="text-sm font-mono text-accent-warning break-all select-all">{value}</code></div>
       <div className="flex gap-2"><Button size="small" onClick={() => { navigator.clipboard.writeText(value); message.success(t('dashboard.keyCopied')); }}>{t('common.copy')}</Button><Button type="primary" size="small" onClick={onDone}>{t('dashboard.iHaveSavedIt')}</Button></div>
     </div>
   );
@@ -83,11 +85,11 @@ function Sidebar() {
   };
 
   return (
-    <aside className={`flex-shrink-0 bg-[#292e39] flex flex-col transition-[width] duration-200 ease-out h-screen sticky top-0 select-none ${collapsed ? 'w-[52px]' : 'w-[160px]'}`}>
+    <aside className={`flex-shrink-0 bg-sidebar-bg flex flex-col transition-[width] duration-200 ease-out h-screen sticky top-0 select-none ${collapsed ? 'w-[52px]' : 'w-[160px]'}`}>
       {/* Logo */}
       <div className="px-2.5 py-2 flex items-center border-b border-white/[0.06] shrink-0" style={{ height: 56 }}>
         <button onClick={() => setCollapsed(!collapsed)} className="flex items-center gap-1.5">
-          <div className="w-[18px] h-[18px] rounded-[4px] flex items-center justify-center shrink-0" style={{ background: 'linear-gradient(0deg, #d671d0 0%, #7a71cb 100%)' }}>
+          <div className="w-[18px] h-[18px] rounded-[4px] flex items-center justify-center shrink-0 bg-accent-primary">
             <span className="text-white text-[8px] font-bold">ZT</span>
           </div>
           {!collapsed && <span className="text-[13px] font-semibold text-white tracking-[-0.01em]">ZEROTRACE</span>}
@@ -112,7 +114,7 @@ function Sidebar() {
             <div key={cat.id} className="relative" onMouseEnter={(e) => handleMouseEnter(cat.id, e)} onMouseLeave={() => setHoveredId(null)}>
               <NavLink to={cat.to} end
                 className={`flex items-center gap-2 rounded-[4px] transition-colors ${collapsed ? 'justify-center h-9 w-9 mx-auto' : 'h-[28px] px-2'} ${
-                  hasActiveChild || hoveredId === cat.id ? 'text-white/75 bg-white/[0.08]' : 'text-[#babdbb] hover:text-white/80 hover:bg-white/[0.05]'
+                  hasActiveChild || hoveredId === cat.id ? 'text-white/75 bg-fg-inverse/[0.08]' : 'text-sidebar-fg-muted hover:text-white/80 hover:bg-fg-inverse/[0.05]'
                 }`} title={collapsed ? cat.label : undefined}>
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={hasActiveChild ? 1.8 : 1.5} strokeLinecap="round" className={`shrink-0 ${collapsed ? 'w-[18px] h-[18px]' : 'w-[14px] h-[14px]'}`}><path d={cat.icon}/></svg>
                 {!collapsed && <span className="flex-1 text-left text-[13px] truncate font-normal">{cat.label}</span>}
@@ -120,7 +122,7 @@ function Sidebar() {
 
               {/* HOVER FLYOUT PANEL — rendered to body via portal to escape all stacking contexts */}
               {hoveredId === cat.id && !collapsed && cat.sections.length > 0 && createPortal(
-                <div className="fixed overflow-y-auto" style={{ left: 160, top: flyoutTop, maxHeight: `calc(100vh - ${flyoutTop}px)`, width: 448, background: 'rgb(23, 25, 31)', borderRadius: 0, boxShadow: 'rgba(36,41,49,0.1) 0px 0px 1px 0px, rgba(9,9,11,0.88) 0px 2px 8px 0px', padding: '8px 0', zIndex: 99999 }}
+                <div className="fixed overflow-y-auto" style={{ left: 160, top: flyoutTop, maxHeight: `calc(100vh - ${flyoutTop}px)`, width: 448, background: 'var(--flyout-bg)', borderRadius: 0, boxShadow: 'rgba(36,41,49,0.1) 0px 0px 1px 0px, rgba(9,9,11,0.88) 0px 2px 8px 0px', padding: '8px 0', zIndex: 99999 }}
                   onMouseEnter={() => setHoveredId(cat.id)} onMouseLeave={() => setHoveredId(null)}>
                   {cat.sections.map((sec, i) => (
                     <div key={i} className={i < cat.sections.length - 1 ? 'pb-1' : ''}>
@@ -130,8 +132,8 @@ function Sidebar() {
                       </div>
                       {sec.items.map(item => (
                         <NavLink key={item.to} to={item.to} end onClick={() => setHoveredId(null)}
-                          className={({ isActive: a }) => `flex items-center gap-2 py-1 px-4 text-[13px] no-underline transition-colors ${a ? 'text-white bg-purple-500/[0.12] font-semibold' : 'text-white/60 hover:text-white/80 hover:bg-white/[0.04] font-normal'}`}>
-                          <span className="flex items-center gap-1.5">{item.label}{item.badge && <span className={`text-[8px] px-1 py-0.5 rounded-[3px] font-bold ${item.badge === 'new' ? 'bg-purple-500/30 text-purple-200' : 'bg-amber-500/30 text-amber-200'}`}>{item.badge.toUpperCase()}</span>}</span>
+                          className={({ isActive: a }) => `flex items-center gap-2 py-1 px-4 text-[13px] no-underline transition-colors ${a ? 'text-white bg-purple-500/[0.12] font-semibold' : 'text-white/60 hover:text-white/80 hover:bg-fg-inverse/[0.04] font-normal'}`}>
+                          <span className="flex items-center gap-1.5">{item.label}{item.badge && <span className={`text-[8px] px-1 py-0.5 rounded-[3px] font-bold ${item.badge === 'new' ? 'bg-accent-primary/30 text-accent-primary-bg' : 'bg-accent-warning/30 text-accent-warning'}`}>{item.badge.toUpperCase()}</span>}</span>
                         </NavLink>
                       ))}
                     </div>
@@ -146,24 +148,27 @@ function Sidebar() {
 
       {/* Bottom */}
       <div className="border-t border-white/[0.06] shrink-0 py-1">
-        <NavLink to="/org/billing" className={({ isActive: a }) => `flex items-center gap-1.5 rounded-[4px] transition-colors mx-1 ${collapsed ? 'justify-center h-7 w-7 mx-auto' : 'h-5 px-2'} ${a ? 'text-white/75 bg-white/[0.08]' : 'text-[#babdbb] hover:text-white/80 hover:bg-white/[0.05]'}`}>
+        <NavLink to="/org/billing" className={({ isActive: a }) => `flex items-center gap-1.5 rounded-[4px] transition-colors mx-1 ${collapsed ? 'justify-center h-7 w-7 mx-auto' : 'h-5 px-2'} ${a ? 'text-white/75 bg-fg-inverse/[0.08]' : 'text-sidebar-fg-muted hover:text-white/80 hover:bg-fg-inverse/[0.05]'}`}>
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className={`shrink-0 ${collapsed ? 'w-[16px] h-[16px]' : 'w-3 h-3'}`}><rect x="3" y="5" width="18" height="14" rx="2"/><line x1="3" y1="10" x2="21" y2="10"/><line x1="12" y1="10" x2="12" y2="19"/></svg>
           {!collapsed && <span className="text-[10px] font-medium">Plan &amp; Usage</span>}
         </NavLink>
+        <div className="mx-1 mt-1 mb-1">
+          <LanguageSwitcher collapsed={collapsed} />
+        </div>
         {!collapsed && (
           <div className="flex gap-1 mx-1 mt-1">
             {[{ l:'Invite', a:()=>navigate('/organization-settings/users/invite'), d:'M16 21v-2a4 4 0 00-4-4H6a4 4 0 00-4 4v2 M9 7a4 4 0 100-8 4 4 0 000 8 M19 8v6 M22 11h-6' },{ l:'Support', a:()=>window.open('mailto:support@zerotrace.com'), d:'M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z' },{ l:'Help', a:()=>navigate('/help'), d:'M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z M9.09 9a3 3 0 015.83 1c0 2-3 3-3 3 M12 17h.01', accent:true }].map((t,i)=>(
-              <button key={t.l} onClick={t.a} className="flex-1 flex flex-col items-center gap-0.5 px-1 py-1.5 rounded-[4px] text-[#babdbb]/60 hover:text-white/60 hover:bg-white/[0.04] transition-colors relative">
+              <button key={t.l} onClick={t.a} className="flex-1 flex flex-col items-center gap-0.5 px-1 py-1.5 rounded-[4px] text-sidebar-fg-muted/60 hover:text-white/60 hover:bg-fg-inverse/[0.04] transition-colors relative">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="w-4 h-4" style={t.accent?{color:'rgb(249,157,2)'}:{}}><path d={t.d}/></svg>
                 <span className="text-[9px] font-medium leading-none">{t.l}</span>
-                {i===2&&<span className="absolute -top-0.5 right-0 text-[7px] font-bold px-1 py-px rounded bg-amber-500/20 text-amber-300">NEW</span>}
+                {i===2&&<span className="absolute -top-0.5 right-0 text-[7px] font-bold px-1 py-px rounded bg-accent-warning/20 text-accent-warning">NEW</span>}
               </button>
             ))}
           </div>
         )}
         {user && (
           <div className={`flex items-center mx-1 mt-1 pt-1 border-t border-white/[0.06] ${collapsed?'justify-center':'gap-1.5 px-2'}`}>
-            <div className="w-6 h-6 rounded-full flex items-center justify-center text-white text-[9px] font-bold shrink-0" style={{background:'linear-gradient(135deg,#632CA6,#8B5CF6)'}}>{user.email?.[0]?.toUpperCase()||'U'}</div>
+            <div className="w-6 h-6 rounded-full flex items-center justify-center text-white text-[9px] font-bold shrink-0 bg-accent-primary">{user.email?.[0]?.toUpperCase()||'U'}</div>
             {!collapsed&&<><div className="flex-1 min-w-0"><p className="text-[11px] text-white/70 truncate font-medium">{user.name||user.email}</p></div><button onClick={async()=>{try{await logout();}catch{}navigate('/login');}} className="text-white/20 hover:text-white/50 transition-colors"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" className="w-3.5 h-3.5"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg></button></>}
           </div>
         )}
@@ -176,33 +181,40 @@ function Sidebar() {
 
 function ApiKeysPage() {
   const { t } = useTranslation();
-  const [apiKeys, setApiKeys] = useState<ApiKeyItem[]>([]); const [loading, setLoading] = useState(true); const [modalOpen, setModalOpen] = useState(false); const [newKey, setNewKey] = useState<string | null>(null); const [form] = Form.useForm();
-  const loadKeys = useCallback(async () => { setLoading(true); try { const data = await api.listApiKeys(); setApiKeys(data.api_keys); } catch (err: any) { message.error(err.message); } finally { setLoading(false); } }, []);
-  useEffect(() => { loadKeys(); }, [loadKeys]);
-  const handleCreate = async (values: { name: string }) => { try { const data = await api.createApiKey({ name: values.name, scopes: ['*'] }); setNewKey(data.api_key.key); setModalOpen(false); form.resetFields(); loadKeys(); } catch (err: any) { message.error(err.message); } };
-  const handleRevoke = async (id: number) => { Modal.confirm({ title: t('dashboard.revokeConfirm'), content: t('dashboard.revokeConfirmDesc'), okText: t('dashboard.revokeKey'), okButtonProps: { danger: true }, onOk: async () => { try { await api.revokeApiKey(id); message.success(t('dashboard.keyRevoked')); loadKeys(); } catch (err: any) { message.error(err.message); } } }); };
+  const [modalOpen, setModalOpen] = useState(false); const [newKey, setNewKey] = useState<string | null>(null); const [form] = Form.useForm();
+  const queryClient = useQueryClient();
+  const { data: apiKeysData, isLoading: loading } = useQuery({
+    queryKey: ['api-keys'],
+    queryFn: () => api.listApiKeys(),
+  });
+  const apiKeys: ApiKeyItem[] = apiKeysData?.api_keys || [];
+  const refetchKeys = useCallback(() => {
+    queryClient.invalidateQueries({ queryKey: ['api-keys'] });
+  }, [queryClient]);
+  const handleCreate = async (values: { name: string }) => { try { const data = await api.createApiKey({ name: values.name, scopes: ['*'] }); setNewKey(data.api_key.key); setModalOpen(false); form.resetFields(); refetchKeys(); } catch (err: any) { message.error(err.message); } };
+  const handleRevoke = async (id: number) => { Modal.confirm({ title: t('dashboard.revokeConfirm'), content: t('dashboard.revokeConfirmDesc'), okText: t('dashboard.revokeKey'), okButtonProps: { danger: true }, onOk: async () => { try { await api.revokeApiKey(id); message.success(t('dashboard.keyRevoked')); refetchKeys(); } catch (err: any) { message.error(err.message); } } }); };
   const columns = [
-    { title: t('dashboard.name'), dataIndex: 'name', key: 'name', render: (v: string) => <span className="font-medium text-zinc-800">{v}</span> },
-    { title: t('dashboard.keyPrefix'), dataIndex: 'key_prefix', key: 'key_prefix', render: (prefix: string) => <code className="text-xs font-mono bg-zinc-100 text-zinc-600 px-2 py-1 rounded-md">{prefix}</code> },
+    { title: t('dashboard.name'), dataIndex: 'name', key: 'name', render: (v: string) => <span className="font-medium text-fg-primary">{v}</span> },
+    { title: t('dashboard.keyPrefix'), dataIndex: 'key_prefix', key: 'key_prefix', render: (prefix: string) => <code className="text-xs font-mono bg-bg-muted text-fg-secondary px-2 py-1 rounded-md">{prefix}</code> },
     { title: t('dashboard.scopes'), dataIndex: 'scopes', key: 'scopes', width: 160, render: (scopes: string) => { try { return <div className="flex flex-wrap gap-1">{JSON.parse(scopes).map((s: string) => <Tag key={s} className="text-[11px]">{s}</Tag>)}</div>; } catch { return <Tag className="text-[11px]">{scopes}</Tag>; } } },
-    { title: t('dashboard.status'), dataIndex: 'status', key: 'status', width: 100, render: (status: string) => <div className="flex items-center gap-2"><span className={`w-1.5 h-1.5 rounded-full ${status === 'active' ? 'bg-emerald-500 animate-pulse-soft' : 'bg-zinc-300'}`} /><span className={`text-xs font-medium ${status === 'active' ? 'text-emerald-600' : 'text-zinc-400'}`}>{status}</span></div> },
-    { title: t('dashboard.lastUsed'), dataIndex: 'last_used_at', key: 'last_used_at', render: (v: string | null) => <span className="text-xs text-zinc-400">{v || t('dashboard.never')}</span> },
-    { title: t('dashboard.created'), dataIndex: 'created_at', key: 'created_at', render: (v: string) => <span className="text-xs text-zinc-400">{v?.split('T')[0] || v}</span> },
+    { title: t('dashboard.status'), dataIndex: 'status', key: 'status', width: 100, render: (status: string) => <div className="flex items-center gap-2"><span className={`w-1.5 h-1.5 rounded-full ${status === 'active' ? 'bg-severity-ok animate-pulse-soft' : 'bg-fg-disabled'}`} /><span className={`text-xs font-medium ${status === 'active' ? 'text-accent-success' : 'text-fg-tertiary'}`}>{status}</span></div> },
+    { title: t('dashboard.lastUsed'), dataIndex: 'last_used_at', key: 'last_used_at', render: (v: string | null) => <span className="text-xs text-fg-tertiary">{v || t('dashboard.never')}</span> },
+    { title: t('dashboard.created'), dataIndex: 'created_at', key: 'created_at', render: (v: string) => <span className="text-xs text-fg-tertiary">{v?.split('T')[0] || v}</span> },
     { title: '', key: 'action', width: 120, render: (_: any, record: ApiKeyItem) => record.status === 'active' ? (<div className="flex items-center gap-1"><Tooltip title={t('dashboard.copyKey')}><Button type="text" size="small" onClick={async () => { try { const data = await api.revealApiKey(record.id); await navigator.clipboard.writeText(data.key); message.success(t('dashboard.keyCopied')); } catch (err: any) { message.error(err.message || 'Failed to reveal key'); } }}>{t('common.copy')}</Button></Tooltip><Tooltip title={t('dashboard.revokeKey')}><Button type="text" size="small" danger onClick={() => handleRevoke(record.id)}>{t('dashboard.revokeKey')}</Button></Tooltip></div>) : null },
   ];
   return (
     <div className="animate-fade-in">
       {newKey && <div className="mb-8"><KeyReveal value={newKey} onDone={() => setNewKey(null)} /></div>}
-      <div className="flex items-start justify-between mb-8"><div><h2 className="text-2xl font-bold tracking-tight text-zinc-900">{t('dashboard.apiKeys')}</h2><p className="text-sm text-zinc-500 mt-1 max-w-lg">{t('dashboard.apiKeysDesc')}</p></div><Button type="primary" onClick={() => setModalOpen(true)} className="h-10 font-medium shrink-0 btn-tactile">{t('dashboard.newKey')}</Button></div>
+      <div className="flex items-start justify-between mb-8"><div><h2 className="text-2xl font-bold tracking-tight text-fg-primary">{t('dashboard.apiKeys')}</h2><p className="text-sm text-fg-secondary mt-1 max-w-lg">{t('dashboard.apiKeysDesc')}</p></div><Button type="primary" onClick={() => setModalOpen(true)} className="h-10 font-medium shrink-0 btn-tactile">{t('dashboard.newKey')}</Button></div>
       <div className="bento-card p-0 overflow-hidden">{loading ? <div className="p-8"><TableSkeleton rows={apiKeys.length || 5} /></div> : apiKeys.length === 0 ? <EmptyApiKeys onCreate={() => setModalOpen(true)} /> : <Table dataSource={apiKeys} columns={columns} rowKey="id" pagination={false} className="api-keys-table" locale={{ emptyText: t('dashboard.tableEmpty') }} />}</div>
-      <div className="mt-6 flex items-center gap-6 text-xs text-zinc-400"><span>{t('dashboard.keysCount', { count: apiKeys.length })}</span><span>{t('dashboard.activeCount', { count: apiKeys.filter(k => k.status === 'active').length })}</span></div>
-      <Modal title={t('dashboard.createApiKey')} open={modalOpen} onCancel={() => { setModalOpen(false); form.resetFields(); }} footer={null} width={440}><Form form={form} layout="vertical" onFinish={handleCreate} requiredMark={false} className="mt-2"><Form.Item name="name" label={<span className="text-sm font-medium text-zinc-700">{t('dashboard.keyName')}</span>} rules={[{ required: true, message: t('dashboard.enterDescriptiveName') }]}><Input placeholder={t('dashboard.keyNamePlaceholder')} className="h-10" /></Form.Item><div className="flex gap-2 justify-end"><Button onClick={() => { setModalOpen(false); form.resetFields(); }}>{t('common.cancel')}</Button><Button type="primary" htmlType="submit">{t('dashboard.generate')}</Button></div></Form></Modal>
+      <div className="mt-6 flex items-center gap-6 text-xs text-fg-tertiary"><span>{t('dashboard.keysCount', { count: apiKeys.length })}</span><span>{t('dashboard.activeCount', { count: apiKeys.filter(k => k.status === 'active').length })}</span></div>
+      <Modal title={t('dashboard.createApiKey')} open={modalOpen} onCancel={() => { setModalOpen(false); form.resetFields(); }} footer={null} width={440}><Form form={form} layout="vertical" onFinish={handleCreate} requiredMark={false} className="mt-2"><Form.Item name="name" label={<span className="text-sm font-medium text-fg-secondary">{t('dashboard.keyName')}</span>} rules={[{ required: true, message: t('dashboard.enterDescriptiveName') }]}><Input placeholder={t('dashboard.keyNamePlaceholder')} className="h-10" /></Form.Item><div className="flex gap-2 justify-end"><Button onClick={() => { setModalOpen(false); form.resetFields(); }}>{t('common.cancel')}</Button><Button type="primary" htmlType="submit">{t('dashboard.generate')}</Button></div></Form></Modal>
     </div>
   );
 }
 
 export default function DashboardLayout() {
-  return (<div className="flex min-h-[100dvh] bg-zinc-50"><Sidebar /><main className="flex-1 min-w-0 p-6 lg:p-8"><Outlet /></main><CommandPalette /></div>);
+  return (<div className="flex min-h-[100dvh] bg-bg-subtle"><Sidebar /><main className="flex-1 min-w-0 p-6 lg:p-8"><Outlet /></main><CommandPalette /></div>);
 }
 
 export { ApiKeysPage };
