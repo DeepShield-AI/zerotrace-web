@@ -1,4 +1,4 @@
-import { useEffect, useState, useMemo } from 'react';
+import { useEffect, useState, useMemo, useRef } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Link, useNavigate, useSearchParams, useLocation } from 'react-router-dom';
 import ReactECharts from 'echarts-for-react';
@@ -18,7 +18,7 @@ import { TableSkeleton, EmptyState } from '../../components/ui';
 // Helpers
 const num = (v: number | string | undefined): number => { if (v === undefined || v === null) return 0; const n = typeof v === 'string' ? parseFloat(v) : v; return isNaN(n) ? 0 : n; };
 function ago(s: string): string { if (!s) return '—'; try { const d = Date.now() - new Date(s.replace(' ', 'T') + '+08:00').getTime(); const m = Math.floor(d / 60000); if (m < 1) return 'now'; if (m < 60) return m + 'm'; const h = Math.floor(m / 60); if (h < 24) return h + 'h'; return Math.floor(h / 24) + 'd'; } catch { return ''; } }
-function parseQuery(raw: string): Record<string, string> { const p: Record<string, string> = {}; raw.split(/\s+/).filter(Boolean).forEach(part => { const i = part.indexOf(':'); if (i > 0) p[part.slice(0, i)] = part.slice(i + 1); }); return p; }
+/** Parse rawQuery like 'service:a service:b status:error' — same-key values are joined with comma for OR filtering */
 
 const INTRO_NAV = [{ key:'setup',label:'Set up APM',icon:'gear'},{ key:'rules',label:'Instrumentation Rules',icon:'file'},{ key:'errors',label:'Instrumentation Errors',icon:'warn' }];
 const LANGUAGES = ['☕ Java','🐍 Python','🔷 .NET','💎 Ruby','🐘 PHP','🔵 Go','⬢ Node.js','⚙ C++'];
@@ -38,7 +38,11 @@ export default function APMPage() {
 
   // Sync facet states FROM rawQuery (so typing/pasting queries updates facet UI)
   useEffect(() => {
-    const p = parseQuery(rawQuery);
+    const p: Record<string, string> = {};
+    rawQuery.split(/\s+/).filter(Boolean).forEach(part => {
+      const idx = part.indexOf(':');
+      if (idx > 0) { const key = part.slice(0, idx); const val = part.slice(idx + 1); p[key] = p[key] ? `${p[key]},${val}` : val; }
+    });
     if (p.status) setFacetStatus(p.status);
     else if (!rawQuery.includes('status:')) setFacetStatus('');
     if (p.duration) setFacetDuration(p.duration);
@@ -65,6 +69,9 @@ export default function APMPage() {
   const { start, end } = parseRange(range);
   const qp = useMemo(() => ({ query: query||undefined, start, end }),[query,start,end]);
   const TRACE_LIMIT = 20;
+  const [traceOffset, setTraceOffset] = useState(0);
+  // Reset offset when query/filters change
+  useEffect(() => { setTraceOffset(0); }, [query, facetStatus, facetDuration, facetService]);
 
   // Services + stats query
   const svcQuery = useQuery({
@@ -80,24 +87,29 @@ export default function APMPage() {
   const svcState = svcQuery.isLoading ? 'loading' : services.length === 0 ? 'empty' : 'data';
   const svcError = svcQuery.error instanceof Error ? svcQuery.error.message : '';
 
-  // Parse raw query to extract facet values for API call
+  // Parse raw query to extract facet values for API call.
+  // Multiple same-key values (e.g. service:a service:b) are joined with comma for OR filtering.
   const parsedQuery = useMemo(() => {
     const p: Record<string, string> = {};
     const parts = query.split(/\s+/).filter(Boolean);
     for (const part of parts) {
       const idx = part.indexOf(':');
-      if (idx > 0) p[part.slice(0, idx)] = part.slice(idx + 1);
+      if (idx > 0) {
+        const key = part.slice(0, idx);
+        const val = part.slice(idx + 1);
+        p[key] = p[key] ? `${p[key]},${val}` : val;
+      }
     }
     return p;
   }, [query]);
 
-  // Traces query — uses BOTH explicit facets AND parsed rawQuery values
+  // Traces query — paginated with Load More
   const trQuery = useQuery({
-    queryKey: ['apm', 'traces', qp, facetStatus, facetService, facetDuration, parsedQuery.status, parsedQuery.duration],
+    queryKey: ['apm', 'traces', qp, facetStatus, facetService, facetDuration, parsedQuery.status, parsedQuery.duration, traceOffset],
     queryFn: () => api.getApmTraces({
       ...qp,
       limit: TRACE_LIMIT,
-      offset: 0,
+      offset: traceOffset,
       status: facetStatus || parsedQuery.status || undefined,
       service: facetService || parsedQuery.service || undefined,
       query: facetDuration || parsedQuery.duration || qp.query,
@@ -105,10 +117,32 @@ export default function APMPage() {
     enabled: view === 'traces',
   });
 
-  const traces: ApmTraceItem[] = (trQuery.data?.traces || []) as ApmTraceItem[];
+  // Accumulate traces for infinite scroll (Datadog-style Load More)
+  const [allTraces, setAllTraces] = useState<ApmTraceItem[]>([]);
+  const pageTraces: ApmTraceItem[] = (trQuery.data?.traces || []) as ApmTraceItem[];
   const traceTotal = trQuery.data?.total || 0;
-  const trState = trQuery.isLoading ? 'loading' : trQuery.error ? 'error' : traces.length > 0 ? 'data' : 'empty';
+  // When query/filters change (offset=0), replace; otherwise append
+  useEffect(() => {
+    if (traceOffset === 0) {
+      setAllTraces(pageTraces);
+    } else if (pageTraces.length > 0) {
+      setAllTraces(prev => [...prev, ...pageTraces]);
+    }
+  }, [pageTraces, traceOffset]);
+  const traces = traceOffset === 0 ? pageTraces : allTraces;
+  const hasMore = traces.length < traceTotal && pageTraces.length >= TRACE_LIMIT;
+  const trState = trQuery.isLoading && traceOffset === 0 ? 'loading' : trQuery.error ? 'error' : traces.length > 0 ? 'data' : 'empty';
   const trError = trQuery.error instanceof Error ? trQuery.error.message : '';
+  const loadMore = () => { if (!trQuery.isFetching && hasMore) setTraceOffset(traceOffset + TRACE_LIMIT); };
+  // IntersectionObserver for auto-load when scrolling to bottom
+  const sentinelRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const el = sentinelRef.current;
+    if (!el || !hasMore) return;
+    const obs = new IntersectionObserver(([entry]) => { if (entry.isIntersecting) loadMore(); }, { rootMargin: '200px' });
+    obs.observe(el);
+    return () => obs.disconnect();
+  }, [hasMore, trQuery.isFetching, traceOffset]);
 
   // Topology query
   const topoQuery = useQuery({
@@ -297,8 +331,14 @@ export default function APMPage() {
                       <td className="px-3 py-2"><span className={`inline-flex text-[10px] font-medium px-1.5 py-0.5 rounded-full ${ok?'bg-accent-success-bg text-accent-success':'bg-accent-danger-bg text-accent-danger'}`}>{ok?'OK':'ERR'}</span></td>
                     </tr>);
                   })}</tbody></table>)}
-              <div className="border-t border-border-subtle bg-bg-subtle px-4 py-2 text-[10px] text-fg-tertiary">
-                Showing {traces.length} of {traceTotal} traces
+              <div className="border-t border-border-subtle bg-bg-subtle px-4 py-3 flex items-center justify-between">
+                <span className="text-[10px] text-fg-tertiary">
+                  {trQuery.isFetching && traceOffset > 0
+                    ? `Loading more...`
+                    : `Showing ${Math.min(traces.length, traceTotal)} of ${traceTotal} traces`}
+                </span>
+                {/* Sentinel for auto-load — 200px before bottom triggers next page */}
+                <div ref={sentinelRef} className="h-1" />
               </div>
             </div>
           </div>
