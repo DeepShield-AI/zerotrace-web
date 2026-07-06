@@ -37,7 +37,8 @@ export default function AgentSetup() {
   const [revealingKeyId, setRevealingKeyId] = useState<number | null>(null);
   const isKeyTruncated = apiKey.length > 0 && apiKey.includes('...');
 
-  const host = '202.112.237.37';
+  // Use env-configured host if set (for deployment), otherwise use current page hostname
+  const host = import.meta.env.VITE_SERVER_HOST || window.location.hostname;
   const navigate = useNavigate();
 
   // Load API keys and agents

@@ -14,7 +14,7 @@ export const ALL_CARDS: CardInfo[] = [
 export const SSI_LANGUAGES = ['Java', 'Python', 'Ruby', '.NET', 'Node.js', 'PHP'];
 
 export function getInstallCmd(p: Platform, apiKey: string, host: string): string {
-  const port = '5173';
+  const port = import.meta.env.VITE_SERVER_PORT || window.location.port || (window.location.protocol === 'https:' ? '443' : '80');
   const keySuffix = apiKey ? ` ZEROTRACE_API_KEY="${apiKey}" bash` : ' bash';
   switch (p) {
     case 'linux': return `curl -fsSL http://${host}:${port}/agent/install.sh | sudo ${keySuffix}`;
