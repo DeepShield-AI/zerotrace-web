@@ -424,3 +424,6 @@
   opacity: 1 !important;
   transform: none !important;
 }
+
+/* ── Ant Design overrides (Tailwind @apply context shared via parent import) ── */
+@import "./styles/antd-overrides.css";

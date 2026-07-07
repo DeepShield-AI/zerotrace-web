@@ -8,7 +8,6 @@ import './styles/tokens.css'
 import '@fontsource/geist-sans'
 import '@fontsource/geist-mono'
 import './index.css'
-import './styles/antd-overrides.css'
 import './i18n'
 
 /** Reads a CSS variable from :root, falls back to light-mode default. */
