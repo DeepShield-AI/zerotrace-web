@@ -21,7 +21,7 @@ Supports organization-scoped API keys and session management. All authenticated 
 
 # Documentation
 
-See [docs/deployment.md](docs/deployment.md) for deployment instructions.
+See [docs/deployment.md](docs/user/deployment.md) for deployment instructions.
 
 # Tech Stack
 

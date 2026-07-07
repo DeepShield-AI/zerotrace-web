@@ -1,27 +1,10 @@
-@import "tailwindcss";
-
 /* ═══════════════════════════════════════════════════════════════
    antd-overrides.css — Ant Design component style overrides
 
-   Has its own @import "tailwindcss" + minimal @theme so @apply
-   works. Color values reference tokens.css CSS variables (loaded
-   globally via main.tsx), so dark mode still works automatically.
-
-   This is the Tailwind v4 way to split CSS with @apply — each file
-   is a standalone Tailwind entry point.
+   Imported from index.css (NOT main.tsx) so it shares the same
+   Tailwind compilation context — @theme tokens and utilities are
+   all visible.  No @import/@reference needed here.
    ═══════════════════════════════════════════════════════════════ */
-
-@theme {
-  --color-bg-subtle: var(--bg-subtle);
-  --color-bg-elevated: var(--bg-elevated);
-  --color-bg-muted: var(--bg-muted);
-  --color-fg-primary: var(--fg-primary);
-  --color-fg-secondary: var(--fg-secondary);
-  --color-fg-tertiary: var(--fg-tertiary);
-  --color-border: var(--border-default);
-  --color-border-strong: var(--border-strong);
-  --color-accent-primary: var(--accent-primary);
-}
 
 /* ── Table ── */
 .api-keys-table .ant-table { font-size: 13px; }
