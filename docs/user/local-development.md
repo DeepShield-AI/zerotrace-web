@@ -201,7 +201,7 @@ Rust 依赖通过 `Cargo.toml` 管理，核心依赖：
 
 ```bash
 git clone https://github.com/DeepShield-AI/DeepShield-Server.git
-cd zerotrace-server/manifests
+cd DeepShield-Server/manifests
 
 # 只启动 mysql 和 clickhouse，不启动 server / web（本项目的后端在本地用 cargo run 启动）
 docker compose up -d mysql clickhouse
