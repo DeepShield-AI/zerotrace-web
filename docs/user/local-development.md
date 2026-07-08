@@ -200,7 +200,7 @@ Rust 依赖通过 `Cargo.toml` 管理，核心依赖：
 推荐直接使用 `zerotrace-server` 仓库中的 Docker Compose 配置一次性启动两者（无需手动 `docker run`）。如果本机还没有该仓库，先克隆：
 
 ```bash
-git clone https://github.com/DeepShield-AI/zerotrace-server.git
+git clone https://github.com/DeepShield-AI/DeepShield-Server.git
 cd zerotrace-server/manifests
 
 # 只启动 mysql 和 clickhouse，不启动 server / web（本项目的后端在本地用 cargo run 启动）
