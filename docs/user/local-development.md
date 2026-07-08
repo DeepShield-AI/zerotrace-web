@@ -9,6 +9,7 @@
 - [环境要求](#环境要求)
 - [项目结构概览](#项目结构概览)
 - [第一步：安装依赖](#第一步安装依赖)
+  - [配置 npm 源](#配置-npm-源)
   - [前端依赖](#前端依赖)
   - [后端依赖](#后端依赖)
   - [外部服务（数据库）](#外部服务数据库)
@@ -105,11 +106,43 @@ zerotrace-web/
 
 ## 第一步：安装依赖
 
-### 前端依赖
+### 配置 npm 源
+
+前端依赖通过私有 Verdaccio 源分发，安装前需先配置 pnpm 使用该源：
 
 ```bash
-cd frontend
+pnpm config set registry http://47.97.67.233:4873/
+```
+
+本项目使用 **pnpm workspace** 管理依赖，仓库根目录的 `pnpm-workspace.yaml` 需包含 `packages` 字段：
+
+```yaml
+# zerotrace-web/pnpm-workspace.yaml
+packages:
+  - 'frontend'
+
+allowBuilds:
+  '@swc/core': true
+  esbuild: true
+  msw: true
+```
+
+`allowBuilds` 用于预先批准 `@swc/core`、`esbuild`、`msw` 三个需要执行 postinstall 构建脚本的包。pnpm v10+ 出于供应链安全默认会拦截这些脚本，缺少此配置会导致依赖安装不完整。
+
+### 前端依赖
+
+> **重要**：请在**工作区根目录**（`zerotrace-web/`）执行 `pnpm install`，而不是在 `frontend/` 下。lockfile 和 virtual store 都存放在根目录。
+
+```bash
+cd zerotrace-web
 pnpm install
+```
+
+如果看到 `[ERR_PNPM_IGNORED_BUILDS]` 警告，运行 `pnpm approve-builds` 后重新安装：
+
+```bash
+pnpm approve-builds   # 交互式批准 @swc/core、esbuild、msw
+pnpm install          # 重新安装 — 此次会执行构建脚本
 ```
 
 安装完成后，`frontend/node_modules/` 应包含所有依赖。关键依赖一览：
@@ -153,24 +186,32 @@ Rust 依赖通过 `Cargo.toml` 管理，核心依赖：
 
 ### 外部服务（数据库）
 
-项目需要两个外部数据存储：
+项目需要两个外部数据存储，均由 `zerotrace-server` 仓库提供容器化部署配置：
 
 **1. MySQL（必需）**—— 存储用户、组织、会话、计费等元数据。
 
-如果没有本地 MySQL，可通过 Docker 快速启动：
+**2. ClickHouse（可选）**—— 存储 APM 遥测数据。不影响用户登录、页面浏览等基础功能，但数据显示需要此服务。后端启动时如果连不上 ClickHouse 会打 warning 日志，不会 crash。
+
+推荐直接使用 `zerotrace-server` 仓库中的 Docker Compose 配置一次性启动两者（无需手动 `docker run`）。如果本机还没有该仓库，先克隆：
 
 ```bash
-docker run -d \
-  --name zt-mysql \
-  -p 30130:3306 \
-  -e MYSQL_ROOT_PASSWORD=deepflow \
-  -e MYSQL_DATABASE=deepflow \
-  mysql:8.0
+git clone https://github.com/DeepShield-AI/zerotrace-server.git
+cd zerotrace-server/manifests
+
+# 只启动 mysql 和 clickhouse，不启动 server / web（本项目的后端在本地用 cargo run 启动）
+docker compose up -d mysql clickhouse
 ```
 
-**2. ClickHouse（可选）**—— 存储 APM 遥测数据。不影响用户登录、页面浏览等基础功能，但数据显示需要此服务。
+这会启动两个容器：
 
-后端启动时如果连不上 ClickHouse 会打 warning 日志，不会 crash。
+| 容器 | 端口 | 说明 |
+|---|---|---|
+| `zerotrace-mysql` | `30130` | MySQL 8.0，root 密码 `deepflow`，自动执行 `init.sql` 创建 `grafana` 库 |
+| `zerotrace-clickhouse` | `8123`（HTTP）/ `9000`（Native） | ClickHouse |
+
+数据持久化在宿主机 `/opt/deepflow/{mysql,clickhouse}`，容器重启不会丢数据。停止服务用 `docker compose down`（加 `-v` 会删除数据卷）。
+
+> 具体的容器镜像、配置文件挂载等定义见 `zerotrace-server` 仓库下的 `manifests/docker-compose.yml`。
 
 ---
 
@@ -208,12 +249,10 @@ DEEPFLOW_SERVER_URL=http://127.0.0.1:30417
 
 后端启动时会**自动执行数据库迁移**（`backend/migrations/*.sql`），无需手动执行 SQL 文件。
 
-但需确保 MySQL 中存在 `deepflow` 数据库：
+但需确保 MySQL 中存在 `deepflow` 数据库。`zerotrace-server` 的 Compose 配置默认只会自动创建 `grafana` 库（供其自身使用），因此需要手动创建 `deepflow`：
 
 ```bash
-# 如果使用 Docker 启动 MySQL，数据库已自动创建。
-# 如果是外部 MySQL，手动创建：
-mysql -u root -p -e "CREATE DATABASE IF NOT EXISTS deepflow;"
+mysql -h 127.0.0.1 -P 30130 -u root -pdeepflow -e "CREATE DATABASE IF NOT EXISTS deepflow;"
 ```
 
 迁移内容包括：
@@ -236,12 +275,11 @@ mysql -u root -p -e "CREATE DATABASE IF NOT EXISTS deepflow;"
 
 ```bash
 cd frontend
-pnpm dev
+pnpm dev:mock
 ```
 
 浏览器打开 `http://localhost:5173`。
 
-> **注意**：`pnpm dev:mock` 命令（MSW 假数据模式）尚未就绪。目前 `pnpm dev` 走 Vite 代理到 `localhost:3001`，如果后端未启动，API 调用会失败。
 
 ### 方式 B：前后端联调
 
@@ -308,9 +346,9 @@ pnpm dev
 
 ### Q1：`pnpm install` 报错 "package not found"
 
-确保在 `frontend/` 目录下执行，且 `.npmrc` 或网络环境可正常访问 npm registry。
+确保在**工作区根目录**（`zerotrace-web/`）下执行 `pnpm install`，且已按[配置 npm 源](#配置-npm-源)设置 registry。
 
-如果遇到 `esbuild` 二进制下载失败，查看 `frontend/pnpm-workspace.yaml` 中的 `allowBuilds` 配置。
+如果遇到 `esbuild` 二进制下载失败，查看根目录 `pnpm-workspace.yaml` 中的 `allowBuilds` 配置。
 
 ### Q2：`cargo build` 卡住或报错
 
