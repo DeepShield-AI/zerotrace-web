@@ -54,6 +54,8 @@ cargo --version
 
 ```bash
 # 方式 1：通过 npm 全局安装
+sudo apt install nodejs npm
+
 sudo npm install -g pnpm
 
 # 方式 2：通过 corepack（Node 16.13+ 内置）
