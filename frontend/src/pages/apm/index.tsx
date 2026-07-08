@@ -66,7 +66,9 @@ export default function APMPage() {
     if (rawQuery) params.set('q', rawQuery); else params.delete('q');
     setSearchParams(params, { replace: true });
   }, [rawQuery]);
-  const { start, end } = parseRange(range);
+  // Memoize so start/end (Date.now()-derived) stay stable across renders
+  // unless `range` actually changes — avoids infinite refetch → re-render loop.
+  const { start, end } = useMemo(() => parseRange(range), [range]);
   const qp = useMemo(() => ({ query: query||undefined, start, end }),[query,start,end]);
   const TRACE_LIMIT = 20;
   const [traceOffset, setTraceOffset] = useState(0);
@@ -119,7 +121,10 @@ export default function APMPage() {
 
   // Accumulate traces for infinite scroll (Datadog-style Load More)
   const [allTraces, setAllTraces] = useState<ApmTraceItem[]>([]);
-  const pageTraces: ApmTraceItem[] = (trQuery.data?.traces || []) as ApmTraceItem[];
+  // Memoize on trQuery.data (not a fresh `[]` fallback) so the reference stays
+  // stable across renders when data is unset — otherwise the effect below
+  // (which depends on pageTraces) fires every render → infinite update loop.
+  const pageTraces: ApmTraceItem[] = useMemo(() => (trQuery.data?.traces || []) as ApmTraceItem[], [trQuery.data]);
   const traceTotal = trQuery.data?.total || 0;
   // When query/filters change (offset=0), replace; otherwise append
   useEffect(() => {

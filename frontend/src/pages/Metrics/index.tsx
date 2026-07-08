@@ -41,7 +41,9 @@ export default function MetricsPage() {
   const [lineStyle, setLineStyle] = useState<LineStyle>('Solid');
   const [stroke, setStroke] = useState<StrokeWidth>('Normal');
 
-  const { start, end } = parseRange(range);
+  // Memoize so start/end (Date.now()-derived) stay stable across renders
+  // unless `range` actually changes — avoids infinite refetch → re-render loop.
+  const { start, end } = useMemo(() => parseRange(range), [range]);
 
   // ── Metrics list ──
   const {

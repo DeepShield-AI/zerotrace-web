@@ -96,7 +96,10 @@ export default function Infrastructure() {
   const hintTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [activeNav, setActiveNav] = useState<'hosts' | 'containers' | 'processes'>('hosts');
 
-  const { start, end } = parseRange(range);
+  // Memoize so start/end (Date.now()-derived) stay stable across renders
+  // unless `range` actually changes — otherwise every render produces a new
+  // queryKey below, causing an infinite refetch → re-render loop.
+  const { start, end } = useMemo(() => parseRange(range), [range]);
 
   // Adaptive polling: slow down when tab is hidden
   const [pollingInterval, setPollingInterval] = useState(10000);
