@@ -108,19 +108,26 @@ export interface AgentLike {
   SYNCED_CONTROLLER_AT?: string | null;
 }
 
-/** Agent is online when STATE=1 and last controller sync was < 5 min ago.
- *  DB stores UTC timestamps without timezone — we append 'Z' so JS parses as UTC.
- *  Matches AgentSetup.tsx stale threshold (5 min). */
+/** Agent is online when STATE=1 and last controller sync was < 5 min ago. */
 export function isOnline(a: AgentLike): boolean {
   if (a.STATE !== 1) return false;
   const synced = a.SYNCED_CONTROLLER_AT;
   if (!synced) return false;
   try {
-    // Parse as UTC (append 'Z' — consistent with AgentSetup.asUtc)
-    const d = new Date(synced.includes('Z') || synced.includes('+') ? synced : synced + 'Z');
+    // Try parsing as-is first (RFC3339 with timezone, or ISO string).
+    let d = new Date(synced);
     if (isNaN(d.getTime())) return false;
+    // If the parsed date is in the future by more than 1 minute, the
+    // timestamp was likely stored in a local timezone but parsed as UTC.
+    // Assume it's local time and adjust.
     const age = Date.now() - d.getTime();
-    return Math.abs(age) < 5 * 60_000; // 5 min threshold matches AgentSetup
+    if (age < -60_000) {
+      // Timestamp is in the future — likely local time without timezone.
+      // Re-parse as local time by using the ISO format without 'Z'.
+      d = new Date(synced.replace('Z', ''));
+      if (isNaN(d.getTime())) return false;
+    }
+    return Math.abs(Date.now() - d.getTime()) < 5 * 60_000;
   } catch {
     return false;
   }

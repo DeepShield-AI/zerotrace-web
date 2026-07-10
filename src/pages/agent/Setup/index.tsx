@@ -37,9 +37,20 @@ export default function AgentSetup() {
   const [revealingKeyId, setRevealingKeyId] = useState<number | null>(null);
   const isKeyTruncated = apiKey.length > 0 && apiKey.includes('...');
 
-  // Use env-configured host if set (for deployment), otherwise use current page hostname
-  const host = import.meta.env.VITE_SERVER_HOST || window.location.hostname;
   const navigate = useNavigate();
+
+  // 安装地址优先采用控制器下发的对外地址（controller_ip / web_port）；
+  // 未配置有效外部地址时，回退到构建期变量或当前页面地址。
+  const { data: serverInfo } = useQuery({ queryKey: ['serverInfo'], queryFn: () => api.getServerInfo() });
+  const isUsableHost = (h?: string) => !!h && h !== '127.0.0.1' && h !== 'localhost' && h !== '0.0.0.0';
+  const siHost = (serverInfo as any)?.controller_ip as string | undefined;
+  const siPort = (serverInfo as any)?.web_port ? String((serverInfo as any).web_port) : '';
+  const host = isUsableHost(siHost)
+    ? (siHost as string)
+    : (import.meta.env.VITE_SERVER_HOST || window.location.hostname);
+  const port = isUsableHost(siHost) && siPort
+    ? siPort
+    : (import.meta.env.VITE_SERVER_PORT || window.location.port || (window.location.protocol === 'https:' ? '443' : '80'));
 
   // Load API keys and agents
   const { data: apiKeysData, refetch: refetchApiKeys } = useQuery({ queryKey: ['apiKeys'], queryFn: () => api.listApiKeys() });
@@ -139,7 +150,7 @@ export default function AgentSetup() {
     }
   }, []);
 
-  const installCmd = getInstallCmd(platform, apiKey, host);
+  const installCmd = getInstallCmd(platform, apiKey, host, port);
   const sections = [...new Set(ALL_CARDS.map(c => c.section))];
 
   // Agent stats

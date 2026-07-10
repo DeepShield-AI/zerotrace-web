@@ -46,18 +46,6 @@ function agentStateLabel(state: number): { label: string; color: string; dot: st
   }
 }
 
-// ════════════════════════ MOCK DATA GENERATOR ════════════════════════
-function generateMockAgents(): AgentItem[] {
-  return [
-    { ID: 1, NAME: 'prod-web-01', CTRL_IP: '10.0.1.42', STATE: 1, SYNCED_CONTROLLER_AT: new Date().toISOString(), hostname: 'prod-web-01', version: 'v6.5.9', platform: 'linux', tags: ['env:prod', 'team:platform'], cpu_pct: 2.3, mem_mb: 128, services_count: 12, uptime: '14d 3h' },
-    { ID: 2, NAME: 'prod-web-02', CTRL_IP: '10.0.1.43', STATE: 1, SYNCED_CONTROLLER_AT: new Date().toISOString(), hostname: 'prod-web-02', version: 'v6.5.9', platform: 'linux', tags: ['env:prod', 'team:platform'], cpu_pct: 1.8, mem_mb: 112, services_count: 12, uptime: '14d 3h' },
-    { ID: 3, NAME: 'prod-api-01', CTRL_IP: '10.0.2.10', STATE: 1, SYNCED_CONTROLLER_AT: new Date(Date.now() - 120000).toISOString(), hostname: 'prod-api-01', version: 'v6.5.8', platform: 'docker', tags: ['env:prod', 'team:backend'], cpu_pct: 4.1, mem_mb: 256, services_count: 8, uptime: '7d 12h' },
-    { ID: 4, NAME: 'staging-k8s-node-1', CTRL_IP: '172.16.0.55', STATE: 1, SYNCED_CONTROLLER_AT: new Date(Date.now() - 60000).toISOString(), hostname: 'staging-k8s-node-1', version: 'v6.5.9', platform: 'kubernetes', tags: ['env:staging', 'team:infra'], cpu_pct: 0.9, mem_mb: 96, services_count: 5, uptime: '3d 8h' },
-    { ID: 5, NAME: 'dev-laptop-01', CTRL_IP: '192.168.1.100', STATE: 2, SYNCED_CONTROLLER_AT: new Date(Date.now() - 600000).toISOString(), hostname: 'dev-laptop-01', version: 'v6.5.7', platform: 'linux', tags: ['env:dev'], cpu_pct: 0.5, mem_mb: 64, services_count: 3, uptime: '1d 2h' },
-    { ID: 6, NAME: 'prod-db-mon-01', CTRL_IP: '10.0.3.20', STATE: 3, SYNCED_CONTROLLER_AT: new Date(Date.now() - 3600000).toISOString(), hostname: 'prod-db-mon-01', version: 'v6.5.6', platform: 'linux', tags: ['env:prod', 'team:dba'], cpu_pct: 0, mem_mb: 0, services_count: 0, uptime: '—' },
-  ];
-}
-
 // ════════════════════════ FLEET VIEW COMPONENT ════════════════════════
 function FleetView() {
   const [search, setSearch] = useState('');
@@ -73,11 +61,9 @@ function FleetView() {
       try {
         const d = await api.getAgentStatus();
         const raw = d?.agents || d?.DATA || [];
-        if (raw.length > 0) return raw;
-        // Use mock data if no real agents
-        return generateMockAgents();
+        return raw;
       } catch {
-        return generateMockAgents();
+        return [];
       }
     },
     refetchInterval: 15000,

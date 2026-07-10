@@ -95,6 +95,7 @@ export default function Infrastructure() {
   const [keyboardHint, setKeyboardHint] = useState<string | null>(null);
   const hintTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [activeNav, setActiveNav] = useState<'hosts' | 'containers' | 'processes'>('hosts');
+  const [selectedProcess, setSelectedProcess] = useState<string | null>(null);
 
   // Memoize so start/end (Date.now()-derived) stay stable across renders
   // unless `range` actually changes — otherwise every render produces a new
@@ -125,6 +126,22 @@ export default function Infrastructure() {
   });
   const hostsData = hostsResp?.hosts || [];
   const processes = procsResp?.processes || [];
+
+  // Process drill-down metrics
+  const { data: procMetrics } = useQuery({
+    queryKey: ['infrastructure-process-metrics', selectedProcess, start, end],
+    queryFn: async () => {
+      if (!selectedProcess) return null;
+      const filter = `process_kname_1 = '${selectedProcess}'`;
+      const [req, lat, err] = await Promise.all([
+        api.queryMetrics({ name: 'l7.request_count', start, end, interval: 30, filter }),
+        api.queryMetrics({ name: 'l7.avg_latency', start, end, interval: 30, filter }),
+        api.queryMetrics({ name: 'l7.error_count', start, end, interval: 30, filter }),
+      ].map(p => p.catch(() => ({ points: [] }))));
+      return { request: req, latency: lat, error: err };
+    },
+    enabled: !!selectedProcess,
+  });
 
   // Persist view state
   useEffect(() => {
@@ -325,7 +342,9 @@ export default function Infrastructure() {
               </tr></thead>
               <tbody>
                 {processes.map((p: any, i: number) => (
-                  <tr key={i} className="border-b border-border-subtle hover:bg-bg-subtle">
+                  <tr key={i}
+                    onClick={() => setSelectedProcess(selectedProcess === p.process_name ? null : p.process_name)}
+                    className={`border-b border-border-subtle hover:bg-bg-subtle cursor-pointer ${selectedProcess === p.process_name ? 'bg-accent-primary/10' : ''}`}>
                     <td className="px-4 py-2 font-medium text-fg-primary font-mono">{p.process_name}</td>
                     <td className="px-4 py-2 text-fg-tertiary">{p.host_id}</td>
                     <td className="px-4 py-2 text-fg-tertiary tabular-nums">{p.request_count}</td>
@@ -335,6 +354,52 @@ export default function Infrastructure() {
                 ))}
               </tbody>
             </table>
+          )}
+          {/* Process detail panel */}
+          {selectedProcess && (
+            <div className="border-t border-border p-4 bg-bg-subtle">
+              <div className="flex items-center justify-between mb-3">
+                <h3 className="text-sm font-semibold text-fg-primary font-mono">{selectedProcess}</h3>
+                <button onClick={() => setSelectedProcess(null)} className="text-fg-tertiary hover:text-fg-primary">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
+                </button>
+              </div>
+              {procMetrics ? (
+                <div className="grid grid-cols-3 gap-3">
+                  {[
+                    { title: 'Requests/s', data: procMetrics.request, color: '#4C9AFF' },
+                    { title: 'Avg Latency (μs)', data: procMetrics.latency, color: '#7B61FF' },
+                    { title: 'Errors/s', data: procMetrics.error, color: '#E65C5C' },
+                  ].map(chart => (
+                    <div key={chart.title} className="bg-bg-elevated border border-border rounded-lg p-3">
+                      <p className="text-[10px] font-semibold text-fg-tertiary uppercase tracking-wider mb-1">{chart.title}</p>
+                      <div className="h-32 flex items-end gap-px">
+                        {(() => {
+                          const pts = chart.data?.points || [];
+                          const max = Math.max(...pts.map((p: any) => p.value || 0), 1);
+                          return pts.slice(-60).map((p: any, i: number) => (
+                            <div key={i} className="flex-1 rounded-t-sm" style={{
+                              height: `${Math.max((p.value / max) * 100, 1)}%`,
+                              backgroundColor: chart.color,
+                              opacity: 0.8,
+                            }} title={`${p.value?.toFixed(2)}`} />
+                          ));
+                        })()}
+                      </div>
+                      <p className="text-[10px] text-fg-tertiary mt-1 text-right">
+                        {(() => {
+                          const pts = chart.data?.points || [];
+                          const last = pts[pts.length - 1];
+                          return last ? (typeof last.value === 'number' ? last.value.toFixed(1) : last.value) : '—';
+                        })()}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-[12px] text-fg-tertiary text-center py-4">Loading metrics...</p>
+              )}
+            </div>
           )}
         </div>
       )}

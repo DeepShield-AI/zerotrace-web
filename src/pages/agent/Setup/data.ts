@@ -13,9 +13,8 @@ export const ALL_CARDS: CardInfo[] = [
 
 export const SSI_LANGUAGES = ['Java', 'Python', 'Ruby', '.NET', 'Node.js', 'PHP'];
 
-export function getInstallCmd(p: Platform, apiKey: string, host: string): string {
-  const port = import.meta.env.VITE_SERVER_PORT || window.location.port || (window.location.protocol === 'https:' ? '443' : '80');
-  const keySuffix = apiKey ? ` ZEROTRACE_API_KEY="${apiKey}" bash` : ' bash';
+export function getInstallCmd(p: Platform, apiKey: string, host: string, port: string): string {
+  const keySuffix = apiKey ? ` ZEROTRACE_CONTROLLER_IP="${host}" ZEROTRACE_API_KEY="${apiKey}" bash` : ` ZEROTRACE_CONTROLLER_IP="${host}" bash`;
   switch (p) {
     case 'linux': return `curl -fsSL http://${host}:${port}/agent/install.sh | sudo ${keySuffix}`;
     case 'docker': return `docker pull registry.cn-hongkong.aliyuncs.com/deepflow-ce/deepflow-agent:latest

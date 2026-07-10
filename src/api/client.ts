@@ -41,6 +41,10 @@ export const api = {
   me: () =>
     request('/auth/me'),
 
+  // 对外可访问地址（供 Agent 安装命令使用）
+  getServerInfo: () =>
+    request<{ controller_ip: string; web_port: number }>('/server-info'),
+
   // API Keys
   listApiKeys: () =>
     request('/api-keys'),
