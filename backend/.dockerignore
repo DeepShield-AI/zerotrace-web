@@ -1,8 +1,0 @@
-target/*
-!target/x86_64-unknown-linux-musl/release/zerotrace-web
-.git/
-.gitignore
-*.md
-.env
-*.log
-node_modules/
