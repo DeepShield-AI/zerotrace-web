@@ -2,15 +2,6 @@
 
 Zerotrace 观测平台前端，提供 APM 服务监控、分布式追踪、基础设施主机/进程列表、Agent 生命周期管理等功能的 Web 界面。
 
-## 技术栈
-
-| 组件 | 技术 |
-|---|---|
-| 前端 | React 19 + TypeScript + Vite + Tailwind CSS + Ant Design + ECharts |
-| 后端 | DeepShield-Server（Go，独立部署） |
-| 数据库 | MySQL（元数据）+ ClickHouse（遥测数据） |
-| Agent | Zerotrace Agent（eBPF，独立部署） |
-
 ## 本地部署
 
 ### 环境要求
@@ -132,3 +123,35 @@ docker run -p 80:80 zerotrace-web
 ```bash
 pnpm dev --host --port 5300
 ```
+
+## 依赖服务
+
+本项目是纯前端，需要以下后端服务已部署：
+
+| 服务 | 说明 |
+|---|---|
+| [DeepShield-Server](https://github.com/DeepShield-AI/deepshield-server) | API 网关 + 业务逻辑 + 数据查询 |
+| MySQL | 组织/用户/API Key/Agent 元数据 |
+| ClickHouse | L4/L7 流量、追踪、指标等遥测数据 |
+| [Zerotrace Agent](https://github.com/DeepShield-AI/zerotrace-agent) | eBPF 数据采集器，安装在被监控主机 |
+
+## 目录结构
+
+```
+├── src/
+│   ├── api/client.ts       # 后端 API 调用
+│   ├── pages/              # 路由页面
+│   ├── components/         # 业务组件
+│   ├── hooks/              # useAuth / useTheme
+│   ├── styles/tokens.css   # 设计 Token
+│   ├── mocks/              # MSW Mock 数据
+│   └── i18n/               # 国际化
+├── vite.config.ts           # Vite 构建 & Proxy 配置
+├── Dockerfile               # 生产镜像
+├── nginx.conf               # 生产 Nginx 配置
+└── docs/                    # 设计文档 & 前端规范
+```
+
+## 开发指南
+
+详见 [CLAUDE.md](CLAUDE.md) 和 [docs/user/local-development.md](docs/user/local-development.md)。
