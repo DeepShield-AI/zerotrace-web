@@ -1,32 +1,103 @@
-# What is Zerotrace Web
+# Zerotrace Web
 
-**Zerotrace Web** is the observability frontend and API gateway for the Zerotrace platform. It provides a unified web interface for visualizing distributed traces, service topologies, application performance metrics, and network flow data — all collected non-intrusively by Zerotrace Agents via eBPF. Built with a Rust backend and React frontend, it serves as the central control plane for Agent lifecycle management, API key provisioning, and anomaly detection via the built-in Guardian engine.
+Zerotrace 观测平台前端，提供 APM 服务监控、分布式追踪、基础设施主机/进程列表、Agent 生命周期管理等功能的 Web 界面。
 
-# Key Features
+## 技术栈
 
-### 1. Unified Observability Dashboard
-Aggregates data from ClickHouse and the Zerotrace Server into a single interface. Exposes service maps, trace views, L4/L7 flow statistics, and time-series metrics through a consistent REST API. The frontend uses ECharts for high-performance rendering of large time-series datasets and Ant Design for a consistent, accessible UI.
+| 组件 | 技术 |
+|---|---|
+| 前端 | React 19 + TypeScript + Vite + Tailwind CSS + Ant Design + ECharts |
+| 后端 | DeepShield-Server（Go，独立部署） |
+| 数据库 | MySQL（元数据）+ ClickHouse（遥测数据） |
+| Agent | Zerotrace Agent（eBPF，独立部署） |
 
-### 2. Zero-Instrumentation APM
-Visualizes application services, operations, traces, and dependencies automatically — no SDK integration needed. Supports multi-dimensional filtering by service name, operation, trace ID, status, and latency range.
+## 本地部署
 
-### 3. Built-in Agent Installer
-Embeds an agent installation service that dynamically generates install scripts. A single curl command downloads, configures, and starts the Zerotrace Agent on any Linux host. The installer auto-detects OS and architecture, and supports custom tags for data segmentation.
+### 环境要求
 
-### 4. Guardian Anomaly Detection
-Performs statistical baseline analysis on service latency and error rates, identifying anomalous behavior without predefined thresholds. Results are persisted as stories with severity scoring, affected services, and temporal context.
+- Node.js >= 22
+- pnpm >= 9
 
-### 5. Multi-Tenant Foundation
-Supports organization-scoped API keys and session management. All authenticated endpoints carry organization context, providing the foundation for tag-based data access control.
+### 1. 安装依赖
 
-# Documentation
+```bash
+pnpm install
+```
 
-See [docs/deployment.md](docs/user/deployment.md) for deployment instructions.
+### 2. 配置后端地址
 
-# Tech Stack
+```bash
+# 创建 .env.local（或直接 export 环境变量）
+echo 'DEEPSHIELD_SERVER_URL=http://<deepshield-server-ip>:30417' > .env.local
+```
 
-| Component | Technology |
-|-----------|------------|
-| Backend | Rust / Axum / SQLx |
-| Frontend | React / TypeScript / Vite / Ant Design / ECharts |
-| Database | MySQL (metadata), ClickHouse (telemetry) |
+`DEEPSHIELD_SERVER_URL` 默认为 `http://127.0.0.1:30417`。
+
+### 3. 启动开发服务器
+
+```bash
+# 连接真实后端
+pnpm dev --host
+
+# 使用 Mock 数据（无需后端）
+pnpm dev:mock
+```
+
+浏览器打开 `http://localhost:5173`。
+
+### 4. 生产构建
+
+```bash
+pnpm build
+```
+
+产出在 `dist/` 目录，用 nginx 部署：
+
+```nginx
+server {
+    listen 80;
+    root /path/to/dist;
+    location / { try_files $uri /index.html; }
+    location /api/ { proxy_pass http://deepshield-server:30417; }
+    location /agent/ { proxy_pass http://deepshield-server:30417; }
+}
+```
+
+或使用 Docker：
+
+```bash
+docker build -t zerotrace-web .
+docker run -p 80:80 zerotrace-web
+```
+
+## 依赖服务
+
+本项目是纯前端，需要以下后端服务已部署：
+
+| 服务 | 说明 |
+|---|---|
+| [DeepShield-Server](https://github.com/DeepShield-AI/deepshield-server) | API 网关 + 业务逻辑 + 数据查询 |
+| MySQL | 组织/用户/API Key/Agent 元数据 |
+| ClickHouse | L4/L7 流量、追踪、指标等遥测数据 |
+| [Zerotrace Agent](https://github.com/DeepShield-AI/zerotrace-agent) | eBPF 数据采集器，安装在被监控主机 |
+
+## 开发指南
+
+详见 [CLAUDE.md](CLAUDE.md) 和 [docs/dev/standards/](docs/dev/standards/)。
+
+## 目录结构
+
+```
+├── src/
+│   ├── api/client.ts       # 后端 API 调用
+│   ├── pages/              # 路由页面
+│   ├── components/         # 业务组件
+│   ├── hooks/              # useAuth / useTheme
+│   ├── styles/tokens.css   # 设计 Token
+│   ├── mocks/              # MSW Mock 数据
+│   └── i18n/               # 国际化
+├── vite.config.ts           # Vite 构建 & Proxy 配置
+├── Dockerfile               # 生产镜像
+├── nginx.conf               # 生产 Nginx 配置
+└── docs/                    # 设计文档 & 前端规范
+```
