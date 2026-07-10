@@ -1,0 +1,13 @@
+{
+  "name": "zerotrace-e2e-tests",
+  "version": "1.0.0",
+  "description": "Zerotrace end-to-end smoke tests",
+  "scripts": {
+    "test": "LD_LIBRARY_PATH=../../datadog-capture/libs/usr/lib/x86_64-linux-gnu:../../datadog-capture/libs/lib/x86_64-linux-gnu:$LD_LIBRARY_PATH node smoke-test.js",
+    "test:remote": "BASE_URL=http://202.112.237.37:5173 API_URL=http://202.112.237.37:3001 npm test",
+    "test:skip-subscribe": "SKIP_SUBSCRIBE=1 npm test"
+  },
+  "dependencies": {
+    "playwright": "^1.52.0"
+  }
+}

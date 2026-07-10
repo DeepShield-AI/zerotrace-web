@@ -1,11 +1,8 @@
-# Rust
-backend/target/
-
-# Node
-frontend/node_modules/
-frontend/dist/
+# Dependencies
 node_modules/
-datadog-capture/node_modules/
+
+# Build output
+dist/
 
 # IDE
 .vscode/
@@ -20,31 +17,14 @@ Thumbs.db
 # Env
 .env
 .env.local
-.env.example
 *.log
-/tmp/
 
+# Misc
 .agents/
 .claude/
-*.pptx
-Datadog*
-screenshots/
-tests/
-log/
-datadog-capture/
-build/
-tools/vision/node_modules/
-backend/agent-installer/
-skills-lock.json
+/ladle/
+/tmp/
+
 CLAUDE.md
-
-# Docs (only user/ and changelog/ are tracked)
-docs/design/
-docs/dev/
-docs/adr/
-docs/assets/
-
-# Tools
 tools/
-
-demo/
+datadog-capture/

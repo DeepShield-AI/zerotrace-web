@@ -1,0 +1,215 @@
+/**
+ * tokens.css - 设计系统单一真相源
+ *
+ * 变量分 3 层：
+ *   Layer 1 (primitive): --color-*, --size-*  仅在此文件定义，业务代码禁止引用
+ *   Layer 2 (semantic):  --bg-*, --fg-*, --accent-*, --border-*  业务代码只能引用这层
+ *   Layer 3 (component): --sidebar-*, --topbar-*  组件专属
+ *
+ * 主题切换：`document.documentElement.classList.add('dark')`
+ */
+
+:root {
+  /* ═══════════════════════════════════════════════════════════════════ */
+  /* Layer 1: PRIMITIVES（原始色 / 尺寸，业务代码禁止直接用）          */
+  /* ═══════════════════════════════════════════════════════════════════ */
+
+  /* Neutrals */
+  --color-neutral-0:   #ffffff;
+  --color-neutral-50:  #f3f9fc;
+  --color-neutral-100: #f8f9fa;
+  --color-neutral-200: #e9ecef;
+  --color-neutral-300: #d1d9e0;
+  --color-neutral-400: #adb5bd;
+  --color-neutral-500: #8b9bb4;
+  --color-neutral-600: #506e81;
+  --color-neutral-700: #373b46;
+  --color-neutral-800: #292e39;
+  --color-neutral-900: #17191f;
+  --color-neutral-950: #091222;
+
+  /* Chromatic (Datadog 真实提取)  */
+  --color-purple-300: #b48fe1;
+  --color-purple-500: #8c4fff;   /* JS 频次 39, primary */
+  --color-purple-700: #632ca6;   /* brand deep */
+  --color-blue-300:   #5bceff;
+  --color-blue-500:   #128fea;   /* info */
+  --color-blue-700:   #006bc2;
+  --color-green-300:  #41eba4;
+  --color-green-500:  #1cb96d;   /* success */
+  --color-green-700:  #01a88d;
+  --color-amber-500:  #f27c00;   /* warning */
+  --color-amber-300:  #fec866;
+  --color-red-500:    #eb364b;   /* danger */
+  --color-red-700:    #ca0812;   /* critical */
+  --color-pink-500:   #ed1978;
+  --color-pink-300:   #ff529c;
+
+  /* Chart series (Datadog SPA JS bundle 提取) */
+  --chart-1: #8c4fff;
+  --chart-2: #128fea;
+  --chart-3: #01a88d;
+  --chart-4: #ed7100;
+  --chart-5: #e7157b;
+  --chart-6: #41eba4;
+  --chart-7: #5bceff;
+  --chart-8: #fec866;
+  --chart-9: #c925d1;
+  --chart-10: #7aa116;
+
+  /* Spacing (4pt grid, Datadog usage: 8=208次 4=157次 16=64次) */
+  --size-0:   0px;
+  --size-px:  1px;
+  --size-0-5: 2px;
+  --size-1:   4px;
+  --size-1-5: 6px;
+  --size-2:   8px;
+  --size-3:   12px;
+  --size-4:   16px;
+  --size-5:   20px;
+  --size-6:   24px;
+  --size-8:   32px;
+  --size-10:  40px;
+  --size-12:  48px;
+  --size-16:  64px;
+
+  /* Radius (Datadog usage: 4px=143 次, 8px=23 次) */
+  --radius-none: 0px;
+  --radius-sm:   2px;
+  --radius-md:   4px;
+  --radius-lg:   6px;
+  --radius-xl:   8px;
+  --radius-2xl:  16px;
+  --radius-full: 9999px;
+
+  /* ═══════════════════════════════════════════════════════════════════ */
+  /* Layer 2: SEMANTIC（业务代码只能引用这层，默认 = 亮色主题）      */
+  /* ═══════════════════════════════════════════════════════════════════ */
+
+  /* Backgrounds */
+  --bg-base:     var(--color-neutral-0);
+  --bg-subtle:   var(--color-neutral-50);
+  --bg-muted:    var(--color-neutral-100);
+  --bg-elevated: var(--color-neutral-0);
+  --bg-inverse:  var(--color-neutral-900);
+
+  /* Foregrounds */
+  --fg-primary:   #1c2b34;
+  --fg-secondary: var(--color-neutral-600);
+  --fg-tertiary:  var(--color-neutral-500);
+  --fg-disabled:  var(--color-neutral-400);
+  --fg-inverse:   var(--color-neutral-50);
+
+  /* Borders */
+  --border-default: var(--color-neutral-300);
+  --border-subtle:  var(--color-neutral-200);
+  --border-strong:  var(--color-neutral-400);
+  --border-focus:   var(--color-purple-700);
+
+  /* Accents (亮色主题：品牌深紫作主色) */
+  --accent-primary:  var(--color-purple-700);
+  --accent-brand:    var(--color-purple-700);
+  --accent-pink:     var(--color-pink-500);
+  --accent-success:  #2db88d;
+  --accent-warning:  #e2903c;
+  --accent-danger:   #e65c5c;
+  --accent-critical: var(--color-red-700);
+  --accent-info:     #4799eb;
+
+  /* Accent backgrounds (半透明徽章底) */
+  --accent-success-bg: rgba(45, 184, 141, 0.12);
+  --accent-warning-bg: rgba(226, 144, 60, 0.12);
+  --accent-danger-bg:  rgba(230, 92, 92, 0.12);
+  --accent-info-bg:    rgba(71, 153, 235, 0.12);
+
+  /* Severity（Monitor 组件专用色阶）*/
+  --severity-ok:       #41c464;
+  --severity-warn:     #deab3e;
+  --severity-alert:    var(--color-red-500);
+  --severity-critical: var(--color-red-700);
+  --severity-no-data:  #828ba4;
+  --severity-unknown:  #c4c4c4;
+
+  /* Shadows */
+  --shadow-none: none;
+  --shadow-sm:   0 1px 2px rgba(0,0,0,0.04);
+  --shadow-md:   0 4px 12px -4px rgba(0,0,0,0.08);
+  --shadow-lg:   0 8px 24px -8px rgba(0,0,0,0.10);
+  --shadow-xl:   0 16px 40px -12px rgba(0,0,0,0.12);
+  --shadow-modal: 0 20px 60px -15px rgba(0,0,0,0.15);
+  --shadow-focus: 0 0 0 3px rgba(140,79,255,0.3);
+
+  /* ═══════════════════════════════════════════════════════════════════ */
+  /* Layer 3: COMPONENT（组件专属 token，从 Layer 2 派生）               */
+  /* ═══════════════════════════════════════════════════════════════════ */
+
+  /* Sidebar */
+  --sidebar-bg:              var(--color-neutral-800);
+  --sidebar-fg:              rgba(255,255,255,0.76);
+  --sidebar-fg-muted:        #babdbb;
+  --sidebar-item-hover-bg:   rgba(255,255,255,0.05);
+  --sidebar-item-active-bg:  rgba(255,255,255,0.08);
+  --sidebar-width:           160px;
+  --sidebar-width-collapsed: 52px;
+  --sidebar-topbar-height:   36px;
+
+  /* TopBar */
+  --topbar-bg:     var(--bg-elevated);
+  --topbar-border: var(--border-subtle);
+  --topbar-height: 48px;
+
+  /* Code block */
+  --code-bg:       #1a1d24;
+  --code-fg:       #c8cdd0;
+  --code-border:   #2d313a;
+  --code-keyword:  #ff79c6;
+  --code-string:   #f1fa8c;
+  --code-func:     #50fa7b;
+  --code-comment:  #6272a4;
+}
+
+/* ═══════════════════════════════════════════════════════════════════ */
+/* 深色主题：只覆盖 Layer 2（semantic），Layer 1 保持不变              */
+/* ═══════════════════════════════════════════════════════════════════ */
+
+.dark {
+  /* Backgrounds — Datadog 真实产品 UI 值 */
+  --bg-base:     var(--color-neutral-900);     /* #17191f */
+  --bg-subtle:   #202f38;
+  --bg-muted:    #1d1c1f;
+  --bg-elevated: var(--color-neutral-700);     /* #373b46 */
+  --bg-inverse:  var(--color-neutral-50);
+
+  /* Foregrounds — Datadog 真实值 */
+  --fg-primary:   var(--color-neutral-50);     /* #f3f9fc */
+  --fg-secondary: #d4d1d6;
+  --fg-tertiary:  #8f969a;
+  --fg-disabled:  rgba(255,255,255,0.2);
+  --fg-inverse:   #1c2b34;
+
+  /* Borders — 深色主题用白色 alpha */
+  --border-default: rgba(255,255,255,0.2);
+  --border-subtle:  rgba(255,255,255,0.12);
+  --border-strong:  rgba(255,255,255,0.3);
+
+  /* Accents — 深色主题主色用亮紫 */
+  --accent-primary:  var(--color-purple-500);   /* #8c4fff */
+  --accent-success:  var(--color-green-500);    /* #1cb96d */
+  --accent-warning:  var(--color-amber-500);    /* #f27c00 */
+  --accent-danger:   var(--color-red-500);      /* #eb364b */
+  --accent-info:     var(--color-blue-500);     /* #128fea */
+
+  --accent-success-bg: rgba(28, 185, 109, 0.15);
+  --accent-warning-bg: rgba(242, 124, 0, 0.15);
+  --accent-danger-bg:  rgba(235, 54, 75, 0.15);
+  --accent-info-bg:    rgba(18, 143, 234, 0.15);
+
+  /* Shadows — 深色主题阴影更暗更深 */
+  --shadow-sm: 0 0 1px rgba(36,41,49,0.5), 0 1px 2px rgba(0,0,0,0.32);
+  --shadow-md: 0 0 1px rgba(36,41,49,0.5), 0 3px 11px rgba(0,0,0,0.4);
+  --shadow-lg: 0 0 1px rgba(36,41,49,0.5), 0 8px 36px rgba(0,0,0,0.5);
+  --shadow-focus: 0 0 0 3px rgba(140,79,255,0.4);
+
+  /* Sidebar 深色下略微区分 */
+  --sidebar-bg: var(--color-neutral-950);  /* 更深 */
+}
