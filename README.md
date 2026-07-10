@@ -124,17 +124,6 @@ docker run -p 80:80 zerotrace-web
 pnpm dev --host --port 5300
 ```
 
-## 依赖服务
-
-本项目是纯前端，需要以下后端服务已部署：
-
-| 服务 | 说明 |
-|---|---|
-| [DeepShield-Server](https://github.com/DeepShield-AI/deepshield-server) | API 网关 + 业务逻辑 + 数据查询 |
-| MySQL | 组织/用户/API Key/Agent 元数据 |
-| ClickHouse | L4/L7 流量、追踪、指标等遥测数据 |
-| [Zerotrace Agent](https://github.com/DeepShield-AI/zerotrace-agent) | eBPF 数据采集器，安装在被监控主机 |
-
 ## 目录结构
 
 ```
