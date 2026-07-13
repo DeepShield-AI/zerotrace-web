@@ -1,0 +1,24 @@
+{
+  "name": "zerotrace-chaos-demo",
+  "version": "1.0.0",
+  "private": true,
+  "description": "微服务故障注入 Demo，服务间通过 HTTP 直连通信，eBPF 可捕获完整调用链",
+  "scripts": {
+    "dev:gateway": "node services/gateway.service.js",
+    "dev:users": "node services/users.service.js",
+    "dev:products": "node services/products.service.js",
+    "dev:orders": "node services/orders.service.js",
+    "dev:chaos": "node services/chaos.service.js",
+    "dev:all": "concurrently -k -n gateway,users,products,orders,chaos -c cyan,green,yellow,magenta,red \"npm:dev:gateway\" \"npm:dev:users\" \"npm:dev:products\" \"npm:dev:orders\" \"npm:dev:chaos\""
+  },
+  "dependencies": {
+    "express": "^4.21.0",
+    "ioredis": "^5.11.1"
+  },
+  "devDependencies": {
+    "concurrently": "^10.0.3"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

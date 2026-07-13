@@ -1,0 +1,120 @@
+# =========================================================
+# 微服务故障注入 Demo — Docker Compose 配置（HTTP 直连版）
+#
+# 服务间通过 HTTP 直连通信，eBPF Agent 可捕获完整调用链：
+#   gateway → orders → users + products
+#
+# 用法：
+#   cd demo
+#   docker compose up --build
+#
+# 启动后：
+#   - API Gateway:  http://localhost:3000
+#   - Redis:        localhost:6379（故障规则共享存储）
+# =========================================================
+services:
+  redis:
+    image: redis:7-alpine
+    container_name: chaos-demo-redis
+    restart: unless-stopped
+    ports:
+      - "${REDIS_PORT:-6379}:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    networks:
+      - chaos-demo
+
+  gateway:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: chaos-demo-gateway
+    restart: unless-stopped
+    command: ["npm", "run", "dev:gateway"]
+    environment:
+      REDIS_URL: redis://redis:6379
+      GATEWAY_PORT: "3000"
+      USERS_SRV: http://users:3001
+      PRODUCTS_SRV: http://products:3002
+      ORDERS_SRV: http://orders:3003
+      CHAOS_SRV: http://chaos:3004
+    ports:
+      - "${GATEWAY_PORT:-3000}:3000"
+    depends_on:
+      redis:
+        condition: service_healthy
+    networks:
+      - chaos-demo
+
+  users:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: chaos-demo-users
+    restart: unless-stopped
+    command: ["npm", "run", "dev:users"]
+    environment:
+      REDIS_URL: redis://redis:6379
+      USERS_PORT: "3001"
+    depends_on:
+      redis:
+        condition: service_healthy
+    networks:
+      - chaos-demo
+
+  products:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: chaos-demo-products
+    restart: unless-stopped
+    command: ["npm", "run", "dev:products"]
+    environment:
+      REDIS_URL: redis://redis:6379
+      PRODUCTS_PORT: "3002"
+    depends_on:
+      redis:
+        condition: service_healthy
+    networks:
+      - chaos-demo
+
+  orders:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: chaos-demo-orders
+    restart: unless-stopped
+    command: ["npm", "run", "dev:orders"]
+    environment:
+      REDIS_URL: redis://redis:6379
+      ORDERS_PORT: "3003"
+      USERS_SRV: http://users:3001
+      PRODUCTS_SRV: http://products:3002
+    depends_on:
+      redis:
+        condition: service_healthy
+    networks:
+      - chaos-demo
+
+  chaos:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: chaos-demo-chaos
+    restart: unless-stopped
+    command: ["npm", "run", "dev:chaos"]
+    environment:
+      REDIS_URL: redis://redis:6379
+      CHAOS_PORT: "3004"
+    depends_on:
+      redis:
+        condition: service_healthy
+    networks:
+      - chaos-demo
+
+networks:
+  chaos-demo:
+    driver: bridge

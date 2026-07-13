@@ -1,0 +1,131 @@
+# =========================================================
+# 微服务故障注入 Demo — Docker Swarm 部署配置
+#
+# 多主机集群部署（HTTP 直连版），适合与 eBPF Agent 配合展示。
+# 服务间通过 HTTP 直连通信，eBPF Agent 可捕获完整调用链。
+# =========================================================
+version: '3.8'
+
+services:
+  redis:
+    image: redis:7-alpine
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    networks:
+      - chaos-demo
+    deploy:
+      mode: replicated
+      replicas: 1
+      endpoint_mode: dnsrr
+      placement:
+        constraints: [node.role == manager]
+      restart_policy:
+        condition: any
+      resources:
+        limits:
+          memory: 256M
+
+  gateway:
+    image: 47.97.67.233:5000/deepshield/zerotrace-chaos-demo:latest
+    command: ["npm", "run", "dev:gateway"]
+    environment:
+      REDIS_URL: redis://redis:6379
+      GATEWAY_PORT: "3000"
+      USERS_SRV: http://users:3001
+      PRODUCTS_SRV: http://products:3002
+      ORDERS_SRV: http://orders:3003
+      CHAOS_SRV: http://chaos:3004
+    ports:
+      - target: 3000
+        published: "${GATEWAY_PORT:-3000}"
+        protocol: tcp
+        mode: host
+    networks:
+      - chaos-demo
+    deploy:
+      mode: replicated
+      replicas: 1
+      endpoint_mode: dnsrr
+      placement:
+        constraints: [node.labels.role == worker]
+      restart_policy:
+        condition: any
+
+  users:
+    image: 47.97.67.233:5000/deepshield/zerotrace-chaos-demo:latest
+    command: ["npm", "run", "dev:users"]
+    environment:
+      REDIS_URL: redis://redis:6379
+      USERS_PORT: "3001"
+    networks:
+      - chaos-demo
+    deploy:
+      mode: replicated
+      replicas: 1
+      endpoint_mode: dnsrr
+      placement:
+        constraints: [node.labels.role == worker]
+      restart_policy:
+        condition: any
+
+  products:
+    image: 47.97.67.233:5000/deepshield/zerotrace-chaos-demo:latest
+    command: ["npm", "run", "dev:products"]
+    environment:
+      REDIS_URL: redis://redis:6379
+      PRODUCTS_PORT: "3002"
+    networks:
+      - chaos-demo
+    deploy:
+      mode: replicated
+      replicas: 1
+      endpoint_mode: dnsrr
+      placement:
+        constraints: [node.labels.role == worker]
+      restart_policy:
+        condition: any
+
+  orders:
+    image: 47.97.67.233:5000/deepshield/zerotrace-chaos-demo:latest
+    command: ["npm", "run", "dev:orders"]
+    environment:
+      REDIS_URL: redis://redis:6379
+      ORDERS_PORT: "3003"
+      USERS_SRV: http://users:3001
+      PRODUCTS_SRV: http://products:3002
+    networks:
+      - chaos-demo
+    deploy:
+      mode: replicated
+      replicas: 1
+      endpoint_mode: dnsrr
+      placement:
+        constraints: [node.labels.role == worker]
+      restart_policy:
+        condition: any
+
+  chaos:
+    image: 47.97.67.233:5000/deepshield/zerotrace-chaos-demo:latest
+    command: ["npm", "run", "dev:chaos"]
+    environment:
+      REDIS_URL: redis://redis:6379
+      CHAOS_PORT: "3004"
+    networks:
+      - chaos-demo
+    deploy:
+      mode: replicated
+      replicas: 1
+      endpoint_mode: dnsrr
+      placement:
+        constraints: [node.labels.role == worker]
+      restart_policy:
+        condition: any
+
+networks:
+  chaos-demo:
+    driver: overlay
+    attachable: true
+
