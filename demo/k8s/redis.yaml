@@ -32,10 +32,12 @@ spec:
       labels:
         app: redis
     spec:
+      nodeSelector:
+        kubernetes.io/hostname: worker2
       containers:
         - name: redis
           image: redis:7-alpine
-          imagePullPolicy: Never
+          imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 6379
               name: redis

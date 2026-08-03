@@ -36,10 +36,12 @@ spec:
       labels:
         app: gateway
     spec:
+      nodeSelector:
+        kubernetes.io/hostname: worker1
       containers:
         - name: gateway
           image: localhost/zerotrace-chaos-demo:latest
-          imagePullPolicy: Never
+          imagePullPolicy: IfNotPresent
           command: ["npm", "run", "dev:gateway"]
           env:
             - name: REDIS_URL
@@ -108,10 +110,12 @@ spec:
       labels:
         app: users
     spec:
+      nodeSelector:
+        kubernetes.io/hostname: worker1
       containers:
         - name: users
           image: localhost/zerotrace-chaos-demo:latest
-          imagePullPolicy: Never
+          imagePullPolicy: IfNotPresent
           command: ["npm", "run", "dev:users"]
           env:
             - name: REDIS_URL
@@ -172,10 +176,12 @@ spec:
       labels:
         app: products
     spec:
+      nodeSelector:
+        kubernetes.io/hostname: worker1
       containers:
         - name: products
           image: localhost/zerotrace-chaos-demo:latest
-          imagePullPolicy: Never
+          imagePullPolicy: IfNotPresent
           command: ["npm", "run", "dev:products"]
           env:
             - name: REDIS_URL
@@ -236,10 +242,12 @@ spec:
       labels:
         app: orders
     spec:
+      nodeSelector:
+        kubernetes.io/hostname: worker2
       containers:
         - name: orders
           image: localhost/zerotrace-chaos-demo:latest
-          imagePullPolicy: Never
+          imagePullPolicy: IfNotPresent
           command: ["npm", "run", "dev:orders"]
           env:
             - name: REDIS_URL
@@ -304,10 +312,12 @@ spec:
       labels:
         app: chaos
     spec:
+      nodeSelector:
+        kubernetes.io/hostname: worker2
       containers:
         - name: chaos
           image: localhost/zerotrace-chaos-demo:latest
-          imagePullPolicy: Never
+          imagePullPolicy: IfNotPresent
           command: ["npm", "run", "dev:chaos"]
           env:
             - name: REDIS_URL
