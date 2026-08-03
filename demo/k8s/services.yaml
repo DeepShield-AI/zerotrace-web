@@ -40,7 +40,6 @@ spec:
         - name: gateway
           image: localhost/zerotrace-chaos-demo:latest
           imagePullPolicy: Never
-          imagePullPolicy: IfNotPresent
           command: ["npm", "run", "dev:gateway"]
           env:
             - name: REDIS_URL
@@ -113,7 +112,6 @@ spec:
         - name: users
           image: localhost/zerotrace-chaos-demo:latest
           imagePullPolicy: Never
-          imagePullPolicy: IfNotPresent
           command: ["npm", "run", "dev:users"]
           env:
             - name: REDIS_URL
@@ -178,7 +176,6 @@ spec:
         - name: products
           image: localhost/zerotrace-chaos-demo:latest
           imagePullPolicy: Never
-          imagePullPolicy: IfNotPresent
           command: ["npm", "run", "dev:products"]
           env:
             - name: REDIS_URL
@@ -243,7 +240,6 @@ spec:
         - name: orders
           image: localhost/zerotrace-chaos-demo:latest
           imagePullPolicy: Never
-          imagePullPolicy: IfNotPresent
           command: ["npm", "run", "dev:orders"]
           env:
             - name: REDIS_URL
@@ -312,7 +308,6 @@ spec:
         - name: chaos
           image: localhost/zerotrace-chaos-demo:latest
           imagePullPolicy: Never
-          imagePullPolicy: IfNotPresent
           command: ["npm", "run", "dev:chaos"]
           env:
             - name: REDIS_URL
