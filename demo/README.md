@@ -348,7 +348,7 @@ EOF
 **worker1（构建 + 导入）**：
 
 ```bash
-cd /opt/zerotrace-web/demo
+cd zerotrace-web/demo
 sudo buildah bud -t zerotrace-chaos-demo:latest .        # 构建（含 npm install，几分钟）
 # 构建产物名会被标记为 localhost/zerotrace-chaos-demo:latest，正好与 manifest 一致
 sudo buildah push localhost/zerotrace-chaos-demo:latest docker-archive:/tmp/chaos-demo.tar
@@ -379,7 +379,7 @@ sudo crictl pull docker.io/library/redis:7-alpine   # 走 daocloud 加速
 ### 5.5 执行部署（worker1）
 
 ```bash
-cd /opt/zerotrace-web/demo
+cd zerotrace-web/demo
 kubectl apply -f k8s/namespace.yaml
 kubectl apply -f k8s/redis.yaml
 kubectl apply -f k8s/services.yaml
@@ -413,7 +413,7 @@ curl -X POST http://localhost:30300/api/orders \
 **流量生成**（任意有 curl 的机器，指向网关）：
 
 ```bash
-cd /opt/zerotrace-web/demo
+cd zerotrace-web/demo
 GATEWAY_URL=http://localhost:30300 TOTAL=200 ./traffic-gen.sh
 # 或 GATEWAY_URL=http://localhost:30300 npm run gen
 ```
